@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { Reveal, Scope, SkillEntry } from '../model/types';
+import { SCOPES, Reveal, Scope, SkillEntry } from '../model/types';
 import { SkillRow } from './SkillRow';
 
 interface SkillListProps {
@@ -9,8 +9,6 @@ interface SkillListProps {
   reveal?: Reveal;
   onSelect: (skill: SkillEntry) => void;
 }
-
-const SCOPE_ORDER: Scope[] = ['project', 'user', 'plugin'];
 
 const SCOPE_LABEL: Record<Scope, string> = {
   project: 'Project',
@@ -41,7 +39,7 @@ export const SkillList = ({ skills, selectedPath, reveal, onSelect }: SkillListP
 
   return (
     <div className="flex flex-col gap-4">
-      {SCOPE_ORDER.map((scope) => {
+      {SCOPES.map((scope) => {
         const inScope: SkillEntry[] = skills.filter((skill) => skill.scope === scope);
         if (inScope.length === 0) return null;
 

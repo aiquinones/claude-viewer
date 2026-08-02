@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { openPanel } from '../../host/panel';
 import { workspaceRoot } from '../../host/workspace';
-import { findByName } from '../../model/shadowing';
+import { findSkillByName } from '../../model/shadowing';
 import { buildSnapshot } from '../../model/snapshot';
 import { ConfigSnapshot, SkillEntry } from '../../model/types';
 import { openSkill } from '../open-skill/open-skill';
@@ -21,7 +21,7 @@ export const handleUri = async ({ context, uri }: HandleUriArgs): Promise<void> 
   if (link.kind === 'pick') return openSkill({ context, initialQuery: link.query });
 
   const snapshot: ConfigSnapshot = await buildSnapshot(workspaceRoot());
-  const match: SkillEntry | undefined = findByName({
+  const linkedSkill: SkillEntry | undefined = findSkillByName({
     skills: snapshot.skills,
     name: link.name,
     scope: link.scope
@@ -29,11 +29,13 @@ export const handleUri = async ({ context, uri }: HandleUriArgs): Promise<void> 
 
   // A link arrives from somewhere the reader can't see, so a miss says so and drops them into the
   // picker with the name typed in rather than doing nothing.
-  if (!match) {
-    const where: string = link.scope ? ` at ${link.scope} scope` : '';
-    void vscode.window.showWarningMessage(`Claude Viewer: no skill named "${link.name}"${where}.`);
+  if (!linkedSkill) {
+    const scopeNote: string = link.scope ? ` at ${link.scope} scope` : '';
+    void vscode.window.showWarningMessage(
+      `Claude Viewer: no skill named "${link.name}"${scopeNote}.`
+    );
     return openSkill({ context, initialQuery: link.name });
   }
 
-  openPanel({ context, revealPath: match.path });
+  openPanel({ context, revealPath: linkedSkill.path });
 };

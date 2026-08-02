@@ -5,6 +5,16 @@ import { ConfigSnapshot, SkillRoot, WebviewMessage } from '../model/types';
 import { getWebviewHtml } from './shell-html';
 import { workspaceRoot } from './workspace';
 
+// Registered in package.json under contributes.commands — the two have to agree.
+export const OPEN_PANEL_COMMAND: string = 'claudeViewer.open';
+
+// The panel's viewType, which VS Code keys serialization off, and the tab label.
+export const PANEL_VIEW_TYPE: string = 'claudeViewer';
+export const PANEL_TITLE: string = 'Claude Viewer';
+
+// A single save fires several watcher events; this is how long they're coalesced for.
+const REFRESH_DEBOUNCE_MS: number = 150;
+
 let panel: vscode.WebviewPanel | undefined;
 let watchers: vscode.FileSystemWatcher[] = [];
 let refreshTimer: NodeJS.Timeout | undefined;
@@ -32,8 +42,8 @@ export const openPanel = ({ context, revealPath }: OpenPanelArgs): void => {
   webviewReady = false;
 
   panel = vscode.window.createWebviewPanel(
-    'claudeViewer',
-    'Claude Viewer',
+    PANEL_VIEW_TYPE,
+    PANEL_TITLE,
     vscode.ViewColumn.Beside,
     {
       enableScripts: true,
@@ -134,8 +144,7 @@ export const stopWatching = (): void => {
   watchers = [];
 };
 
-// A single save fires several events; coalesce them into one rebuild.
 const _scheduleRefresh = (): void => {
   if (refreshTimer) clearTimeout(refreshTimer);
-  refreshTimer = setTimeout(() => void _push(), 150);
+  refreshTimer = setTimeout(() => void _push(), REFRESH_DEBOUNCE_MS);
 };

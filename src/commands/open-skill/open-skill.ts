@@ -5,6 +5,9 @@ import { buildSnapshot } from '../../model/snapshot';
 import { ConfigSnapshot, SkillEntry } from '../../model/types';
 import { pickSkill } from './quick-pick';
 
+// Registered in package.json under contributes.commands — the two have to agree.
+export const OPEN_SKILL_COMMAND: string = 'claudeViewer.openSkill';
+
 interface OpenSkillArgs {
   context: vscode.ExtensionContext;
   // Prefills the picker — used when a deep link named a skill that doesn't resolve.

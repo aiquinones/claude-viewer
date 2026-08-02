@@ -119,7 +119,5 @@ export const snapshot = ({ skills, workspaceRoot }: SnapshotArgs): ConfigSnapsho
   loadedAt: Date.UTC(2026, 7, 1)
 });
 
-export const scopes: Scope[] = ['project', 'user', 'plugin'];
-
 // What the host posts when the palette or a deep link names a skill.
 export const reveal = (skill: SkillEntry): Reveal => ({ path: skill.path, nonce: 1 });
