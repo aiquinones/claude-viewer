@@ -16,7 +16,8 @@ docs/**
 tracking/**
 node_modules/**
 
-# Icon source + exploration variants. The shipped icon is resources/icon.png.
+# Icon source + exploration variants. What ships is resources/: icon.png for the
+# Marketplace, panel-icon-{light,dark}.svg for the panel's tab.
 images/**
 
 build.mjs
