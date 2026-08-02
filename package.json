@@ -29,12 +29,18 @@
     "configuration"
   ],
   "main": "./dist/extension.js",
-  "activationEvents": [],
+  "activationEvents": [
+    "onUri"
+  ],
   "contributes": {
     "commands": [
       {
         "command": "claudeViewer.open",
         "title": "Claude Viewer: Open"
+      },
+      {
+        "command": "claudeViewer.openSkill",
+        "title": "Claude Viewer: Open Skill…"
       }
     ]
   },

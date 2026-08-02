@@ -1,15 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { Scope, SkillEntry } from '../model/types';
+import { SCOPES, Reveal, Scope, SkillEntry } from '../model/types';
 import { SkillRow } from './SkillRow';
 
 interface SkillListProps {
   skills: SkillEntry[];
   selectedPath: string | undefined;
+  reveal?: Reveal;
   onSelect: (skill: SkillEntry) => void;
 }
-
-const SCOPE_ORDER: Scope[] = ['project', 'user', 'plugin'];
 
 const SCOPE_LABEL: Record<Scope, string> = {
   project: 'Project',
@@ -19,8 +18,17 @@ const SCOPE_LABEL: Record<Scope, string> = {
 
 // Grouped by scope in precedence order, so the list itself shows which skills win by sitting
 // first. Plugin scope is the long tail — collapsing it gets your own skills back on one screen.
-export const SkillList = ({ skills, selectedPath, onSelect }: SkillListProps) => {
+export const SkillList = ({ skills, selectedPath, reveal, onSelect }: SkillListProps) => {
   const [collapsed, setCollapsed] = useState<Scope[]>([]);
+
+  // Plugin scope is the group people collapse, and it's where a deep link most often lands.
+  // Expanding just that group leaves every other manual collapse alone.
+  useEffect(() => {
+    if (!reveal) return;
+    const revealed: SkillEntry | undefined = skills.find((skill) => skill.path === reveal.path);
+    if (!revealed) return;
+    setCollapsed((previous) => previous.filter((scope) => scope !== revealed.scope));
+  }, [reveal]);
 
   const toggle = (scope: Scope): void =>
     setCollapsed((previous) =>
@@ -31,7 +39,7 @@ export const SkillList = ({ skills, selectedPath, onSelect }: SkillListProps) =>
 
   return (
     <div className="flex flex-col gap-4">
-      {SCOPE_ORDER.map((scope) => {
+      {SCOPES.map((scope) => {
         const inScope: SkillEntry[] = skills.filter((skill) => skill.scope === scope);
         if (inScope.length === 0) return null;
 

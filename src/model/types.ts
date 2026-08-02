@@ -1,8 +1,14 @@
 // Shared shapes for the host and the webview. The host builds these from disk; the webview
 // only ever reads them.
 
-// Skill scopes, most specific first. Memory adds 'local' and 'nested' when that surface lands.
-export type Scope = 'project' | 'user' | 'plugin';
+// Skill scopes, most specific first — the array order *is* the precedence order, so `scopeRank`
+// reads position off it. Memory adds 'local' and 'nested' when that surface lands.
+//
+// Deliberately not annotated: a type here would erase the literals that `Scope` is derived from,
+// and deriving is what keeps adding a scope to one edit instead of four.
+export const SCOPES = ['project', 'user', 'plugin'] as const;
+
+export type Scope = (typeof SCOPES)[number];
 
 export type IssueSeverity = 'warning' | 'error';
 
@@ -42,8 +48,17 @@ export interface ConfigSnapshot {
   loadedAt: number;
 }
 
+// Selecting one skill from outside the webview — the command palette or a vscode:// link. The
+// nonce is what makes revealing the same skill twice in a row a second event rather than a no-op.
+export interface Reveal {
+  path: string;
+  nonce: number;
+}
+
 // Host → webview.
-export type HostMessage = { type: 'snapshot'; snapshot: ConfigSnapshot };
+export type HostMessage =
+  | { type: 'snapshot'; snapshot: ConfigSnapshot }
+  | ({ type: 'reveal' } & Reveal);
 
 // Webview → host.
 export type WebviewMessage =

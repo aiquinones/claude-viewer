@@ -1,20 +1,27 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { ConfigSnapshot, SkillEntry } from '../../model/types';
+import { ConfigSnapshot, Reveal, SkillEntry } from '../../model/types';
 import { Button } from '@/components/ui/button';
 import { SkillDetail } from '../SkillDetail';
 import { SkillList } from '../SkillList';
 
 interface SkillViewProps {
   snapshot: ConfigSnapshot;
+  // The palette or a vscode:// link asking for one skill.
+  reveal?: Reveal;
   onOpenFile: (path: string) => void;
   onRefresh: () => void;
 }
 
 // Everything about the skills surface: which one is selected, the list, the detail. App renders
 // one of these, so the next surface is a sibling view rather than another branch in App.
-export const SkillView = ({ snapshot, onOpenFile, onRefresh }: SkillViewProps) => {
+export const SkillView = ({ snapshot, reveal, onOpenFile, onRefresh }: SkillViewProps) => {
   const [selectedPath, setSelectedPath] = useState<string | undefined>(undefined);
+
+  // A reveal comes from outside the webview, so it wins over whatever was clicked in here.
+  useEffect(() => {
+    if (reveal) setSelectedPath(reveal.path);
+  }, [reveal]);
 
   const skills: SkillEntry[] = snapshot.skills;
   const selected: SkillEntry | undefined =
@@ -52,6 +59,7 @@ export const SkillView = ({ snapshot, onOpenFile, onRefresh }: SkillViewProps) =
             <SkillList
               skills={skills}
               selectedPath={selected?.path}
+              reveal={reveal}
               onSelect={(skill) => setSelectedPath(skill.path)}
             />
           </div>
