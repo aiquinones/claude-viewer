@@ -33,6 +33,23 @@
     "onUri"
   ],
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "claudeViewer",
+          "title": "Claude Viewer",
+          "icon": "resources/activity-bar.svg"
+        }
+      ]
+    },
+    "views": {
+      "claudeViewer": [
+        {
+          "id": "claudeViewer.tree",
+          "name": "Configuration"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "claudeViewer.open",
@@ -41,8 +58,99 @@
       {
         "command": "claudeViewer.openSkill",
         "title": "Claude Viewer: Open Skill…"
+      },
+      {
+        "command": "claudeViewer.refresh",
+        "title": "Refresh",
+        "category": "Claude Viewer",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "claudeViewer.revealNode",
+        "title": "Open in Claude Viewer",
+        "category": "Claude Viewer"
+      },
+      {
+        "command": "claudeViewer.show.project",
+        "title": "Show Project Scope",
+        "category": "Claude Viewer"
+      },
+      {
+        "command": "claudeViewer.hide.project",
+        "title": "Hide Project Scope",
+        "category": "Claude Viewer"
+      },
+      {
+        "command": "claudeViewer.show.user",
+        "title": "Show User Scope",
+        "category": "Claude Viewer"
+      },
+      {
+        "command": "claudeViewer.hide.user",
+        "title": "Hide User Scope",
+        "category": "Claude Viewer"
+      },
+      {
+        "command": "claudeViewer.show.plugin",
+        "title": "Show Plugin Scope",
+        "category": "Claude Viewer"
+      },
+      {
+        "command": "claudeViewer.hide.plugin",
+        "title": "Hide Plugin Scope",
+        "category": "Claude Viewer"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "claudeViewer.refresh",
+          "when": "view == claudeViewer.tree",
+          "group": "navigation"
+        },
+        {
+          "command": "claudeViewer.hide.project",
+          "when": "view == claudeViewer.tree && claudeViewer.showing.project",
+          "group": "1_scopes@1"
+        },
+        {
+          "command": "claudeViewer.show.project",
+          "when": "view == claudeViewer.tree && !claudeViewer.showing.project",
+          "group": "1_scopes@1"
+        },
+        {
+          "command": "claudeViewer.hide.user",
+          "when": "view == claudeViewer.tree && claudeViewer.showing.user",
+          "group": "1_scopes@2"
+        },
+        {
+          "command": "claudeViewer.show.user",
+          "when": "view == claudeViewer.tree && !claudeViewer.showing.user",
+          "group": "1_scopes@2"
+        },
+        {
+          "command": "claudeViewer.hide.plugin",
+          "when": "view == claudeViewer.tree && claudeViewer.showing.plugin",
+          "group": "1_scopes@3"
+        },
+        {
+          "command": "claudeViewer.show.plugin",
+          "when": "view == claudeViewer.tree && !claudeViewer.showing.plugin",
+          "group": "1_scopes@3"
+        },
+        {
+          "command": "claudeViewer.open",
+          "when": "view == claudeViewer.tree",
+          "group": "2_panel@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "claudeViewer.revealNode",
+          "when": "false"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "node build.mjs",
