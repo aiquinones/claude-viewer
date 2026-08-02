@@ -1,0 +1,83 @@
+@import "tailwindcss";
+@source "./**/*.{ts,tsx}";
+
+/* shadcn semantic tokens resolved to the editor's theme. The editor swaps these on theme
+   change, so light/dark is automatic — no .dark class to maintain. */
+:root {
+  --radius: 0.625rem;
+
+  --background: var(--vscode-editor-background);
+  --foreground: var(--vscode-foreground);
+
+  --card: var(--vscode-editorWidget-background, color-mix(in srgb, var(--vscode-foreground) 4%, transparent));
+  --card-foreground: var(--vscode-foreground);
+
+  --popover: var(--vscode-editorWidget-background);
+  --popover-foreground: var(--vscode-foreground);
+
+  --primary: var(--vscode-button-background);
+  --primary-foreground: var(--vscode-button-foreground);
+  --primary-hover: var(--vscode-button-hoverBackground, var(--vscode-button-background));
+
+  --secondary: color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+  --secondary-foreground: var(--vscode-foreground);
+
+  --muted: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+  --muted-foreground: var(--vscode-descriptionForeground, color-mix(in srgb, var(--vscode-foreground) 60%, transparent));
+
+  --accent: var(--vscode-list-hoverBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+  --accent-foreground: var(--vscode-foreground);
+
+  --border: var(--vscode-widget-border, color-mix(in srgb, var(--vscode-foreground) 12%, transparent));
+  --input: var(--vscode-input-background);
+  --ring: var(--vscode-focusBorder);
+
+  /* Selected row in the skills list — the editor's own list-selection colors. */
+  --selected: var(--vscode-list-activeSelectionBackground);
+  --selected-foreground: var(--vscode-list-activeSelectionForeground, var(--vscode-foreground));
+
+  /* Issue severities, mapped to the editor's diagnostic colors. */
+  --warn: var(--vscode-editorWarning-foreground, #cca700);
+  --error: var(--vscode-editorError-foreground, #f14c4c);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-selected: var(--selected);
+  --color-selected-foreground: var(--selected-foreground);
+  --color-warn: var(--warn);
+  --color-error: var(--error);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  body {
+    font-family: var(--vscode-font-family);
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  code, .mono {
+    font-family: var(--vscode-editor-font-family, ui-monospace, monospace);
+  }
+}
