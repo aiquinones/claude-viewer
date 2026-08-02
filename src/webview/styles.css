@@ -70,6 +70,31 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* The landing ↔ surface slide. Timing lives here rather than inline on the element, because an
+   inline transition would win over the reduced-motion query below. */
+.view-pane {
+  transition-property: transform, visibility;
+  transition-timing-function: ease-out, linear;
+  /* Long enough to read as movement, short enough that a back-and-forth doesn't feel slow. */
+  transition-duration: 200ms, 0s;
+}
+
+/* The pane on its way out stays visible for the length of the slide, then drops out of the tab
+   order. Hiding it any sooner blanks it mid-animation. */
+.view-pane[data-active='false'] {
+  transition-delay: 0ms, 200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view-pane {
+    transition-duration: 0s, 0s;
+  }
+
+  .view-pane[data-active='false'] {
+    transition-delay: 0ms, 0ms;
+  }
+}
+
 /* Landing-page surface cards. Each card sets --surface-accent inline, so the color lives with the
    surface and only the mixing lives here. */
 .surface-card {

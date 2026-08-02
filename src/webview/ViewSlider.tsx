@@ -1,8 +1,5 @@
 import { CSSProperties, ReactNode } from 'react';
 
-// Long enough to read as movement, short enough that a back-and-forth doesn't feel slow.
-const SLIDE_MS: number = 200;
-
 interface ViewSliderProps {
   // false shows `home`, true slides to `detail`.
   showDetail: boolean;
@@ -10,52 +7,48 @@ interface ViewSliderProps {
   detail: ReactNode;
 }
 
-// Two full-width panes on one track that translates between them. Both stay mounted, so going
-// home and coming back keeps whatever was selected — and so the outgoing pane has something to
-// show while it slides away.
+// Two panes stacked on the same box, moved by transform alone. Both stay mounted, so going home
+// and coming back keeps whatever was selected — and so the outgoing pane has something to show
+// while it slides away.
 //
-// The track is viewport-width with panes that refuse to shrink, rather than a 200%-wide track
-// holding two half-width panes. Same result, except no element is ever wider than the panel, so
-// nothing outside this file can center or reflow the overflow.
+// Each pane is `absolute inset-0`, which is the whole reason this reads the way it does. A flex
+// track sizes its panes from the container's width during layout, and in a webview that first
+// layout can happen before the panel has settled at its real width — the panel opened shifted and
+// only straightened out once a navigation forced a fresh pass. Pinning to inset-0 means a pane is
+// the container by definition, at every layout pass, and nothing but the transform ever moves it.
 export const ViewSlider = ({ showDetail, home, detail }: ViewSliderProps) => (
-  <div className="h-screen w-full overflow-hidden">
-    <div
-      className="flex h-full w-full transition-transform ease-out motion-reduce:transition-none"
-      style={{
-        transform: showDetail ? 'translateX(-100%)' : 'translateX(0)',
-        transitionDuration: `${SLIDE_MS}ms`
-      }}
-    >
-      <Pane active={!showDetail}>{home}</Pane>
-      <Pane active={showDetail}>{detail}</Pane>
-    </div>
+  <div className="relative h-screen w-full overflow-hidden">
+    <Pane active={!showDetail} offset={showDetail ? '-100%' : '0%'}>
+      {home}
+    </Pane>
+    <Pane active={showDetail} offset={showDetail ? '0%' : '100%'}>
+      {detail}
+    </Pane>
   </div>
 );
 
 interface PaneProps {
   active: boolean;
+  // Where this pane sits relative to the panel: 0% is on screen, ±100% is one panel away.
+  offset: string;
   children: ReactNode;
 }
 
-// `shrink-0` and `min-w-0` are what keep a pane exactly one panel wide. A flex item defaults to
-// `min-width: auto`, so a pane refuses to shrink below its content's min-content width — a long
-// file path in the skills detail was enough to push the whole track sideways, which read as the
-// panel being shifted left. An empty skills list has no wide content, so it hid the bug.
-//
-// The offscreen pane goes `visibility: hidden` once the slide finishes, which is what takes its
-// buttons out of the tab order. Hiding it any earlier would blank it mid-animation, so the delay
-// applies on the way out only.
-const Pane = ({ active, children }: PaneProps) => {
+// Timing lives in the `.view-pane` rules in styles.css, not here — an inline transition would beat
+// the prefers-reduced-motion media query. `data-active` is what those rules key the exit delay off:
+// the pane goes `visibility: hidden` only once the slide has finished, which is what takes its
+// buttons out of the tab order without blanking it mid-animation.
+const Pane = ({ active, offset, children }: PaneProps) => {
   const style: CSSProperties = {
-    visibility: active ? 'visible' : 'hidden',
-    transition: 'visibility 0s linear',
-    transitionDelay: active ? '0ms' : `${SLIDE_MS}ms`
+    transform: `translateX(${offset})`,
+    visibility: active ? 'visible' : 'hidden'
   };
 
   return (
     <div
-      className="h-full w-full min-w-0 shrink-0 overflow-hidden"
+      className="view-pane absolute inset-0 overflow-hidden"
       style={style}
+      data-active={active}
       aria-hidden={!active}
     >
       {children}
