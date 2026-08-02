@@ -23,10 +23,31 @@ frontmatter shows up as an issue on the skill rather than a missing row.
 
 The panel refreshes as config changes on disk, and it follows your editor theme.
 
+When you already know the name, **Claude Viewer: Open Skill…** skips the list — a searchable picker
+over every resolved skill, matching on the description as well as the name, that opens the panel on
+the one you chose.
+
 **CLAUDE.md is next** — load order from user global down through nested files, `@imports` expanded
 into a tree, and a size estimate per file so you can see what your context is spending.
 
 After that: hooks, MCP servers, subagents, slash commands, and merged permissions.
+
+## Linking to a skill
+
+Any skill has a URL:
+
+```
+vscode://canoq.claude-viewer/skill/commit
+vscode://canoq.claude-viewer/skill/deploy?scope=user   # a specific scope's copy
+vscode://canoq.claude-viewer/skill                     # just open the picker
+```
+
+Opening one opens the panel on that skill, launching VS Code first if it isn't running. Useful in a
+runbook or a PR description where "check the `deploy` skill" is otherwise a paragraph of
+instructions. Without `?scope=`, the name resolves to the skill that actually wins.
+
+Links only ever carry a name, never a path — the extension resolves it against what it found on
+disk, so a link can't be crafted to open a file outside your skill directories.
 
 ## Install
 

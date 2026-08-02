@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { allSkills, plainSkill, snapshot } from '../fixtures';
+import { allSkills, plainSkill, pluginDeploy, reveal, snapshot } from '../fixtures';
 import { SkillView } from './SkillView';
 
 // SkillView takes a plain snapshot and two callbacks, so unlike App it needs no stubbing at all.
@@ -41,5 +41,14 @@ export const SingleSkill: Story = {
 export const OnlyPluginSkills: Story = {
   args: {
     snapshot: snapshot({ skills: allSkills.filter((skill) => skill.scope === 'plugin') })
+  }
+};
+
+// Arriving from `vscode://canoq.claude-viewer/skill/deploy?scope=plugin`. Selection overrides the
+// default first-row pick, and it lands on a shadowed skill, so the detail names the winner.
+export const RevealedShadowedSkill: Story = {
+  args: {
+    snapshot: snapshot({ skills: allSkills }),
+    reveal: reveal(pluginDeploy)
   }
 };

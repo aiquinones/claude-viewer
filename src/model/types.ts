@@ -42,8 +42,17 @@ export interface ConfigSnapshot {
   loadedAt: number;
 }
 
+// Selecting one skill from outside the webview — the command palette or a vscode:// link. The
+// nonce is what makes revealing the same skill twice in a row a second event rather than a no-op.
+export interface Reveal {
+  path: string;
+  nonce: number;
+}
+
 // Host → webview.
-export type HostMessage = { type: 'snapshot'; snapshot: ConfigSnapshot };
+export type HostMessage =
+  | { type: 'snapshot'; snapshot: ConfigSnapshot }
+  | ({ type: 'reveal' } & Reveal);
 
 // Webview → host.
 export type WebviewMessage =

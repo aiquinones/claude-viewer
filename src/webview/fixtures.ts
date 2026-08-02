@@ -1,4 +1,4 @@
-import { ConfigIssue, ConfigSnapshot, Scope, SkillEntry } from '../model/types';
+import { ConfigIssue, ConfigSnapshot, Reveal, Scope, SkillEntry } from '../model/types';
 
 // Synthetic only. Never paste real config in here — working on this extension means reading your
 // own ~/.claude, and that directory holds permissions, MCP env vars, and API keys.
@@ -120,3 +120,6 @@ export const snapshot = ({ skills, workspaceRoot }: SnapshotArgs): ConfigSnapsho
 });
 
 export const scopes: Scope[] = ['project', 'user', 'plugin'];
+
+// What the host posts when the palette or a deep link names a skill.
+export const reveal = (skill: SkillEntry): Reveal => ({ path: skill.path, nonce: 1 });

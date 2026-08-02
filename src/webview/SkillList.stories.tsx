@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Reveal } from '../model/types';
 import { SkillList } from './SkillList';
-import { allSkills, plainSkill, projectDeploy } from './fixtures';
+import { allSkills, nameMismatch, plainSkill, projectDeploy } from './fixtures';
 
 const meta: Meta<typeof SkillList> = {
   title: 'Skills/SkillList',
@@ -32,4 +34,33 @@ export const SingleScope: Story = {
 
 export const NothingSelected: Story = {
   args: { skills: allSkills, selectedPath: undefined }
+};
+
+// Collapse the Plugin group, then reveal — the group has to reopen, or a deep link into it looks
+// like it did nothing. Interactive because collapse state lives inside SkillList.
+export const RevealIntoCollapsedGroup: Story = {
+  render: () => {
+    const [reveal, setReveal] = useState<Reveal | undefined>(undefined);
+
+    return (
+      <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          className="rounded-md border border-border px-3 py-1 text-xs"
+          onClick={() => setReveal((previous) => ({
+            path: nameMismatch.path,
+            nonce: (previous?.nonce ?? 0) + 1
+          }))}
+        >
+          Reveal a plugin skill
+        </button>
+        <SkillList
+          skills={allSkills}
+          selectedPath={reveal?.path}
+          reveal={reveal}
+          onSelect={() => undefined}
+        />
+      </div>
+    );
+  }
 };

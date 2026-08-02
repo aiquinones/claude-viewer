@@ -1,112 +1,72 @@
 import * as vscode from 'vscode';
-import { skillRoots } from './config/paths';
+import { DeepLink, parseDeepLink } from './deep-link';
+import { findByName } from './model/shadowing';
 import { buildSnapshot } from './model/snapshot';
-import { ConfigSnapshot, SkillRoot, WebviewMessage } from './model/types';
-import { getWebviewHtml } from './webview';
-
-let panel: vscode.WebviewPanel | undefined;
-let watchers: vscode.FileSystemWatcher[] = [];
-let refreshTimer: NodeJS.Timeout | undefined;
-let lastSnapshot: ConfigSnapshot | undefined;
+import { ConfigSnapshot, SkillEntry } from './model/types';
+import { openPanel, stopWatching } from './panel';
+import { pickSkill } from './quick-pick';
+import { workspaceRoot } from './workspace';
 
 export const activate = (context: vscode.ExtensionContext): void => {
   context.subscriptions.push(
-    vscode.commands.registerCommand('claudeViewer.open', () => _openPanel(context))
+    vscode.commands.registerCommand('claudeViewer.open', () => openPanel({ context })),
+    vscode.commands.registerCommand('claudeViewer.openSkill', () => _openSkill({ context })),
+    vscode.window.registerUriHandler({ handleUri: (uri) => void _handleUri({ context, uri }) })
   );
 };
 
-export const deactivate = (): void => _stopWatching();
+export const deactivate = (): void => stopWatching();
 
-const _openPanel = (context: vscode.ExtensionContext): void => {
-  if (panel) {
-    panel.reveal(vscode.ViewColumn.Beside);
+interface OpenSkillArgs {
+  context: vscode.ExtensionContext;
+  initialQuery?: string;
+}
+
+// The palette path. Builds its own snapshot, so it works with no panel open — and rebuilds when
+// the panel opens, which keeps both views current at the cost of a second read.
+const _openSkill = async ({ context, initialQuery }: OpenSkillArgs): Promise<void> => {
+  const snapshot: ConfigSnapshot = await buildSnapshot(workspaceRoot());
+
+  if (snapshot.skills.length === 0) {
+    void vscode.window.showInformationMessage(
+      'Claude Viewer: no skills found in this workspace, ~/.claude/skills, or any installed plugin.'
+    );
     return;
   }
 
-  panel = vscode.window.createWebviewPanel(
-    'claudeViewer',
-    'Claude Viewer',
-    vscode.ViewColumn.Beside,
-    {
-      enableScripts: true,
-      retainContextWhenHidden: true,
-      localResourceRoots: [
-        vscode.Uri.joinPath(context.extensionUri, 'dist'),
-        vscode.Uri.joinPath(context.extensionUri, 'media')
-      ]
-    }
-  );
+  const skill: SkillEntry | undefined = await pickSkill({ skills: snapshot.skills, initialQuery });
+  if (skill) openPanel({ context, revealPath: skill.path });
+};
 
-  panel.webview.html = getWebviewHtml({
-    webview: panel.webview,
-    extensionUri: context.extensionUri
+interface HandleUriArgs {
+  context: vscode.ExtensionContext;
+  uri: vscode.Uri;
+}
+
+// vscode://canoq.claude-viewer/skill/<name>. The name is resolved against the snapshot and the
+// host's own path is used — a link never carries a path, so it can't reach a file we didn't find.
+const _handleUri = async ({ context, uri }: HandleUriArgs): Promise<void> => {
+  const link: DeepLink = parseDeepLink({ path: uri.path, query: uri.query });
+
+  if (link.kind === 'panel') return openPanel({ context });
+  if (link.kind === 'pick') return _openSkill({ context, initialQuery: link.query });
+
+  const snapshot: ConfigSnapshot = await buildSnapshot(workspaceRoot());
+  const match: SkillEntry | undefined = findByName({
+    skills: snapshot.skills,
+    name: link.name,
+    scope: link.scope
   });
-  panel.webview.onDidReceiveMessage(_onMessage);
-  panel.onDidDispose(() => {
-    _stopWatching();
-    panel = undefined;
-    lastSnapshot = undefined;
-  });
 
-  void _startWatching();
-};
-
-const _onMessage = async (message: WebviewMessage): Promise<void> => {
-  if (message.type === 'ready' || message.type === 'refresh') return _push();
-  if (message.type === 'openFile') return _openFile(message.path);
-};
-
-// Rebuilds the whole snapshot and hands it to the panel. There are no partial updates.
-const _push = async (): Promise<void> => {
-  const snapshot: ConfigSnapshot = await buildSnapshot(_workspaceRoot());
-  lastSnapshot = snapshot;
-  await panel?.webview.postMessage({ type: 'snapshot', snapshot });
-};
-
-// Opens a SKILL.md in the editor. Only paths the host itself put in the snapshot are honored,
-// so the webview can't turn into a way to read arbitrary files.
-const _openFile = async (path: string): Promise<void> => {
-  const known: boolean = lastSnapshot?.skills.some((skill) => skill.path === path) ?? false;
-  if (!known) return;
-
-  const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(vscode.Uri.file(path));
-  await vscode.window.showTextDocument(doc, {
-    viewColumn: vscode.ViewColumn.One,
-    preview: true,
-    selection: new vscode.Range(0, 0, 0, 0)
-  });
-};
-
-// One watcher per skill root. Config changes mid-session, so the panel follows the disk rather
-// than reading once when it opens.
-const _startWatching = async (): Promise<void> => {
-  const roots: SkillRoot[] = await skillRoots(_workspaceRoot());
-
-  for (const root of roots) {
-    const pattern: vscode.RelativePattern = new vscode.RelativePattern(
-      vscode.Uri.file(root.dir),
-      '**/*'
+  // A link arrives from somewhere the reader can't see, so a miss says so and drops them into the
+  // picker with the name typed in rather than doing nothing.
+  if (!match) {
+    const where: string = link.scope ? ` at ${link.scope} scope` : '';
+    void vscode.window.showWarningMessage(
+      `Claude Viewer: no skill named "${link.name}"${where}.`
     );
-    const watcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(pattern);
-    watcher.onDidChange(_scheduleRefresh);
-    watcher.onDidCreate(_scheduleRefresh);
-    watcher.onDidDelete(_scheduleRefresh);
-    watchers.push(watcher);
+    return _openSkill({ context, initialQuery: link.name });
   }
-};
 
-const _stopWatching = (): void => {
-  if (refreshTimer) clearTimeout(refreshTimer);
-  refreshTimer = undefined;
-  for (const watcher of watchers) watcher.dispose();
-  watchers = [];
+  openPanel({ context, revealPath: match.path });
 };
-
-// A single save fires several events; coalesce them into one rebuild.
-const _scheduleRefresh = (): void => {
-  if (refreshTimer) clearTimeout(refreshTimer);
-  refreshTimer = setTimeout(() => void _push(), 150);
-};
-
-const _workspaceRoot = (): string | undefined =>
-  vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;

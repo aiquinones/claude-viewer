@@ -11,6 +11,20 @@ export const scopeRank = (scope: Scope): number => SCOPE_RANK[scope];
 
 // Marks every losing skill with the path of the one that wins its name. Losers stay in the list —
 // a skill you can't see is the problem this tool exists to fix.
+interface FindByNameArgs {
+  skills: SkillEntry[];
+  name: string;
+  scope?: Scope;
+}
+
+// Resolves a name the way a deep link means it: the skill that actually runs. Pinning a scope
+// reaches a shadowed copy on purpose, which is the only way to link to one.
+export const findByName = ({ skills, name, scope }: FindByNameArgs): SkillEntry | undefined => {
+  const named: SkillEntry[] = skills.filter((skill) => skill.name === name);
+  if (scope) return named.find((skill) => skill.scope === scope);
+  return named.find((skill) => !skill.shadowedBy) ?? named[0];
+};
+
 export const resolveShadowing = (skills: SkillEntry[]): SkillEntry[] => {
   const winners: Map<string, SkillEntry> = new Map();
 
