@@ -1,0 +1,34 @@
+# What ships: dist/ (the two esbuild bundles), media/main.css, package.json,
+# README, LICENSE, and resources/ (icon). Everything below is excluded.
+#
+# This file also shadows .gitignore, which vsce falls back to when it's absent —
+# and .gitignore excludes dist/ and media/, so without this the .vsix would
+# package with no extension.js and no stylesheet.
+
+.vscode/**
+.vscode-test/**
+.storybook/**
+storybook-static/**
+.github/**
+
+src/**
+docs/**
+tracking/**
+node_modules/**
+
+# Icon source + exploration variants. The shipped icon is resources/icon.png.
+images/**
+
+build.mjs
+components.json
+tsconfig.json
+pnpm-lock.yaml
+CLAUDE.md
+
+**/*.ts
+**/*.tsx
+**/*.map
+**/tsconfig.json
+**/.eslintrc.json
+.gitignore
+*.vsix
