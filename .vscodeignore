@@ -10,6 +10,7 @@
 .storybook/**
 storybook-static/**
 .github/**
+.claude/**
 
 src/**
 docs/**
