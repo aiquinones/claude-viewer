@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { scopeRank } from './model/shadowing';
-import { SkillEntry } from './model/types';
+import { scopeRank } from '../model/shadowing';
+import { SkillEntry } from '../model/types';
 
 interface SkillPickItem extends vscode.QuickPickItem {
   skill: SkillEntry;

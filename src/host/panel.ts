@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { skillRoots } from './config/paths';
-import { buildSnapshot } from './model/snapshot';
-import { ConfigSnapshot, SkillRoot, WebviewMessage } from './model/types';
-import { getWebviewHtml } from './webview';
+import { skillRoots } from '../config/paths';
+import { buildSnapshot } from '../model/snapshot';
+import { ConfigSnapshot, SkillRoot, WebviewMessage } from '../model/types';
+import { getWebviewHtml } from './shell-html';
 import { workspaceRoot } from './workspace';
 
 let panel: vscode.WebviewPanel | undefined;
