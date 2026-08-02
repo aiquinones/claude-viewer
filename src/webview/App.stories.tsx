@@ -1,22 +1,23 @@
 import { useEffect } from 'react';
 import type { Decorator, Meta, StoryObj } from '@storybook/react-vite';
-import { ConfigSnapshot } from '../model/types';
+import { ConfigSnapshot, Reveal } from '../model/types';
 import { App } from './App';
-import { allSkills, snapshot } from './fixtures';
+import { allSkills, pluginDeploy, reveal, snapshot } from './fixtures';
 
 // The host normally posts the snapshot; here the story does. App registers its listener on mount,
 // and a parent's effect runs after its children's, so the message can't arrive too early.
 const withSnapshot =
-  (value: ConfigSnapshot | undefined): Decorator =>
+  (value: ConfigSnapshot | undefined, revealed?: Reveal): Decorator =>
   (Story) => {
     useEffect(() => {
       if (value) window.postMessage({ type: 'snapshot', snapshot: value }, '*');
+      if (revealed) window.postMessage({ type: 'reveal', ...revealed }, '*');
     }, []);
     return <Story />;
   };
 
 const meta: Meta<typeof App> = {
-  title: 'Skills/App',
+  title: 'App/App',
   component: App
 };
 
@@ -24,11 +25,12 @@ export default meta;
 
 type Story = StoryObj<typeof App>;
 
-export const Loaded: Story = {
+// The panel opens here. Skills is one click away; the arrow keys and Tab shouldn't reach it.
+export const Landing: Story = {
   decorators: [withSnapshot(snapshot({ skills: allSkills }))]
 };
 
-// No folder open — project scope is absent and the header says so.
+// No folder open — project scope is absent and the heading says so.
 export const NoWorkspace: Story = {
   decorators: [
     withSnapshot({
@@ -40,6 +42,11 @@ export const NoWorkspace: Story = {
 
 export const NoSkills: Story = {
   decorators: [withSnapshot(snapshot({ skills: [] }))]
+};
+
+// A deep link names one skill, so the panel has to slide past the landing page on its own.
+export const RevealOpensSkills: Story = {
+  decorators: [withSnapshot(snapshot({ skills: allSkills }), reveal(pluginDeploy))]
 };
 
 // Before the host answers. Real, but it should be brief.

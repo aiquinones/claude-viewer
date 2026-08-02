@@ -2,12 +2,21 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { allSkills, plainSkill, pluginDeploy, reveal, snapshot } from '../fixtures';
 import { SkillView } from './SkillView';
 
-// SkillView takes a plain snapshot and two callbacks, so unlike App it needs no stubbing at all.
+// SkillView takes a plain snapshot and its callbacks, so unlike App it needs no stubbing at all.
 // These are the stories to reach for when changing the skills surface.
+//
+// The view is h-full now that ViewSlider owns the height, so stories supply their own.
 const meta: Meta<typeof SkillView> = {
   title: 'Skills/SkillView',
   component: SkillView,
-  args: { onOpenFile: () => undefined, onRefresh: () => undefined }
+  args: { onOpenFile: () => undefined, onRefresh: () => undefined, onBack: () => undefined },
+  decorators: [
+    (Story) => (
+      <div className="h-screen">
+        <Story />
+      </div>
+    )
+  ]
 };
 
 export default meta;

@@ -70,6 +70,21 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* Landing-page surface cards. Each card sets --surface-accent inline, so the color lives with the
+   surface and only the mixing lives here. */
+.surface-card {
+  border-color: color-mix(in srgb, var(--surface-accent) 35%, transparent);
+  background: color-mix(in srgb, var(--surface-accent) 8%, var(--background));
+}
+
+.surface-card:hover {
+  background: color-mix(in srgb, var(--surface-accent) 16%, var(--background));
+}
+
+.surface-glow {
+  background: color-mix(in srgb, var(--surface-accent) 40%, transparent);
+}
+
 @layer base {
   body {
     font-family: var(--vscode-font-family);
