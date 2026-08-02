@@ -1,20 +1,32 @@
 {
   "name": "claude-viewer",
   "displayName": "Claude Viewer",
-  "description": "Browse the resolved Claude Code configuration for the open workspace.",
+  "description": "Written by AI as a placeholder; human description coming soon. See which Claude Code skills actually apply in your workspace, and which scope each one won from.",
   "version": "0.0.1",
-  "publisher": "claude-viewer",
-  "private": true,
+  "publisher": "canoq",
   "license": "MIT",
+  "icon": "resources/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/aiquinones/claude-viewer.git"
   },
+  "bugs": {
+    "url": "https://github.com/aiquinones/claude-viewer/issues"
+  },
+  "homepage": "https://github.com/aiquinones/claude-viewer#readme",
   "engines": {
     "vscode": "^1.90.0"
   },
   "categories": [
+    "AI",
     "Other"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "anthropic",
+    "ai",
+    "configuration"
   ],
   "main": "./dist/extension.js",
   "activationEvents": [],
@@ -27,20 +39,12 @@
     ]
   },
   "scripts": {
+    "vscode:prepublish": "node build.mjs",
     "build": "node build.mjs",
     "watch": "node build.mjs --watch",
     "typecheck": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
-  },
-  "dependencies": {
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.468.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tailwind-merge": "^3.6.0",
-    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@storybook/addon-a11y": "^10.5.5",
@@ -52,10 +56,18 @@
     "@types/react-dom": "^18.3.0",
     "@types/vscode": "^1.90.0",
     "@vitejs/plugin-react": "^6.0.5",
+    "@vscode/vsce": "^3.6.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "esbuild": "^0.28.1",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "storybook": "^10.5.5",
+    "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.1",
     "typescript": "^5.4.5",
-    "vite": "^8.2.0"
+    "vite": "^8.2.0",
+    "zod": "^3.24.1"
   }
 }
