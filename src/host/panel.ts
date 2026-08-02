@@ -55,6 +55,13 @@ export const openPanel = ({ context, revealPath }: OpenPanelArgs): void => {
     }
   );
 
+  // Tab icon. Must be an image file — iconPath rejects ThemeIcon — and VS Code doesn't
+  // recolor it, so each theme gets its own stroke.
+  panel.iconPath = {
+    light: vscode.Uri.joinPath(context.extensionUri, 'resources', 'panel-icon-light.svg'),
+    dark: vscode.Uri.joinPath(context.extensionUri, 'resources', 'panel-icon-dark.svg')
+  };
+
   panel.webview.html = getWebviewHtml({
     webview: panel.webview,
     extensionUri: context.extensionUri

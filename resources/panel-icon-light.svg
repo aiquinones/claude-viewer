@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+     stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- An 8s loop with a tick every 4s: blink at the first, glance left-then-right at the
+       second. transform-origin is in user units (the default transform-box is the
+       view-box), so each eye names its own — only scaleY cares, but translate rides along. -->
+  <style>
+    .eye { animation: idle 8s ease-in-out infinite; }
+    .eye-l { transform-origin: 9px 14px; }
+    .eye-r { transform-origin: 15px 14px; }
+    @keyframes idle {
+      0%, 45%      { transform: translateX(0) scaleY(1); }
+      47%          { transform: translateX(0) scaleY(0.05); }
+      49%, 82%     { transform: translateX(0) scaleY(1); }
+      86%, 90%     { transform: translateX(-1.6px) scaleY(1); }
+      94%, 98%     { transform: translateX(1.6px) scaleY(1); }
+      100%         { transform: translateX(0) scaleY(1); }
+    }
+    @media (prefers-reduced-motion: reduce) { .eye { animation: none; } }
+  </style>
+
+  <path d="M12 8V4H8"/>
+  <rect width="16" height="12" x="4" y="8" rx="2"/>
+  <path d="M2 14h2"/>
+  <path d="M20 14h2"/>
+  <path class="eye eye-r" d="M15 13v2"/>
+  <path class="eye eye-l" d="M9 13v2"/>
+</svg>
