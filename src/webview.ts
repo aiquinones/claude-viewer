@@ -1,7 +1,12 @@
 import * as vscode from 'vscode';
 
+interface WebviewHtmlArgs {
+  webview: vscode.Webview;
+  extensionUri: vscode.Uri;
+}
+
 // Builds the panel HTML with a strict CSP, mounting the React bundle from /dist into #root.
-export const getWebviewHtml = (webview: vscode.Webview, extensionUri: vscode.Uri): string => {
+export const getWebviewHtml = ({ webview, extensionUri }: WebviewHtmlArgs): string => {
   const script: vscode.Uri = webview.asWebviewUri(
     vscode.Uri.joinPath(extensionUri, 'dist', 'webview.js')
   );

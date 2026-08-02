@@ -1,5 +1,5 @@
 import { promises as fs } from 'node:fs';
-import { Result, ConfigError, ok, err, configError } from './result';
+import { Result, ConfigError, ok, err } from './result';
 
 // Reads a UTF-8 file. A missing file is a normal outcome here, not a failure to shout about.
 export const readTextFile = async (path: string): Promise<Result<string, ConfigError>> => {
@@ -7,8 +7,14 @@ export const readTextFile = async (path: string): Promise<Result<string, ConfigE
     return ok(await fs.readFile(path, 'utf8'));
   } catch (caught) {
     const code: string | undefined = (caught as NodeJS.ErrnoException).code;
-    if (code === 'ENOENT') return err(configError('not-found', path, 'file does not exist'));
-    return err(configError('unreadable', path, String((caught as Error).message ?? caught)));
+    if (code === 'ENOENT') {
+      return err({ kind: 'not-found', path, message: 'file does not exist' });
+    }
+    return err({
+      kind: 'unreadable',
+      path,
+      message: String((caught as Error).message ?? caught)
+    });
   }
 };
 

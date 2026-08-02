@@ -14,8 +14,3 @@ export interface ConfigError {
   message: string;
 }
 
-export const configError = (kind: ConfigErrorKind, path: string, message: string): ConfigError => ({
-  kind,
-  path,
-  message
-});

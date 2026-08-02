@@ -16,12 +16,17 @@ export const loadSkills = async (workspaceRoot: string | undefined): Promise<Ski
 
 const loadRoot = async (root: SkillRoot): Promise<SkillEntry[]> => {
   const dirNames: string[] = await listDirectories(root.dir);
-  return Promise.all(dirNames.map((dirName) => loadSkill(root, dirName)));
+  return Promise.all(dirNames.map((dirName) => loadSkill({ root, dirName })));
 };
+
+interface LoadSkillArgs {
+  root: SkillRoot;
+  dirName: string;
+}
 
 // One skill directory → one entry. Never throws and never returns nothing: a directory with no
 // readable SKILL.md still shows up, carrying the reason it's broken.
-const loadSkill = async (root: SkillRoot, dirName: string): Promise<SkillEntry> => {
+const loadSkill = async ({ root, dirName }: LoadSkillArgs): Promise<SkillEntry> => {
   const dir: string = join(root.dir, dirName);
   const path: string = join(dir, SKILL_FILE);
   const bundledFiles: number = await countBundled(dir);
@@ -60,11 +65,16 @@ const loadSkill = async (root: SkillRoot, dirName: string): Promise<SkillEntry> 
     name: frontmatter.name ?? dirName,
     description: frontmatter.description ?? '',
     allowedTools: frontmatter.allowedTools,
-    issues: collectIssues(frontmatter, dirName)
+    issues: collectIssues({ frontmatter, dirName })
   };
 };
 
-const collectIssues = (frontmatter: SkillFrontmatter, dirName: string): ConfigIssue[] => {
+interface CollectIssuesArgs {
+  frontmatter: SkillFrontmatter;
+  dirName: string;
+}
+
+const collectIssues = ({ frontmatter, dirName }: CollectIssuesArgs): ConfigIssue[] => {
   const issues: ConfigIssue[] = [];
 
   if (!frontmatter.description) {

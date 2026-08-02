@@ -37,7 +37,10 @@ const _openPanel = (context: vscode.ExtensionContext): void => {
     }
   );
 
-  panel.webview.html = getWebviewHtml(panel.webview, context.extensionUri);
+  panel.webview.html = getWebviewHtml({
+    webview: panel.webview,
+    extensionUri: context.extensionUri
+  });
   panel.webview.onDidReceiveMessage(_onMessage);
   panel.onDidDispose(() => {
     _stopWatching();
