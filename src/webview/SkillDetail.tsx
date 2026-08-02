@@ -1,18 +1,28 @@
-import { EyeOff, FileText, Paperclip } from 'lucide-react';
+import { FileText, Paperclip } from 'lucide-react';
 import { SkillEntry } from '../model/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { IssueList } from './IssueList';
 import { ScopeBadge } from './ScopeBadge';
+import { ShadowNotice } from './ShadowNotice';
 
 interface SkillDetailProps {
   skill: SkillEntry;
   // The same-named skill that wins, when this one is shadowed.
   winner: SkillEntry | undefined;
+  // The same-named skills this one wins over.
+  shadowed: SkillEntry[];
   onOpenFile: (path: string) => void;
+  onSelectSkill: (path: string) => void;
 }
 
-export const SkillDetail = ({ skill, winner, onOpenFile }: SkillDetailProps) => (
+export const SkillDetail = ({
+  skill,
+  winner,
+  shadowed,
+  onOpenFile,
+  onSelectSkill
+}: SkillDetailProps) => (
   <div className="flex flex-col gap-5">
     <header className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
@@ -36,18 +46,7 @@ export const SkillDetail = ({ skill, winner, onOpenFile }: SkillDetailProps) => 
       </Button>
     </header>
 
-    {winner && (
-      <div className="flex items-start gap-2 rounded-md border border-border bg-muted p-3 text-xs">
-        <EyeOff className="mt-px size-3.5 shrink-0" />
-        <div className="flex flex-col gap-1">
-          <span>
-            Shadowed by the <strong>{winner.scope}</strong> skill of the same name. Claude runs that
-            one, not this.
-          </span>
-          <span className="mono break-all text-muted-foreground">{winner.path}</span>
-        </div>
-      </div>
-    )}
+    <ShadowNotice winner={winner} shadowed={shadowed} onSelectSkill={onSelectSkill} />
 
     <IssueList issues={skill.issues} />
 

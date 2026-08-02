@@ -18,6 +18,10 @@ export const App = () => {
   const winner: SkillEntry | undefined = selected?.shadowedBy
     ? skills.find((skill) => skill.path === selected.shadowedBy)
     : undefined;
+  // The other side of the collision: the skills this one wins over.
+  const shadowed: SkillEntry[] = selected
+    ? skills.filter((skill) => skill.shadowedBy === selected.path)
+    : [];
   const shadowedCount: number = skills.filter((skill) => skill.shadowedBy).length;
 
   return (
@@ -49,7 +53,13 @@ export const App = () => {
           </div>
           <div className="overflow-y-auto p-5">
             {selected && (
-              <SkillDetail skill={selected} winner={winner} onOpenFile={openFile} />
+              <SkillDetail
+                skill={selected}
+                winner={winner}
+                shadowed={shadowed}
+                onOpenFile={openFile}
+                onSelectSkill={setSelectedPath}
+              />
             )}
           </div>
         </div>
