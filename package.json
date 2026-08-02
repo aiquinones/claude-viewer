@@ -1,0 +1,53 @@
+{
+  "name": "claude-viewer",
+  "displayName": "Claude Viewer",
+  "description": "Browse the resolved Claude Code configuration for the open workspace.",
+  "version": "0.0.1",
+  "publisher": "claude-viewer",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aiquinones/claude-viewer.git"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "claudeViewer.open",
+        "title": "Claude Viewer: Open"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^3.6.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.1",
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/vscode": "^1.90.0",
+    "esbuild": "^0.21.5",
+    "tailwindcss": "^4.3.1",
+    "typescript": "^5.4.5"
+  }
+}

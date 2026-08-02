@@ -1,0 +1,75 @@
+import { useState } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { Scope, SkillEntry } from '../model/types';
+import { SkillRow } from './SkillRow';
+
+interface SkillListProps {
+  skills: SkillEntry[];
+  selectedPath: string | undefined;
+  onSelect: (skill: SkillEntry) => void;
+}
+
+const SCOPE_ORDER: Scope[] = ['project', 'user', 'plugin'];
+
+const SCOPE_LABEL: Record<Scope, string> = {
+  project: 'Project',
+  user: 'User',
+  plugin: 'Plugin'
+};
+
+// Grouped by scope in precedence order, so the list itself shows which skills win by sitting
+// first. Plugin scope is the long tail — collapsing it gets your own skills back on one screen.
+export const SkillList = ({ skills, selectedPath, onSelect }: SkillListProps) => {
+  const [collapsed, setCollapsed] = useState<Scope[]>([]);
+
+  const toggle = (scope: Scope): void =>
+    setCollapsed((previous) =>
+      previous.includes(scope)
+        ? previous.filter((entry) => entry !== scope)
+        : [...previous, scope]
+    );
+
+  return (
+    <div className="flex flex-col gap-4">
+      {SCOPE_ORDER.map((scope) => {
+        const inScope: SkillEntry[] = skills.filter((skill) => skill.scope === scope);
+        if (inScope.length === 0) return null;
+
+        const isCollapsed: boolean = collapsed.includes(scope);
+        // A collapsed group still says how many of its skills are being ignored.
+        const shadowedCount: number = inScope.filter((skill) => skill.shadowedBy).length;
+
+        return (
+          <section key={scope} className="flex flex-col gap-1">
+            <button
+              type="button"
+              onClick={() => toggle(scope)}
+              className="flex w-full items-center gap-1 rounded-md px-3 py-1 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground cursor-pointer hover:bg-accent"
+              aria-expanded={!isCollapsed}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="size-3.5" />
+              ) : (
+                <ChevronDown className="size-3.5" />
+              )}
+              <span>
+                {SCOPE_LABEL[scope]} · {inScope.length}
+                {shadowedCount > 0 && ` · ${shadowedCount} shadowed`}
+              </span>
+            </button>
+
+            {!isCollapsed &&
+              inScope.map((skill) => (
+                <SkillRow
+                  key={skill.path}
+                  skill={skill}
+                  selected={skill.path === selectedPath}
+                  onSelect={onSelect}
+                />
+              ))}
+          </section>
+        );
+      })}
+    </div>
+  );
+};
