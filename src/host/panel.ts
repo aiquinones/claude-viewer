@@ -1,9 +1,12 @@
 import * as vscode from 'vscode';
-import { skillRoots } from '../config/paths';
-import { buildSnapshot } from '../model/snapshot';
-import { ConfigSnapshot, SkillRoot, WebviewMessage } from '../model/types';
+import { ConfigSnapshot, WebviewMessage } from '../model/types';
+import {
+  cachedSnapshot,
+  currentSnapshot,
+  onDidChangeSnapshot,
+  refreshSnapshot
+} from './config-store';
 import { getWebviewHtml } from './shell-html';
-import { workspaceRoot } from './workspace';
 
 // Registered in package.json under contributes.commands — the two have to agree.
 export const OPEN_PANEL_COMMAND: string = 'claudeViewer.open';
@@ -12,13 +15,8 @@ export const OPEN_PANEL_COMMAND: string = 'claudeViewer.open';
 export const PANEL_VIEW_TYPE: string = 'claudeViewer';
 export const PANEL_TITLE: string = 'Claude Viewer';
 
-// A single save fires several watcher events; this is how long they're coalesced for.
-const REFRESH_DEBOUNCE_MS: number = 150;
-
 let panel: vscode.WebviewPanel | undefined;
-let watchers: vscode.FileSystemWatcher[] = [];
-let refreshTimer: NodeJS.Timeout | undefined;
-let lastSnapshot: ConfigSnapshot | undefined;
+let snapshotSubscription: vscode.Disposable | undefined;
 // The webview can't hear anything until it has booted and said so.
 let webviewReady: boolean = false;
 // A reveal that arrived before that, held until it can be delivered.
@@ -67,20 +65,23 @@ export const openPanel = ({ context, revealPath }: OpenPanelArgs): void => {
     extensionUri: context.extensionUri
   });
   panel.webview.onDidReceiveMessage(_onMessage);
+
+  // The store owns the watchers now, so the panel just listens while it's open.
+  snapshotSubscription = onDidChangeSnapshot((snapshot) => void _post(snapshot));
+
   panel.onDidDispose(() => {
-    stopWatching();
+    snapshotSubscription?.dispose();
+    snapshotSubscription = undefined;
     panel = undefined;
-    lastSnapshot = undefined;
     webviewReady = false;
     pendingReveal = undefined;
   });
-
-  void _startWatching();
 };
 
 const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'ready') return _onReady();
-  if (message.type === 'refresh') return _push();
+  // Refreshing goes through the store, so the tree redraws off the same read.
+  if (message.type === 'refresh') return void (await refreshSnapshot());
   if (message.type === 'openFile') return _openFile(message.path);
 };
 
@@ -88,7 +89,7 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
 // follows. Posting the reveal any earlier would drop it on the floor.
 const _onReady = async (): Promise<void> => {
   webviewReady = true;
-  await _push();
+  await _post(await currentSnapshot());
 
   const waiting: string | undefined = pendingReveal;
   pendingReveal = undefined;
@@ -105,17 +106,18 @@ const _reveal = async (path: string): Promise<void> => {
   await panel?.webview.postMessage({ type: 'reveal', path, nonce: revealNonce });
 };
 
-// Rebuilds the whole snapshot and hands it to the panel. There are no partial updates.
-const _push = async (): Promise<void> => {
-  const snapshot: ConfigSnapshot = await buildSnapshot(workspaceRoot());
-  lastSnapshot = snapshot;
+// Hands the whole snapshot to the webview. There are no partial updates. A watcher can fire while
+// the webview is still booting, and a post that early goes nowhere — `ready` sends the current one
+// anyway, so dropping it here is the same result without the wasted trip.
+const _post = async (snapshot: ConfigSnapshot): Promise<void> => {
+  if (!webviewReady) return;
   await panel?.webview.postMessage({ type: 'snapshot', snapshot });
 };
 
 // Opens a SKILL.md in the editor. Only paths the host itself put in the snapshot are honored,
 // so the webview can't turn into a way to read arbitrary files.
 const _openFile = async (path: string): Promise<void> => {
-  const known: boolean = lastSnapshot?.skills.some((skill) => skill.path === path) ?? false;
+  const known: boolean = cachedSnapshot()?.skills.some((skill) => skill.path === path) ?? false;
   if (!known) return;
 
   const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(vscode.Uri.file(path));
@@ -124,34 +126,4 @@ const _openFile = async (path: string): Promise<void> => {
     preview: true,
     selection: new vscode.Range(0, 0, 0, 0)
   });
-};
-
-// One watcher per skill root. Config changes mid-session, so the panel follows the disk rather
-// than reading once when it opens.
-const _startWatching = async (): Promise<void> => {
-  const roots: SkillRoot[] = await skillRoots(workspaceRoot());
-
-  for (const root of roots) {
-    const pattern: vscode.RelativePattern = new vscode.RelativePattern(
-      vscode.Uri.file(root.dir),
-      '**/*'
-    );
-    const watcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(pattern);
-    watcher.onDidChange(_scheduleRefresh);
-    watcher.onDidCreate(_scheduleRefresh);
-    watcher.onDidDelete(_scheduleRefresh);
-    watchers.push(watcher);
-  }
-};
-
-export const stopWatching = (): void => {
-  if (refreshTimer) clearTimeout(refreshTimer);
-  refreshTimer = undefined;
-  for (const watcher of watchers) watcher.dispose();
-  watchers = [];
-};
-
-const _scheduleRefresh = (): void => {
-  if (refreshTimer) clearTimeout(refreshTimer);
-  refreshTimer = setTimeout(() => void _push(), REFRESH_DEBOUNCE_MS);
 };
