@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { openPanel } from '../host/panel';
-import { workspaceRoot } from '../host/workspace';
-import { buildSnapshot } from '../model/snapshot';
-import { ConfigSnapshot, SkillEntry } from '../model/types';
+import { openPanel } from '../../host/panel';
+import { workspaceRoot } from '../../host/workspace';
+import { buildSnapshot } from '../../model/snapshot';
+import { ConfigSnapshot, SkillEntry } from '../../model/types';
 import { pickSkill } from './quick-pick';
 
 interface OpenSkillArgs {

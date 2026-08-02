@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { handleUri } from './commands/handle-uri';
-import { openSkill } from './commands/open-skill';
+import { handleUri } from './commands/handle-uri/handle-uri';
+import { openSkill } from './commands/open-skill/open-skill';
 import { openPanel, stopWatching } from './host/panel';
 
 // Wiring only. Every entry point's body lives under commands/, so what a user can invoke is

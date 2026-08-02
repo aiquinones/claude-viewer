@@ -1,4 +1,4 @@
-import { Scope } from '../model/types';
+import { Scope } from '../../model/types';
 
 // What a vscode://canoq.claude-viewer/… link asks for. Parsing is kept separate from acting on it
 // so the whole grammar reads in one screen and needs no editor host to check.

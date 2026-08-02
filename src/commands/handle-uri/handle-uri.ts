@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
-import { openPanel } from '../host/panel';
-import { workspaceRoot } from '../host/workspace';
-import { findByName } from '../model/shadowing';
-import { buildSnapshot } from '../model/snapshot';
-import { ConfigSnapshot, SkillEntry } from '../model/types';
+import { openPanel } from '../../host/panel';
+import { workspaceRoot } from '../../host/workspace';
+import { findByName } from '../../model/shadowing';
+import { buildSnapshot } from '../../model/snapshot';
+import { ConfigSnapshot, SkillEntry } from '../../model/types';
+import { openSkill } from '../open-skill/open-skill';
 import { DeepLink, parseDeepLink } from './deep-link';
-import { openSkill } from './open-skill';
 
 interface HandleUriArgs {
   context: vscode.ExtensionContext;
