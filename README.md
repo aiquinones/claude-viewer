@@ -54,7 +54,7 @@ disk, so a link can't be crafted to open a file outside your skill directories.
 Search for **Claude Viewer** in the Extensions view, or:
 
 ```
-code --install-extension <publisher>.claude-viewer
+code --install-extension canoq.claude-viewer
 ```
 
 Then open the Command Palette and run **Claude Viewer: Open**.
