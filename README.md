@@ -23,7 +23,7 @@ vscode://canoq.claude-viewer/skill                     # just open the picker
 
 ## Install
 
-> Ok this part was AI generated, it's boring
+> Ok, from this point on, this part was AI generated, it's boring
 
 Search for **Claude Viewer** in the Extensions view, or:
 
