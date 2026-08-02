@@ -108,7 +108,12 @@ export const allSkills: SkillEntry[] = [
   longDescription
 ];
 
-export const snapshot = (skills: SkillEntry[], workspaceRoot?: string): ConfigSnapshot => ({
+interface SnapshotArgs {
+  skills: SkillEntry[];
+  workspaceRoot?: string;
+}
+
+export const snapshot = ({ skills, workspaceRoot }: SnapshotArgs): ConfigSnapshot => ({
   workspaceRoot: workspaceRoot ?? WORKSPACE,
   skills,
   loadedAt: Date.UTC(2026, 7, 1)

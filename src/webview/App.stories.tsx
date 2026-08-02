@@ -25,21 +25,21 @@ export default meta;
 type Story = StoryObj<typeof App>;
 
 export const Loaded: Story = {
-  decorators: [withSnapshot(snapshot(allSkills))]
+  decorators: [withSnapshot(snapshot({ skills: allSkills }))]
 };
 
 // No folder open — project scope is absent and the header says so.
 export const NoWorkspace: Story = {
   decorators: [
     withSnapshot({
-      ...snapshot(allSkills.filter((skill) => skill.scope !== 'project')),
+      ...snapshot({ skills: allSkills.filter((skill) => skill.scope !== 'project') }),
       workspaceRoot: undefined
     })
   ]
 };
 
 export const NoSkills: Story = {
-  decorators: [withSnapshot(snapshot([]))]
+  decorators: [withSnapshot(snapshot({ skills: [] }))]
 };
 
 // Before the host answers. Real, but it should be brief.
