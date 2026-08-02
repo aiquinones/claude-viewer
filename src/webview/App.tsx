@@ -9,7 +9,7 @@ import { SkillView } from './views/SkillView';
 // views know nothing about navigation, so the next surface is a sibling under views/ plus an
 // entry in SURFACES.
 export const App = () => {
-  const { snapshot, reveal, refresh, openFile } = useSnapshot();
+  const { snapshot, reveal, refresh, openFile, reportUnavailable } = useSnapshot();
   const [openSurface, setOpenSurface] = useState<SurfaceId | undefined>(undefined);
 
   // The palette and vscode:// links name one skill, so a reveal has to open the skills surface.
@@ -27,6 +27,7 @@ export const App = () => {
         <LandingView
           snapshot={snapshot}
           onOpenSurface={setOpenSurface}
+          onUnavailableSurface={reportUnavailable}
           onRefresh={refresh}
         />
       }

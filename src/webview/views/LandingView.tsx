@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { ConfigSnapshot, SkillEntry } from '../../model/types';
 import { Button } from '@/components/ui/button';
@@ -8,18 +7,23 @@ import { SURFACES, Surface, SurfaceId } from '../surfaces';
 interface LandingViewProps {
   snapshot: ConfigSnapshot;
   onOpenSurface: (id: SurfaceId) => void;
+  // A surface with no view yet. The host answers with a VS Code notification.
+  onUnavailableSurface: (title: string) => void;
   onRefresh: () => void;
 }
 
 // The panel's home: which agent you're looking at, and one card per config surface. Adding a
 // surface is adding an entry to SURFACES plus a line in `detailFor`.
-export const LandingView = ({ snapshot, onOpenSurface, onRefresh }: LandingViewProps) => {
-  const [note, setNote] = useState<string | undefined>(undefined);
-
-  const open = (surface: Surface): void => {
-    if (surface.status === 'ready') return onOpenSurface(surface.id);
-    setNote(`${surface.title} is coming soon — ${surface.blurb}`);
-  };
+export const LandingView = ({
+  snapshot,
+  onOpenSurface,
+  onUnavailableSurface,
+  onRefresh
+}: LandingViewProps) => {
+  const open = (surface: Surface): void =>
+    surface.status === 'ready'
+      ? onOpenSurface(surface.id)
+      : onUnavailableSurface(surface.title);
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
@@ -30,7 +34,9 @@ export const LandingView = ({ snapshot, onOpenSurface, onRefresh }: LandingViewP
         </Button>
       </header>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4 px-6 pb-6 md:max-w-3xl">
+      {/* An explicit column count rather than auto-fit: the panel is narrow and the cards are the
+          page, so they get a fixed shape instead of one that reflows with every dock width. */}
+      <div className="grid w-full max-w-2xl grid-cols-1 gap-4 px-6 pb-6 sm:grid-cols-2">
         {SURFACES.map((surface) => (
           <SurfaceCard
             key={surface.id}
@@ -40,12 +46,6 @@ export const LandingView = ({ snapshot, onOpenSurface, onRefresh }: LandingViewP
           />
         ))}
       </div>
-
-      {note && (
-        <p className="px-6 pb-6 text-xs text-muted-foreground" role="status">
-          {note}
-        </p>
-      )}
     </div>
   );
 };

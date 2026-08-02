@@ -82,6 +82,13 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'ready') return _onReady();
   if (message.type === 'refresh') return _push();
   if (message.type === 'openFile') return _openFile(message.path);
+  if (message.type === 'surfaceUnavailable') return _surfaceUnavailable(message.title);
+};
+
+// Clicking a surface that has no view yet. A notification rather than a line in the panel, so the
+// landing page stays a grid of cards and the answer lands where VS Code's other answers do.
+const _surfaceUnavailable = async (title: string): Promise<void> => {
+  await vscode.window.showInformationMessage(`${title} isn't built yet — it's coming.`);
 };
 
 // The webview is listening now, so the snapshot goes out and any reveal that was waiting on it

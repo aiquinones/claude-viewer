@@ -5,7 +5,13 @@ import { LandingView } from './LandingView';
 const meta: Meta<typeof LandingView> = {
   title: 'Landing/LandingView',
   component: LandingView,
-  args: { onOpenSurface: () => undefined, onRefresh: () => undefined },
+  // onUnavailableSurface is a host round-trip in the real panel — a VS Code notification, which
+  // Storybook has no way to show. Clicking the soon card here does nothing visible on purpose.
+  args: {
+    onOpenSurface: () => undefined,
+    onUnavailableSurface: () => undefined,
+    onRefresh: () => undefined
+  },
   decorators: [
     (Story) => (
       <div className="h-screen">

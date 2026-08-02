@@ -26,6 +26,10 @@ export default meta;
 type Story = StoryObj<typeof App>;
 
 // The panel opens here. Skills is one click away; the arrow keys and Tab shouldn't reach it.
+//
+// This is also the story that catches a pane overflowing its share of the slider track — the
+// fixtures carry long paths and descriptions, and the hidden skills pane has to stay exactly one
+// panel wide anyway. NoSkills below renders an empty pane, so it can't show that.
 export const Landing: Story = {
   decorators: [withSnapshot(snapshot({ skills: allSkills }))]
 };

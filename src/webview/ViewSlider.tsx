@@ -13,12 +13,16 @@ interface ViewSliderProps {
 // Two full-width panes on one track that translates between them. Both stay mounted, so going
 // home and coming back keeps whatever was selected — and so the outgoing pane has something to
 // show while it slides away.
+//
+// The track is viewport-width with panes that refuse to shrink, rather than a 200%-wide track
+// holding two half-width panes. Same result, except no element is ever wider than the panel, so
+// nothing outside this file can center or reflow the overflow.
 export const ViewSlider = ({ showDetail, home, detail }: ViewSliderProps) => (
-  <div className="h-screen overflow-hidden">
+  <div className="h-screen w-full overflow-hidden">
     <div
-      className="flex h-full w-[200%] transition-transform ease-out motion-reduce:transition-none"
+      className="flex h-full w-full transition-transform ease-out motion-reduce:transition-none"
       style={{
-        transform: showDetail ? 'translateX(-50%)' : 'translateX(0)',
+        transform: showDetail ? 'translateX(-100%)' : 'translateX(0)',
         transitionDuration: `${SLIDE_MS}ms`
       }}
     >
@@ -33,6 +37,11 @@ interface PaneProps {
   children: ReactNode;
 }
 
+// `shrink-0` and `min-w-0` are what keep a pane exactly one panel wide. A flex item defaults to
+// `min-width: auto`, so a pane refuses to shrink below its content's min-content width — a long
+// file path in the skills detail was enough to push the whole track sideways, which read as the
+// panel being shifted left. An empty skills list has no wide content, so it hid the bug.
+//
 // The offscreen pane goes `visibility: hidden` once the slide finishes, which is what takes its
 // buttons out of the tab order. Hiding it any earlier would blank it mid-animation, so the delay
 // applies on the way out only.
@@ -44,7 +53,11 @@ const Pane = ({ active, children }: PaneProps) => {
   };
 
   return (
-    <div className="h-full w-1/2 overflow-hidden" style={style} aria-hidden={!active}>
+    <div
+      className="h-full w-full min-w-0 shrink-0 overflow-hidden"
+      style={style}
+      aria-hidden={!active}
+    >
       {children}
     </div>
   );
