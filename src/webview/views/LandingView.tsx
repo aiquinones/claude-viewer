@@ -25,8 +25,10 @@ export const LandingView = ({
       ? onOpenSurface(surface.id)
       : onUnavailableSurface(surface.title);
 
+  // overflow-x-clip is deliberate: `overflow-y-auto` alone makes the x axis compute to `auto`,
+  // which quietly turns this into a horizontal scroll container too.
   return (
-    <div className="flex h-full flex-col overflow-y-auto">
+    <div className="flex h-full flex-col overflow-y-auto overflow-x-clip">
       <header className="flex items-start justify-between gap-3 px-6 pt-6 pb-5">
         <Heading workspaceRoot={snapshot.workspaceRoot} />
         <Button variant="ghost" size="icon" title="Refresh" onClick={onRefresh}>

@@ -11,13 +11,16 @@ interface ViewSliderProps {
 // and coming back keeps whatever was selected — and so the outgoing pane has something to show
 // while it slides away.
 //
-// Each pane is `absolute inset-0`, which is the whole reason this reads the way it does. A flex
-// track sizes its panes from the container's width during layout, and in a webview that first
-// layout can happen before the panel has settled at its real width — the panel opened shifted and
-// only straightened out once a navigation forced a fresh pass. Pinning to inset-0 means a pane is
-// the container by definition, at every layout pass, and nothing but the transform ever moves it.
+// Each pane is `absolute inset-0`, so it is the container by definition at every layout pass and
+// nothing but the transform ever moves it.
+//
+// `overflow-clip`, not `overflow-hidden`. Hidden still creates a scrollport — the box can be
+// scrolled programmatically even with no scrollbar — and the offscreen pane sits one panel to the
+// right, which extends that scrollable area. Something in the webview scrolled it on first paint,
+// so the panel opened shifted left and straightened out on the first navigation. Clip does the
+// same clipping with no scroll container, so there is nothing left to scroll.
 export const ViewSlider = ({ showDetail, home, detail }: ViewSliderProps) => (
-  <div className="relative h-screen w-full overflow-hidden">
+  <div className="relative h-screen w-full overflow-clip">
     <Pane active={!showDetail} offset={showDetail ? '-100%' : '0%'}>
       {home}
     </Pane>
@@ -46,7 +49,7 @@ const Pane = ({ active, offset, children }: PaneProps) => {
 
   return (
     <div
-      className="view-pane absolute inset-0 overflow-hidden"
+      className="view-pane absolute inset-0 overflow-clip"
       style={style}
       data-active={active}
       aria-hidden={!active}

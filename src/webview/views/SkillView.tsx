@@ -59,7 +59,7 @@ export const SkillView = ({ snapshot, reveal, onOpenFile, onRefresh, onBack }: S
         <Empty />
       ) : (
         <div className="grid min-h-0 flex-1 grid-cols-[minmax(200px,300px)_minmax(0,1fr)]">
-          <div className="min-w-0 overflow-y-auto border-r border-border py-3">
+          <div className="min-w-0 overflow-y-auto overflow-x-clip border-r border-border py-3">
             <SkillList
               skills={skills}
               selectedPath={selected?.path}
@@ -67,7 +67,7 @@ export const SkillView = ({ snapshot, reveal, onOpenFile, onRefresh, onBack }: S
               onSelect={(skill) => setSelectedPath(skill.path)}
             />
           </div>
-          <div className="min-w-0 overflow-y-auto p-5">
+          <div className="min-w-0 overflow-y-auto overflow-x-clip p-5">
             {selected && (
               <SkillDetail
                 skill={selected}
