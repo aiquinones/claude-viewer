@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
+import { currentSnapshot } from '../../host/config-store';
 import { openPanel } from '../../host/panel';
-import { workspaceRoot } from '../../host/workspace';
 import { findSkillByName } from '../../model/shadowing';
-import { buildSnapshot } from '../../model/snapshot';
 import { ConfigSnapshot, SkillEntry } from '../../model/types';
 import { openSkill } from '../open-skill/open-skill';
 import { DeepLink, parseDeepLink } from './deep-link';
@@ -20,7 +19,7 @@ export const handleUri = async ({ context, uri }: HandleUriArgs): Promise<void> 
   if (link.kind === 'panel') return openPanel({ context });
   if (link.kind === 'pick') return openSkill({ context, initialQuery: link.query });
 
-  const snapshot: ConfigSnapshot = await buildSnapshot(workspaceRoot());
+  const snapshot: ConfigSnapshot = await currentSnapshot();
   const linkedSkill: SkillEntry | undefined = findSkillByName({
     skills: snapshot.skills,
     name: link.name,

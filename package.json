@@ -33,6 +33,23 @@
     "onUri"
   ],
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "claudeViewer",
+          "title": "Claude Viewer",
+          "icon": "resources/activity-bar.svg"
+        }
+      ]
+    },
+    "views": {
+      "claudeViewer": [
+        {
+          "id": "claudeViewer.tree",
+          "name": "Configuration"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "claudeViewer.open",
@@ -41,8 +58,39 @@
       {
         "command": "claudeViewer.openSkill",
         "title": "Claude Viewer: Open Skill…"
+      },
+      {
+        "command": "claudeViewer.refresh",
+        "title": "Refresh",
+        "category": "Claude Viewer",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "claudeViewer.revealNode",
+        "title": "Open in Claude Viewer",
+        "category": "Claude Viewer"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "claudeViewer.refresh",
+          "when": "view == claudeViewer.tree",
+          "group": "navigation"
+        },
+        {
+          "command": "claudeViewer.open",
+          "when": "view == claudeViewer.tree",
+          "group": "1_panel@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "claudeViewer.revealNode",
+          "when": "false"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "node build.mjs",

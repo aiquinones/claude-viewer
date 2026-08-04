@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- currentColor so VS Code can recolor it if it masks this, plus a `color` of our own so the
+       fallback is grey rather than black if it just draws it. One mid grey, not a
+       prefers-color-scheme pair: that tracks the OS, which need not match the editor theme. -->
+  <style>
+    svg { color: #8A8A8A; }
+
+    .eye { animation: idle 8s ease-in-out infinite; }
+    .eye-l { transform-origin: 9px 14px; }
+    .eye-r { transform-origin: 15px 14px; }
+    @keyframes idle {
+      0%, 45%      { transform: translateX(0) scaleY(1); }
+      47%          { transform: translateX(0) scaleY(0.05); }
+      49%, 82%     { transform: translateX(0) scaleY(1); }
+      86%, 90%     { transform: translateX(-1.6px) scaleY(1); }
+      94%, 98%     { transform: translateX(1.6px) scaleY(1); }
+      100%         { transform: translateX(0) scaleY(1); }
+    }
+    @media (prefers-reduced-motion: reduce) { .eye { animation: none; } }
+  </style>
+
+  <path d="M12 8V4H8"/>
+  <rect width="16" height="12" x="4" y="8" rx="2"/>
+  <path d="M2 14h2"/>
+  <path d="M20 14h2"/>
+  <path class="eye eye-r" d="M15 13v2"/>
+  <path class="eye eye-l" d="M9 13v2"/>
+</svg>

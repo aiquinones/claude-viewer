@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
+import { currentSnapshot } from '../../host/config-store';
 import { openPanel } from '../../host/panel';
-import { workspaceRoot } from '../../host/workspace';
-import { buildSnapshot } from '../../model/snapshot';
 import { ConfigSnapshot, SkillEntry } from '../../model/types';
 import { pickSkill } from './quick-pick';
 
@@ -14,11 +13,10 @@ interface OpenSkillArgs {
   initialQuery?: string;
 }
 
-// The palette command, and the fallback the URI handler drops into. Builds its own snapshot so it
-// works with no panel open; the panel rebuilds when it opens, which costs a second read and buys
-// no cache to invalidate.
+// The palette command, and the fallback the URI handler drops into. Reads the shared store, so it
+// works with no panel open and sees exactly what the tree sees.
 export const openSkill = async ({ context, initialQuery }: OpenSkillArgs): Promise<void> => {
-  const snapshot: ConfigSnapshot = await buildSnapshot(workspaceRoot());
+  const snapshot: ConfigSnapshot = await currentSnapshot();
 
   if (snapshot.skills.length === 0) {
     void vscode.window.showInformationMessage(

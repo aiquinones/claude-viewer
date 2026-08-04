@@ -48,6 +48,32 @@ export interface ConfigSnapshot {
   loadedAt: number;
 }
 
+// Mapped to a themed ThemeIcon host-side, so adapters stay free of vscode.
+export type TreeNodeIcon = 'shadowed' | 'warning' | 'error';
+
+// One row in the sidebar tree. `children` makes it collapsible.
+export interface TreeNode {
+  // Unique across the whole tree — VS Code keys expansion state off it.
+  id: string;
+  label: string;
+  // Dimmed text after the label: a scope, a count.
+  description?: string;
+  tooltip?: string;
+  icon?: TreeNodeIcon;
+  // Clicking opens the panel on this skill. Absent on rows that aren't an entry.
+  revealPath?: string;
+  children?: TreeNode[];
+  // A first-render hint only; the reader's own folding wins after that.
+  collapsed?: boolean;
+}
+
+export interface SurfaceArgs {
+  snapshot: ConfigSnapshot;
+}
+
+// One per surface: snapshot in, root row out. Undefined means that surface isn't built yet.
+export type SurfaceAdapter = (args: SurfaceArgs) => TreeNode | undefined;
+
 // Selecting one skill from outside the webview — the command palette or a vscode:// link. The
 // nonce is what makes revealing the same skill twice in a row a second event rather than a no-op.
 export interface Reveal {
