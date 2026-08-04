@@ -64,11 +64,13 @@ export interface TreeNode {
   // Clicking opens the panel on this skill. Absent on rows that aren't an entry.
   revealPath?: string;
   children?: TreeNode[];
+  // Starts folded. Only a hint: VS Code keys expansion off `id`, so once the reader collapses or
+  // expands a row themselves, that choice survives every later refresh.
+  collapsed?: boolean;
 }
 
 export interface SurfaceArgs {
   snapshot: ConfigSnapshot;
-  visibleScopes: Scope[];
 }
 
 // One per config surface: snapshot in, that surface's root row out. Undefined means the surface

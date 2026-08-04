@@ -3,7 +3,6 @@ import { buildTree } from '../../model/tree/build-tree';
 import { ConfigSnapshot, TreeNode, TreeNodeIcon } from '../../model/types';
 import { currentSnapshot } from '../config-store';
 import { REVEAL_NODE_COMMAND } from './reveal-node';
-import { visibleScopes } from './scope-filter';
 
 // Codicon id per marker, with the theme's own problem colors so warnings and errors read the same
 // here as they do in the Problems panel.
@@ -45,10 +44,15 @@ export class ConfigTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     if (node) return node.children ?? [];
 
     const snapshot: ConfigSnapshot = await currentSnapshot();
-    return buildTree({ snapshot, visibleScopes: visibleScopes() });
+    return buildTree({ snapshot });
   }
 }
 
-// Surfaces open by default — there's one of them, and a collapsed tree says nothing.
-const collapsibleState = (node: TreeNode): vscode.TreeItemCollapsibleState =>
-  node.children ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
+// Rows with children open by default unless the adapter asks otherwise. Only the first render
+// honors this — VS Code keys expansion off TreeItem.id, so the reader's own folding wins after.
+const collapsibleState = (node: TreeNode): vscode.TreeItemCollapsibleState => {
+  if (!node.children) return vscode.TreeItemCollapsibleState.None;
+  return node.collapsed
+    ? vscode.TreeItemCollapsibleState.Collapsed
+    : vscode.TreeItemCollapsibleState.Expanded;
+};
