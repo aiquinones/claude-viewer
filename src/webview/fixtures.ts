@@ -121,3 +121,73 @@ export const snapshot = ({ skills, workspaceRoot }: SnapshotArgs): ConfigSnapsho
 
 // What the host posts when the palette or a deep link names a skill.
 export const reveal = (skill: SkillEntry): Reveal => ({ path: skill.path, nonce: 1 });
+
+// A SKILL.md body, shaped like a real one and long enough that the headings actually stack while
+// you scroll. Covers every token the renderer handles.
+export const skillMarkdown: string = `# Deploy
+
+Ship the current branch. Everything below is what Claude reads once the skill is chosen.
+
+## Before you start
+
+Check the branch is clean and the tests pass. Deploying a dirty tree is how a half-finished
+migration reaches production.
+
+### Requirements
+
+- A clean working tree
+- A green run on \`main\`
+- Push access to the remote
+  - the token in \`.env.local\`, not the one in your shell
+
+### Checks that can be skipped
+
+1. The changelog entry
+2. The screenshot refresh
+
+> A skipped check is a decision, not an oversight. Say which one you skipped.
+
+## Running it
+
+\`\`\`bash
+pnpm run build
+pnpm run deploy --env production
+\`\`\`
+
+The command is **not** idempotent — a second run cuts a second version. See
+[the runbook](https://example.com/runbook) or the local [notes](./notes.md).
+
+## Rollback
+
+| Step | Command | Safe to repeat |
+|------|---------|:---------------:|
+| Freeze | \`pnpm run freeze\` | yes |
+| Revert | \`pnpm run rollback <version>\` | no |
+| Thaw | \`pnpm run thaw\` | yes |
+
+### After a rollback
+
+- [x] Post in the deploy channel
+- [ ] File the follow-up
+
+---
+
+## A heading long enough that it has to truncate rather than wrap onto a second line
+
+Two lines of heading would be two rows tall, and every offset below it would be wrong.
+`;
+
+// No headings at all — everything lands in the section that has no sticky bar.
+export const headinglessMarkdown: string = `Just a paragraph and a list, with no headings anywhere.
+
+- one
+- two
+`;
+
+// Jumps a level. The stack has to nest by position, not by the number of hashes.
+export const skippedLevelMarkdown: string = `# Top
+
+### Straight to three
+
+Body text under a heading whose parent was never written.
+`;

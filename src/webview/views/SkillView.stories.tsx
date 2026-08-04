@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { allSkills, plainSkill, pluginDeploy, reveal, snapshot } from '../fixtures';
 import { SkillView } from './SkillView';
 
-// SkillView takes a plain snapshot and its callbacks, so unlike App it needs no stubbing at all.
+// SkillView takes a plain snapshot and its callbacks. The one thing it fetches for itself is the
+// selected skill's body, which .storybook/preview.tsx answers with a fixture.
 // These are the stories to reach for when changing the skills surface.
 //
 // The view is h-full now that ViewSlider owns the height, so stories supply their own.
