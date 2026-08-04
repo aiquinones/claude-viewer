@@ -39,6 +39,11 @@
   /* Issue severities, mapped to the editor's diagnostic colors. */
   --warn: var(--vscode-editorWarning-foreground, #cca700);
   --error: var(--vscode-editorError-foreground, #f14c4c);
+
+  /* Spotlight: the characters a query matched, and the scrim behind the box. Mixing the scrim out
+     of the editor background darkens a dark theme and lightens a light one on its own. */
+  --match: var(--vscode-list-highlightForeground, var(--vscode-charts-blue, #3794ff));
+  --scrim: color-mix(in srgb, var(--vscode-editor-background) 60%, transparent);
 }
 
 @theme inline {
@@ -63,6 +68,8 @@
   --color-selected-foreground: var(--selected-foreground);
   --color-warn: var(--warn);
   --color-error: var(--error);
+  --color-match: var(--match);
+  --color-scrim: var(--scrim);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
