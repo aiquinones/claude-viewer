@@ -1,8 +1,8 @@
 import { RefreshCw } from 'lucide-react';
-import { ConfigSnapshot, SkillEntry } from '../../model/types';
+import { ConfigSnapshot } from '../../model/types';
 import { Button } from '@/components/ui/button';
 import { SurfaceCard } from '../SurfaceCard';
-import { SURFACES, Surface, SurfaceId } from '../surfaces';
+import { SURFACES, Surface, SurfaceId, getDetailForSurface } from '../surfaces';
 
 interface LandingViewProps {
   snapshot: ConfigSnapshot;
@@ -12,8 +12,7 @@ interface LandingViewProps {
   onRefresh: () => void;
 }
 
-// The panel's home: which agent you're looking at, and one card per config surface. Adding a
-// surface is adding an entry to SURFACES plus a line in `detailFor`.
+// The panel's home: which agent you're looking at, and one card per config surface.
 export const LandingView = ({
   snapshot,
   onOpenSurface,
@@ -43,7 +42,7 @@ export const LandingView = ({
           <SurfaceCard
             key={surface.id}
             surface={surface}
-            detail={detailFor({ surface, skills: snapshot.skills })}
+            detail={getDetailForSurface({ surface, snapshot })}
             onOpen={open}
           />
         ))}
@@ -80,20 +79,6 @@ const Heading = ({ workspaceRoot }: HeadingProps) => {
       </span>
     </div>
   );
-};
-
-interface DetailForArgs {
-  surface: Surface;
-  skills: SkillEntry[];
-}
-
-const detailFor = ({ surface, skills }: DetailForArgs): string => {
-  if (surface.status === 'soon') return 'Not built yet';
-  if (skills.length === 0) return 'None found';
-
-  const shadowed: number = skills.filter((skill) => skill.shadowedBy).length;
-  const found: string = `${skills.length} found`;
-  return shadowed > 0 ? `${found} · ${shadowed} shadowed` : found;
 };
 
 // The webview can't import node:path, and the last segment is all the heading needs.
