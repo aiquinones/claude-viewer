@@ -27,6 +27,18 @@ export const findSkillByName = ({
   return named.find((skill) => !skill.shadowedBy) ?? named[0];
 };
 
+// The order every list of skills uses: the ones that actually run first, then scope precedence,
+// then alphabetically. The panel, the palette and the search index all sort by this.
+export const bySalience = (left: SkillEntry, right: SkillEntry): number => {
+  const shadowing: number = Number(Boolean(left.shadowedBy)) - Number(Boolean(right.shadowedBy));
+  if (shadowing !== 0) return shadowing;
+
+  const scope: number = scopeRank(left.scope) - scopeRank(right.scope);
+  if (scope !== 0) return scope;
+
+  return left.name.localeCompare(right.name);
+};
+
 export const resolveShadowing = (skills: SkillEntry[]): SkillEntry[] => {
   const winners: Map<string, SkillEntry> = new Map();
 
