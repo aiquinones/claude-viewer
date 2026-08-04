@@ -60,8 +60,10 @@ export type HostMessage =
   | { type: 'snapshot'; snapshot: ConfigSnapshot }
   | ({ type: 'reveal' } & Reveal);
 
-// Webview → host.
+// Webview → host. `surfaceUnavailable` carries only the surface's name: the host owns the
+// sentence, the same way it owns which paths `openFile` will accept.
 export type WebviewMessage =
   | { type: 'ready' }
   | { type: 'refresh' }
-  | { type: 'openFile'; path: string };
+  | { type: 'openFile'; path: string }
+  | { type: 'surfaceUnavailable'; title: string };

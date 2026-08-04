@@ -24,5 +24,9 @@ export const useSnapshot = () => {
 
   const openFile = (path: string): void => vscode.postMessage({ type: 'openFile', path });
 
-  return { snapshot, reveal, refresh, openFile };
+  // Asks the host to say a surface isn't built. The host writes the sentence and shows it.
+  const reportUnavailable = (title: string): void =>
+    vscode.postMessage({ type: 'surfaceUnavailable', title });
+
+  return { snapshot, reveal, refresh, openFile, reportUnavailable };
 };

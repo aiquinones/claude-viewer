@@ -21,7 +21,10 @@ const DARK: Record<string, string> = {
   '--vscode-input-background': '#313131',
   '--vscode-focusBorder': '#0078d4',
   '--vscode-editorWarning-foreground': '#cca700',
-  '--vscode-editorError-foreground': '#f14c4c'
+  '--vscode-editorError-foreground': '#f14c4c',
+  // Surface-card accents.
+  '--vscode-charts-blue': '#3794ff',
+  '--vscode-charts-purple': '#b180d7'
 };
 
 const LIGHT: Record<string, string> = {
@@ -41,7 +44,10 @@ const LIGHT: Record<string, string> = {
   '--vscode-input-background': '#ffffff',
   '--vscode-focusBorder': '#005fb8',
   '--vscode-editorWarning-foreground': '#bf8803',
-  '--vscode-editorError-foreground': '#e51400'
+  '--vscode-editorError-foreground': '#e51400',
+  // Surface-card accents.
+  '--vscode-charts-blue': '#1a85ff',
+  '--vscode-charts-purple': '#652d90'
 };
 
 const THEMES: Record<ThemeName, Record<string, string>> = { dark: DARK, light: LIGHT };
