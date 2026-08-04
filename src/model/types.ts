@@ -48,11 +48,10 @@ export interface ConfigSnapshot {
   loadedAt: number;
 }
 
-// What a tree row can say about itself. Mapped to a themed ThemeIcon host-side, so the adapters
-// stay free of vscode.
+// Mapped to a themed ThemeIcon host-side, so adapters stay free of vscode.
 export type TreeNodeIcon = 'shadowed' | 'warning' | 'error';
 
-// One row in the sidebar tree. A node with `children` renders collapsible, one without is a leaf.
+// One row in the sidebar tree. `children` makes it collapsible.
 export interface TreeNode {
   // Unique across the whole tree — VS Code keys expansion state off it.
   id: string;
@@ -64,8 +63,7 @@ export interface TreeNode {
   // Clicking opens the panel on this skill. Absent on rows that aren't an entry.
   revealPath?: string;
   children?: TreeNode[];
-  // Starts folded. Only a hint: VS Code keys expansion off `id`, so once the reader collapses or
-  // expands a row themselves, that choice survives every later refresh.
+  // A first-render hint only; the reader's own folding wins after that.
   collapsed?: boolean;
 }
 
@@ -73,8 +71,7 @@ export interface SurfaceArgs {
   snapshot: ConfigSnapshot;
 }
 
-// One per config surface: snapshot in, that surface's root row out. Undefined means the surface
-// isn't built yet, so adding one is a new adapter rather than a new provider.
+// One per surface: snapshot in, root row out. Undefined means that surface isn't built yet.
 export type SurfaceAdapter = (args: SurfaceArgs) => TreeNode | undefined;
 
 // Selecting one skill from outside the webview — the command palette or a vscode:// link. The

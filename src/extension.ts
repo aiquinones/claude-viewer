@@ -15,8 +15,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
     ...registerTree({ context })
   );
 
-  // The tree is visible without anything being opened, so the watchers start here rather than
-  // when the panel opens.
+  // The tree is visible with nothing opened, so watching starts here, not with the panel.
   void startWatching();
 };
 

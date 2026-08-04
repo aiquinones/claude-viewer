@@ -4,16 +4,15 @@ import { ConfigSnapshot, TreeNode, TreeNodeIcon } from '../../model/types';
 import { currentSnapshot } from '../config-store';
 import { REVEAL_NODE_COMMAND } from './reveal-node';
 
-// Codicon id per marker, with the theme's own problem colors so warnings and errors read the same
-// here as they do in the Problems panel.
+// Theme's own problem colors, so these read like the Problems panel.
 const ICONS: Record<TreeNodeIcon, vscode.ThemeIcon> = {
   shadowed: new vscode.ThemeIcon('circle-slash'),
   warning: new vscode.ThemeIcon('warning', new vscode.ThemeColor('problemsWarningIcon.foreground')),
   error: new vscode.ThemeIcon('error', new vscode.ThemeColor('problemsErrorIcon.foreground'))
 };
 
-// A class because TreeDataProvider is an interface VS Code instantiates against. It knows nothing
-// about skills — the adapters in model/tree do, and they never import vscode.
+// A class because TreeDataProvider is an interface VS Code instantiates against. Knows nothing
+// about skills — the adapters do.
 export class ConfigTreeProvider implements vscode.TreeDataProvider<TreeNode> {
   private readonly _emitter: vscode.EventEmitter<void> = new vscode.EventEmitter();
   readonly onDidChangeTreeData: vscode.Event<void> = this._emitter.event;
@@ -48,8 +47,7 @@ export class ConfigTreeProvider implements vscode.TreeDataProvider<TreeNode> {
   }
 }
 
-// Rows with children open by default unless the adapter asks otherwise. Only the first render
-// honors this — VS Code keys expansion off TreeItem.id, so the reader's own folding wins after.
+// First render only: VS Code keys expansion off TreeItem.id, so the reader's folding wins after.
 const collapsibleState = (node: TreeNode): vscode.TreeItemCollapsibleState => {
   if (!node.children) return vscode.TreeItemCollapsibleState.None;
   return node.collapsed

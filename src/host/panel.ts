@@ -66,7 +66,7 @@ export const openPanel = ({ context, revealPath }: OpenPanelArgs): void => {
   });
   panel.webview.onDidReceiveMessage(_onMessage);
 
-  // The store owns the watchers now, so the panel just listens while it's open.
+  // The store owns the watchers; the panel just listens while it's open.
   snapshotSubscription = onDidChangeSnapshot((snapshot) => void _post(snapshot));
 
   panel.onDidDispose(() => {
@@ -80,7 +80,7 @@ export const openPanel = ({ context, revealPath }: OpenPanelArgs): void => {
 
 const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'ready') return _onReady();
-  // Refreshing goes through the store, so the tree redraws off the same read.
+  // Through the store, so the tree redraws off the same read.
   if (message.type === 'refresh') return void (await refreshSnapshot());
   if (message.type === 'openFile') return _openFile(message.path);
 };
@@ -106,9 +106,8 @@ const _reveal = async (path: string): Promise<void> => {
   await panel?.webview.postMessage({ type: 'reveal', path, nonce: revealNonce });
 };
 
-// Hands the whole snapshot to the webview. There are no partial updates. A watcher can fire while
-// the webview is still booting, and a post that early goes nowhere — `ready` sends the current one
-// anyway, so dropping it here is the same result without the wasted trip.
+// Whole snapshot, no partial updates. Posting before `ready` goes nowhere, and `ready` sends the
+// current one anyway.
 const _post = async (snapshot: ConfigSnapshot): Promise<void> => {
   if (!webviewReady) return;
   await panel?.webview.postMessage({ type: 'snapshot', snapshot });

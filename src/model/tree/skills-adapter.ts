@@ -9,13 +9,8 @@ import {
   TreeNodeIcon
 } from '../types';
 
-// Skills → scope → skill. The tree is a hierarchy widget and scope is the hierarchy the data
-// actually has, so nesting it means shadowing shows up as structure: the same name appears under
-// two groups, which reads as a collision instead of as a duplicated row.
-//
-// Groups come back in SCOPES order, which is precedence order — top to bottom is who wins.
-// Folding a group is how you hide a scope; there is no filter, and the group row keeps its count
-// while folded, which a filter couldn't do.
+// Skills → scope → skill, in SCOPES order so top to bottom is precedence.
+// Nesting is what makes a shadowed skill read as a collision rather than a duplicated row.
 export const skillsNode = ({ snapshot }: SurfaceArgs): TreeNode => {
   const groups: TreeNode[] = SCOPES.map((scope) => scopeGroup({ snapshot, scope })).filter(
     (group): group is TreeNode => group !== undefined
@@ -34,9 +29,8 @@ interface ScopeGroupArgs {
   scope: Scope;
 }
 
-// A scope with no skills still gets a row when the scope itself exists — "user · none" is a
-// different fact from user scope not being searched, and this tool is about the difference.
-// Plugin scope is the exception: with no plugins installed there is no directory to speak of.
+// An empty scope still gets a row when the scope exists — "nothing in it" and "not searched"
+// are different facts.
 const scopeGroup = ({ snapshot, scope }: ScopeGroupArgs): TreeNode | undefined => {
   const inScope: SkillEntry[] = snapshot.skills.filter((skill) => skill.scope === scope);
   if (inScope.length === 0 && !scopeExists({ snapshot, scope })) return undefined;
@@ -51,14 +45,13 @@ const scopeGroup = ({ snapshot, scope }: ScopeGroupArgs): TreeNode | undefined =
     label: scope,
     description: groupDescription({ count: inScope.length, shadowed }),
     children: sorted.map((skill) => skillNode({ skill, snapshot })),
-    // Plugin skills are the ones you're least often looking for and the biggest group by far, so
-    // the surface opens readable instead of as a wall.
+    // Biggest group, least often wanted.
     collapsed: scope === 'plugin'
   };
 };
 
-// Project scope only exists when a folder is open — no folder is a normal state, not an empty
-// project. User scope always exists; plugin scope is only real once a plugin ships skills.
+// Project scope needs an open folder; user scope always exists; plugin scope only once one
+// ships skills.
 const scopeExists = ({ snapshot, scope }: ScopeGroupArgs): boolean => {
   if (scope === 'project') return snapshot.workspaceRoot !== undefined;
   if (scope === 'user') return true;
@@ -80,8 +73,7 @@ interface SkillNodeArgs {
   snapshot: ConfigSnapshot;
 }
 
-// Scope moved to the group row, which frees the description to say something the row couldn't say
-// before: which scope took the name.
+// Scope lives on the group row now, so the description can name the winner instead.
 const skillNode = ({ skill, snapshot }: SkillNodeArgs): TreeNode => ({
   id: skill.path,
   label: skill.name,
@@ -94,7 +86,7 @@ const skillNode = ({ skill, snapshot }: SkillNodeArgs): TreeNode => ({
 const skillDescription = ({ skill, snapshot }: SkillNodeArgs): string | undefined => {
   const winner: SkillEntry | undefined = winnerOf({ skill, snapshot });
   if (winner) return `shadowed by ${winner.scope}`;
-  // Which plugin a skill came from is the one thing the group row can't already tell you.
+  // The one thing the group row can't say.
   return skill.pluginName;
 };
 
@@ -111,8 +103,7 @@ const icon = (skill: SkillEntry): TreeNodeIcon | undefined => {
   return undefined;
 };
 
-// A row can name the winning scope but not show the resolution, so the tooltip points at the panel
-// rather than stating something it doesn't have room to back up.
+// A row names the winner but can't show the resolution, so this points at the panel.
 const tooltip = ({ skill, snapshot }: SkillNodeArgs): string => {
   const lines: string[] = [skill.description || 'No description.'];
   const winner: SkillEntry | undefined = winnerOf({ skill, snapshot });

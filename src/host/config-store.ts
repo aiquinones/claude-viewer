@@ -13,14 +13,13 @@ let refreshTimer: NodeJS.Timeout | undefined;
 
 const changeEmitter: vscode.EventEmitter<ConfigSnapshot> = new vscode.EventEmitter();
 
-// Fires whenever the snapshot is rebuilt. The panel posts it to the webview, the tree redraws.
+// Fires on every rebuild: the panel posts it on, the tree redraws.
 export const onDidChangeSnapshot: vscode.Event<ConfigSnapshot> = changeEmitter.event;
 
-// The snapshot every reader shares — panel, tree, palette. It lived inside the panel before, which
-// meant nothing could read config without a webview open and each command re-read the disk.
+// The snapshot every reader shares — panel, tree, palette.
 export const currentSnapshot = async (): Promise<ConfigSnapshot> => snapshot ?? refreshSnapshot();
 
-// What was last built, without touching the disk. Undefined until something asks for a snapshot.
+// Last build, no disk read. Undefined until something asks.
 export const cachedSnapshot = (): ConfigSnapshot | undefined => snapshot;
 
 export const refreshSnapshot = async (): Promise<ConfigSnapshot> => {
@@ -30,8 +29,7 @@ export const refreshSnapshot = async (): Promise<ConfigSnapshot> => {
   return next;
 };
 
-// One watcher per skill root. Config changes mid-session, so views follow the disk rather than
-// reading once at activate.
+// One watcher per skill root — config changes mid-session.
 export const startWatching = async (): Promise<void> => {
   const roots: SkillRoot[] = await skillRoots(workspaceRoot());
 
