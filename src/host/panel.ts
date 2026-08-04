@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
-import { ConfigSnapshot, WebviewMessage } from '../model/types';
+import { ConfigError, Result } from '../config/result';
+import { loadSkillBody } from '../model/skill-body';
+import { ConfigSnapshot, SkillBody, WebviewMessage } from '../model/types';
 import {
   cachedSnapshot,
   currentSnapshot,
@@ -83,8 +85,24 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   // Through the store, so the tree redraws off the same read.
   if (message.type === 'refresh') return void (await refreshSnapshot());
   if (message.type === 'openFile') return _openFile(message.path);
+  if (message.type === 'requestBody') return _sendBody(message.path);
   if (message.type === 'surfaceUnavailable') return _surfaceUnavailable(message.title);
 };
+
+// The selected skill's SKILL.md, read on demand rather than shipped with every snapshot. Same
+// path check as `_openFile`: only skills the host itself found are readable.
+const _sendBody = async (path: string): Promise<void> => {
+  if (!_isKnownSkill(path)) return;
+
+  const read: Result<string, ConfigError> = await loadSkillBody(path);
+  const message: SkillBody = read.ok
+    ? { path, body: read.value }
+    : { path, body: '', error: read.error.message };
+  await panel?.webview.postMessage({ type: 'skillBody', ...message });
+};
+
+const _isKnownSkill = (path: string): boolean =>
+  cachedSnapshot()?.skills.some((skill) => skill.path === path) ?? false;
 
 // Clicking a surface that has no view yet. A notification rather than a line in the panel, so the
 // landing page stays a grid of cards and the answer lands where VS Code's other answers do.
@@ -123,8 +141,7 @@ const _post = async (snapshot: ConfigSnapshot): Promise<void> => {
 // Opens a SKILL.md in the editor. Only paths the host itself put in the snapshot are honored,
 // so the webview can't turn into a way to read arbitrary files.
 const _openFile = async (path: string): Promise<void> => {
-  const known: boolean = cachedSnapshot()?.skills.some((skill) => skill.path === path) ?? false;
-  if (!known) return;
+  if (!_isKnownSkill(path)) return;
 
   const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(vscode.Uri.file(path));
   await vscode.window.showTextDocument(doc, {
