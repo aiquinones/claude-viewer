@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { ChevronLeft, RefreshCw } from 'lucide-react';
 import { ConfigSnapshot, Reveal, SkillEntry } from '../../model/types';
 import { Button } from '@/components/ui/button';
+import { SkillBody } from '../SkillBody';
 import { SkillDetail } from '../SkillDetail';
 import { SkillList } from '../SkillList';
+import { useSkillBody } from '../useSkillBody';
 
 interface SkillViewProps {
   snapshot: ConfigSnapshot;
@@ -35,6 +37,10 @@ export const SkillView = ({ snapshot, reveal, onOpenFile, onRefresh, onBack }: S
     ? skills.filter((skill) => skill.shadowedBy === selected.path)
     : [];
   const shadowedCount: number = skills.filter((skill) => skill.shadowedBy).length;
+  const { body, error, loading } = useSkillBody({
+    path: selected?.path,
+    loadedAt: snapshot.loadedAt
+  });
 
   return (
     <div className="flex h-full flex-col">
@@ -67,15 +73,22 @@ export const SkillView = ({ snapshot, reveal, onOpenFile, onRefresh, onBack }: S
               onSelect={(skill) => setSelectedPath(skill.path)}
             />
           </div>
-          <div className="min-w-0 overflow-y-auto overflow-x-clip p-5">
+          {/* The pane, not its children, is the scroll container the sticky headings resolve
+              against — so the padding sits on the children and a heading bar can span the width. */}
+          <div className="min-w-0 overflow-y-auto overflow-x-clip">
             {selected && (
-              <SkillDetail
-                skill={selected}
-                winner={winner}
-                shadowed={shadowed}
-                onOpenFile={onOpenFile}
-                onSelectSkill={setSelectedPath}
-              />
+              <>
+                <div className="p-5">
+                  <SkillDetail
+                    skill={selected}
+                    winner={winner}
+                    shadowed={shadowed}
+                    onOpenFile={onOpenFile}
+                    onSelectSkill={setSelectedPath}
+                  />
+                </div>
+                <SkillBody body={body} error={error} loading={loading} />
+              </>
             )}
           </div>
         </div>

@@ -113,10 +113,19 @@ export interface Reveal {
   nonce: number;
 }
 
+// One skill's SKILL.md below the frontmatter, answering a `requestBody`. `path` is echoed back so
+// a reply that arrives after the selection moved on can be dropped.
+export interface SkillBody {
+  path: string;
+  body: string;
+  error?: string;
+}
+
 // Host → webview.
 export type HostMessage =
   | { type: 'snapshot'; snapshot: ConfigSnapshot }
-  | ({ type: 'reveal' } & Reveal);
+  | ({ type: 'reveal' } & Reveal)
+  | ({ type: 'skillBody' } & SkillBody);
 
 // Webview → host. `surfaceUnavailable` carries only the surface's name: the host owns the
 // sentence, the same way it owns which paths `openFile` will accept.
@@ -124,4 +133,5 @@ export type WebviewMessage =
   | { type: 'ready' }
   | { type: 'refresh' }
   | { type: 'openFile'; path: string }
+  | { type: 'requestBody'; path: string }
   | { type: 'surfaceUnavailable'; title: string };

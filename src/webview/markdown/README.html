@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>webview/markdown — sections and tokens</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1c1f24;
+    --muted: #6b7280;
+    --line: #e3e6ea;
+    --code-bg: #f5f6f8;
+    --accent: #2563eb;
+    --mark: #fff3c4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181c;
+      --fg: #dfe3e8;
+      --muted: #8b929c;
+      --line: #2a2e35;
+      --code-bg: #1e2126;
+      --accent: #7aa5f5;
+      --mark: #4a3f14;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 6rem;
+    max-width: 52rem;
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  h1 { font-size: 1.5rem; margin: 0 0 .35rem; letter-spacing: -.01em; }
+  h2 { font-size: 1rem; margin: 0; }
+  h3 { font-size: .9rem; margin: 1.6rem 0 .5rem; }
+  p { margin: .75rem 0; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; }
+  code { background: var(--code-bg); padding: .1em .35em; border-radius: 4px; font-size: .875em; }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .9rem 1rem;
+    overflow-x: auto;
+    font-size: .8rem;
+    line-height: 1.55;
+    margin: .9rem 0;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  .lede { color: var(--muted); margin-top: 0; }
+  .path { color: var(--muted); font-size: .8rem; font-family: ui-monospace, monospace; }
+  details {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin: .6rem 0;
+    background: var(--bg);
+  }
+  details[open] { padding-bottom: .4rem; }
+  summary {
+    cursor: pointer;
+    padding: .7rem 1rem;
+    list-style: none;
+    display: flex;
+    align-items: baseline;
+    gap: .6rem;
+    border-radius: 8px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::before {
+    content: "▸";
+    color: var(--muted);
+    font-size: .8em;
+    transition: transform .12s ease;
+    display: inline-block;
+  }
+  details[open] > summary::before { transform: rotate(90deg); }
+  summary:hover { background: var(--code-bg); }
+  summary .sub { color: var(--muted); font-weight: 400; font-size: .82rem; margin-left: auto; text-align: right; }
+  .body { padding: 0 1rem; border-top: 1px solid var(--line); }
+  table { border-collapse: collapse; width: 100%; font-size: .85rem; margin: .9rem 0; }
+  th, td { border: 1px solid var(--line); padding: .4rem .6rem; text-align: left; vertical-align: top; }
+  th { background: var(--code-bg); font-weight: 600; }
+  td code { white-space: nowrap; }
+  mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 .15em; }
+  .note {
+    border-left: 3px solid var(--accent);
+    padding: .1rem 0 .1rem .8rem;
+    margin: 1rem 0;
+    color: var(--muted);
+  }
+  .note strong { color: var(--fg); }
+  hr { border: 0; border-top: 1px solid var(--line); margin: 2.2rem 0; }
+</style>
+</head>
+<body>
+
+<h1>webview/markdown</h1>
+<p class="lede">Raw markdown text in, React elements out, with every heading pinned to the top of the
+pane while you are inside its section. Two data shapes carry the whole folder: a <b>token</b>, which
+comes from <a href="https://marked.js.org">marked</a>, and a <b>section</b>, which this folder
+builds on top of them.</p>
+
+<p>Read the example first, then open the sections below — each one explains one piece of it.</p>
+
+<hr>
+
+<h3>The example</h3>
+<p>One small SKILL.md body. Everything below refers back to it.</p>
+
+<pre><code>Read this before editing.
+
+# Setup
+
+Install with `pnpm install`.
+
+### Requirements
+
+- Node 20+
+- **pnpm**, not npm
+
+# Usage
+
+See the [build docs](https://example.com).
+</code></pre>
+
+<p>Four things in there matter, and each one hits a different corner of the code:</p>
+<ul>
+  <li>A paragraph <b>before any heading</b> — it belongs to no section.</li>
+  <li><code># Setup</code> jumping straight to <code>### Requirements</code>, <b>skipping <code>##</code></b>.</li>
+  <li>A list whose item holds <b>inline formatting</b> (<code>**pnpm**</code>).</li>
+  <li>A <b>link</b>, which renders differently depending on where it points.</li>
+</ul>
+
+<hr>
+
+<details open>
+  <summary><h2>1. A token</h2><span class="sub">marked's output — a flat list</span></summary>
+  <div class="body">
+
+<p><code>marked.lexer(raw)</code> turns the text into a flat array of tokens. Flat: the two headings
+below are siblings of the paragraphs, not parents of them. Nothing in that array says
+<i>Requirements is inside Setup</i>.</p>
+
+<p>The example lexes to exactly this — token type on the left, the source it came from on the right:</p>
+
+<pre><code>paragraph    "Read this before editing."
+space        "\n\n"
+heading      "# Setup"
+space        "\n\n"
+paragraph    "Install with `pnpm install`."
+space        "\n\n"
+heading      "### Requirements"
+space        "\n\n"
+list         "- Node 20+\n- **pnpm**, not npm"
+space        "\n\n"
+heading      "# Usage"
+space        "\n\n"
+paragraph    "See the [build docs](https://example.com)."
+</code></pre>
+
+<p>Every token has a <code>type</code> and a <code>raw</code> (the source text it consumed). Beyond
+that the fields depend on the type: a <code>heading</code> has <code>depth</code> (the number of
+<code>#</code>), a <code>list</code> has <code>items</code>, a <code>table</code> has
+<code>header</code> and <code>rows</code>.</p>
+
+<h3>Tokens nest inside tokens</h3>
+<p>The flat list is only the top level. A token that contains formatted text carries its own
+<code>tokens</code> array. The last paragraph of the example, fully expanded:</p>
+
+<pre><code>{
+  "type": "paragraph",
+  "raw":  "See the [build docs](https://example.com).",
+  "tokens": [
+    { "type": "text", "text": "See the " },
+    {
+      "type": "link",
+      "href": "https://example.com",
+      "text": "build docs",
+      "tokens": [ { "type": "text", "text": "build docs" } ]
+    },
+    { "type": "text", "text": "." }
+  ]
+}</code></pre>
+
+<p>That recursion is why rendering is two functions rather than one. <code>Blocks.tsx</code> handles
+tokens that occupy vertical space (paragraph, list, code, table, blockquote, hr) and
+<code>Inline.tsx</code> handles the ones that live inside a line (text, strong, em, codespan, link,
+image, br). Each one recurses into the other where it needs to: a list item's content goes back
+through <code>Blocks</code>, a paragraph's <code>tokens</code> go through <code>Inline</code>.</p>
+
+<div class="note">
+  <strong>The <code>space</code> tokens are dropped.</strong> <code>toSections</code> skips them —
+  blank lines are already implied by the block structure, and vertical rhythm comes from CSS margins
+  in <code>Blocks.tsx</code>. Those margins are plain <code>margin</code> on purpose, so adjacent
+  blocks collapse into one gap; that only works while the container stays normal flow, never flex.
+</div>
+
+<h3>Why <code>isToken</code> exists</h3>
+<p>marked types its output as a union, <code>Token</code>. You would expect
+<code>token.type === 'list'</code> to narrow it to <code>Tokens.List</code>. It doesn't quite: the
+union carries a <code>Generic</code> member whose <code>type</code> is a plain <code>string</code>,
+so <code>string</code> matches every comparison and the check narrows to <mark>"the real one, or
+Generic"</mark>. Generic declares most fields optional, so <code>token.items</code> stays
+<code>possibly undefined</code> and the code fills with guards that can never fire.</p>
+
+<pre><code>// tokens.ts
+export type TokenOf&lt;Type extends string&gt; = Extract&lt;Token, { type: Type }&gt;;
+
+export const isToken = &lt;Type extends string&gt;(token: Token, type: Type): token is TokenOf&lt;Type&gt; =&gt;
+  token.type === type;</code></pre>
+
+<p><code>TokenOf&lt;'list'&gt;</code> is <code>Tokens.List</code> and nothing else, and the guard
+asserts it. Use <code>isToken</code> for any token whose fields you actually read
+(<code>list</code>, <code>table</code>, <code>link</code>, <code>image</code>, <code>heading</code>);
+a plain <code>===</code> is fine when you only need <code>text</code> or <code>raw</code>, which
+Generic types the same way.</p>
+
+  </div>
+</details>
+
+<details>
+  <summary><h2>2. A section</h2><span class="sub">this folder's shape — a tree</span></summary>
+  <div class="body">
+
+<p>A <code>Section</code> is one heading plus everything under it: the blocks that follow it, and
+the sub-sections nested inside it.</p>
+
+<pre><code>export interface Section {
+  // Absent on the one section that holds whatever came before the first heading.
+  heading?: Tokens.Heading;
+  // Position in the tree, 1-based — not the markdown level.
+  depth: number;
+  blocks: Token[];
+  children: Section[];
+}</code></pre>
+
+<p><code>toSections</code> turns the flat token list into these. The example becomes:</p>
+
+<pre><code>(preamble)          depth=0   blocks=[paragraph]
+# Setup             depth=1   blocks=[paragraph]
+    ### Requirements    depth=2   blocks=[list]
+# Usage             depth=1   blocks=[paragraph]</code></pre>
+
+<p>Read that against the source and three rules fall out.</p>
+
+<h3>Blocks belong to the heading above them</h3>
+<p><code>blocks</code> holds only what sits directly under that heading, before the next one.
+<i>Setup</i> owns the <code>Install with…</code> paragraph but not the list — the list arrived after
+<code>### Requirements</code>, so it belongs to <i>Requirements</i>. To render a whole section you
+render its <code>blocks</code>, then recurse into <code>children</code>.</p>
+
+<h3>Depth is position in the tree, not the number of hashes</h3>
+<p>This is the one that surprises people. <code>### Requirements</code> is a level-3 heading, but it
+is the <b>first</b> thing nested under <code>#&nbsp;Setup</code>, so its <code>depth</code> is
+<mark>2, not 3</mark>. The jump from <code>#</code> to <code>###</code> costs one step of nesting,
+not two.</p>
+
+<p>Both numbers survive, and each has a job:</p>
+
+<table>
+  <tr><th>Number</th><th>Where it lives</th><th>What it drives</th></tr>
+  <tr>
+    <td><code>section.depth</code></td>
+    <td>computed by <code>toSections</code></td>
+    <td>the sticky <code>top</code> offset and the heading's visual weight</td>
+  </tr>
+  <tr>
+    <td><code>heading.depth</code></td>
+    <td>marked, straight from the <code>#</code>s</td>
+    <td>which HTML tag gets emitted (<code>h1</code>…<code>h6</code>)</td>
+  </tr>
+</table>
+
+<p>So <i>Requirements</i> renders as an <code>&lt;h3&gt;</code> — honest to the source, and correct
+for a screen reader — while being styled and offset as the second bar in the stack. If depth used
+the hash count, a file that jumped <code>#</code> → <code>###</code> would leave an empty slot in
+the sticky stack and the second bar would float with a gap above it.</p>
+
+<h3>The preamble section has no heading</h3>
+<p><code>Read this before editing.</code> comes before any heading, so it has no section to belong
+to. Rather than dropping it, <code>toSections</code> opens one section with <code>heading:
+undefined</code> and <code>depth: 0</code>. <code>SectionView</code> renders its blocks and skips
+the sticky bar. It is the only section that can lack a heading, and the only one at depth 0 — real
+sections start at 1.</p>
+
+  </div>
+</details>
+
+<details>
+  <summary><h2>3. How the tree gets built</h2><span class="sub">toSections, one pass, one stack</span></summary>
+  <div class="body">
+
+<p>One pass over the tokens, holding a stack of the sections currently open — outermost first. The
+stack is the path from the root down to wherever the next token would land.</p>
+
+<pre><code>if (isToken(token, 'heading')) {
+  // Close every open section this heading is not inside.
+  while (open.length &gt; 0 &amp;&amp; open[open.length - 1].level &gt;= token.depth) open.pop();
+
+  const parent = open[open.length - 1];
+  const section = { heading: token, depth: open.length + 1, blocks: [], children: [] };
+  (parent ? parent.section.children : roots).push(section);
+  open.push({ level: token.depth, section });
+  continue;
+}
+
+// Not a heading: it belongs to whatever is open.
+open[open.length - 1].section.blocks.push(token);</code></pre>
+
+<p>Two separate numbers do the work here, which is worth pausing on:</p>
+<ul>
+  <li><b><code>level</code></b> — the markdown level, kept on the stack entry. It decides how much a
+  new heading closes: pop while the open level is <code>&gt;=</code> the new one. A <code>##</code>
+  closes another <code>##</code> and any <code>###</code> under it, but not the <code>#</code>
+  above.</li>
+  <li><b><code>depth</code></b> — read off <code>open.length</code> at the moment the section is
+  created. Because it counts what is <i>on the stack</i> rather than hashes, the
+  <code>#</code>&nbsp;→&nbsp;<code>###</code> jump collapses to one step automatically. No special
+  case anywhere.</li>
+</ul>
+
+<h3>The example, step by step</h3>
+<table>
+  <tr><th>Token</th><th>Stack after</th><th>What happened</th></tr>
+  <tr><td><code>paragraph</code></td><td>empty</td><td>nothing open → opens the preamble</td></tr>
+  <tr><td><code># Setup</code></td><td><code>[1]</code></td><td>nothing to pop; a root section, <code>depth = 0 + 1</code></td></tr>
+  <tr><td><code>paragraph</code></td><td><code>[1]</code></td><td>pushed onto <i>Setup</i>'s blocks</td></tr>
+  <tr><td><code>### Requirements</code></td><td><code>[1, 3]</code></td><td><code>1 &gt;= 3</code> is false, so nothing pops — child of <i>Setup</i>, <code>depth = 1 + 1</code></td></tr>
+  <tr><td><code>list</code></td><td><code>[1, 3]</code></td><td>pushed onto <i>Requirements</i>' blocks</td></tr>
+  <tr><td><code># Usage</code></td><td><code>[1]</code></td><td><code>3 &gt;= 1</code> and <code>1 &gt;= 1</code>, so both pop — back to a root section</td></tr>
+</table>
+
+  </div>
+</details>
+
+<details>
+  <summary><h2>4. Why a tree at all</h2><span class="sub">the sticky headings depend on it</span></summary>
+  <div class="body">
+
+<p>The tree is not for tidiness — the pinning does not work without it.</p>
+
+<p>A <code>position: sticky</code> element stops sticking when its <b>containing block</b> scrolls
+out of view. That gives the nesting a job: render sections as nested <code>&lt;section&gt;</code>
+elements and each heading's containing block is exactly its own section, so a <code>##</code>
+unpins the moment you leave it.</p>
+
+<pre><code>&lt;section&gt;                    &lt;!-- # Setup --&gt;
+  &lt;h1 sticky top: 0&gt;
+  &lt;p&gt;Install with…&lt;/p&gt;
+  &lt;section&gt;                  &lt;!-- ### Requirements, inside Setup --&gt;
+    &lt;h3 sticky top: 1.75rem&gt;
+    &lt;ul&gt;…&lt;/ul&gt;
+  &lt;/section&gt;
+&lt;/section&gt;
+&lt;section&gt;                    &lt;!-- # Usage --&gt;
+  &lt;h1 sticky top: 0&gt;
+&lt;/section&gt;</code></pre>
+
+<p>Flatten that — every heading a sibling in one long div — and they all share <b>one</b> containing
+block, the div. Nothing releases until the entire document scrolls past. Scroll from
+<i>Requirements</i> into <i>Usage</i> and the <i>Requirements</i> bar stays pinned under it forever,
+labelling content it has nothing to do with.</p>
+
+<h3>The offsets</h3>
+<p><code>Markdown.tsx</code> stacks the bars by giving each one a <code>top</code> equal to the
+height of everything above it:</p>
+
+<pre><code>const ROW_REM = 1.75;   // matches `h-7` on the heading — change one, change the other
+const MAX_DEPTH = 4;    // past this the bars would eat the pane
+
+top: `${(Math.min(section.depth, MAX_DEPTH) - 1) * ROW_REM}rem`
+zIndex: 30 - depth      // an outer bar covers an inner one sliding under it</code></pre>
+
+<p>Depth 1 sits at <code>0</code>, depth 2 at <code>1.75rem</code>, depth 3 at <code>3.5rem</code>.
+Deeper than 4 and headings share the last slot rather than pushing the stack further down the pane.</p>
+
+<div class="note">
+  <strong>Every bar has to be exactly one row tall.</strong> The offsets are multiples of
+  <code>ROW_REM</code>, so a heading that wrapped to two lines would push its own content down
+  without moving any of the offsets below it, and the stack would overlap from there on. That is why
+  the heading is a fixed <code>h-7</code> and its text truncates with an ellipsis instead of
+  wrapping. The <code>&lt;span&gt;</code> inside does the truncating, not the heading — a flex item
+  needs <code>min-w-0</code> before it will shrink far enough to show one.
+</div>
+
+  </div>
+</details>
+
+<details>
+  <summary><h2>5. Rendering</h2><span class="sub">Markdown → SectionView → Blocks / Inline</span></summary>
+  <div class="body">
+
+<p>Four components, each one small:</p>
+
+<pre><code>Markdown        toSections(raw), then one SectionView per root
+  SectionView   the sticky heading, its blocks, then its children — recursive
+    Blocks      block tokens → &lt;p&gt; &lt;ul&gt; &lt;pre&gt; &lt;table&gt; &lt;blockquote&gt; &lt;hr&gt;
+      Inline    inline tokens → &lt;strong&gt; &lt;em&gt; &lt;code&gt; &lt;a&gt; text</code></pre>
+
+<p>Both renderers are an if-chain over <code>token.type</code> with a fallback at the end, so an
+unrecognised token degrades instead of crashing the pane — <code>Blocks</code> returns
+<code>null</code> and skips it, <code>Inline</code> falls back to the token's <code>raw</code>
+source so a stray inline construct still shows its text. That matters here: the input is whatever
+someone wrote in a SKILL.md, and config formats drift between Claude Code releases.</p>
+
+<h3>Three deliberate non-renders</h3>
+<p>These look like gaps and are not — each one is a decision, all three in
+<code>Inline.tsx</code>:</p>
+
+<table>
+  <tr><th>Input</th><th>Renders as</th><th>Why</th></tr>
+  <tr>
+    <td>An image</td>
+    <td><code>image: alt text</code> in a muted chip</td>
+    <td>The panel's CSP has no <code>img-src</code>, and a skill's own files are not a
+    <code>localResourceRoot</code>. It could not load, so it says what it is instead.</td>
+  </tr>
+  <tr>
+    <td>A link that is not <code>http(s):</code> or <code>mailto:</code></td>
+    <td>dotted underline, not a link, target in the tooltip</td>
+    <td>A relative path or an anchor would navigate <b>the webview itself</b> off its shell and take
+    the panel with it. Only external links get an <code>&lt;a&gt;</code>.</td>
+  </tr>
+  <tr>
+    <td>Raw HTML</td>
+    <td>its source text, verbatim</td>
+    <td>Showing what is actually in the file beats parsing it, and beats dropping it silently.</td>
+  </tr>
+</table>
+
+<h3>The tight-list quirk</h3>
+<p>In the example, <code>- **pnpm**, not npm</code> reaches <code>Blocks</code> as a block-level
+token of type <code>text</code> — not a <code>paragraph</code>, because the list is tight (no blank
+lines between items). If it rendered as a <code>&lt;p&gt;</code> the text would drop to its own line
+below the bullet. So <code>Blocks</code> renders that one case inline, and the bullet keeps its
+text:</p>
+
+<pre><code>if (token.type === 'text') {
+  return 'tokens' in token &amp;&amp; token.tokens?.length ? &lt;Inline tokens={token.tokens} /&gt; : token.text;
+}</code></pre>
+
+<p>The same shape shows up in <code>Inline</code>: a <code>text</code> token carries its own
+<code>tokens</code> only when something inline is nested in it, so both renderers check before
+recursing and fall back to the plain string.</p>
+
+  </div>
+</details>
+
+<details>
+  <summary><h2>6. The files</h2><span class="sub">what to open for what</span></summary>
+  <div class="body">
+
+<table>
+  <tr><th>File</th><th>Holds</th></tr>
+  <tr><td><code>sections.ts</code></td><td><code>Section</code> and <code>toSections</code>. Pure — no React, no DOM. The whole tree-building story.</td></tr>
+  <tr><td><code>tokens.ts</code></td><td><code>isToken</code> and <code>TokenOf</code>, the narrowing marked's union does not give you.</td></tr>
+  <tr><td><code>Markdown.tsx</code></td><td>The entry component, <code>SectionView</code>, and the sticky offset maths.</td></tr>
+  <tr><td><code>Blocks.tsx</code></td><td>Block tokens → elements. Lists and tables have their own small components.</td></tr>
+  <tr><td><code>Inline.tsx</code></td><td>Inline tokens → elements, plus the link and image policy.</td></tr>
+  <tr><td><code>Markdown.stories.tsx</code></td><td>The workbench. <code>pnpm run storybook</code> — scroll a long body to watch the bars stack.</td></tr>
+</table>
+
+<h3>If you add a token type</h3>
+<ol>
+  <li>Decide block or inline; that picks the file.</li>
+  <li>Add the branch to that file's <code>render</code>. Use <code>isToken</code> if you read fields
+  beyond <code>text</code> or <code>raw</code>.</li>
+  <li>Add a story covering it — including how it looks empty or malformed, since real config will
+  not reliably show you either.</li>
+</ol>
+
+<p>Adding a token type never touches <code>sections.ts</code>. The tree only cares which tokens are
+headings; everything else is an opaque block it files under one.</p>
+
+  </div>
+</details>
+
+</body>
+</html>
