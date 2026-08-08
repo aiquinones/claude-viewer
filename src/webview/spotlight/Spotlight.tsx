@@ -72,7 +72,7 @@ export const Spotlight = ({ index, initialQuery, onChoose, onDismiss }: Spotligh
               setActiveIndex(INPUT);
             }}
             onKeyDown={onKeyDown}
-            className="w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
+            className="flat-focus w-full bg-transparent py-3 text-sm placeholder:text-muted-foreground"
           />
         </div>
 
