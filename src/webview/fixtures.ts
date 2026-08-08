@@ -1,4 +1,6 @@
-import { ConfigIssue, ConfigSnapshot, Reveal, Scope, SkillEntry } from '../model/types';
+import { buildSearchIndex } from '../model/search/build-index';
+import { searchIndex } from '../model/search/search';
+import { ConfigIssue, ConfigSnapshot, Reveal, SearchDoc, SearchHit, SkillEntry } from '../model/types';
 
 // Synthetic only. Never paste real config in here — working on this extension means reading your
 // own ~/.claude, and that directory holds permissions, MCP env vars, and API keys.
@@ -191,3 +193,8 @@ export const skippedLevelMarkdown: string = `# Top
 
 Body text under a heading whose parent was never written.
 `;
+
+// The spotlight's input: the real index, over the same synthetic skills.
+export const searchDocs: SearchDoc[] = buildSearchIndex(snapshot({ skills: allSkills }));
+
+export const hitsFor = (query: string): SearchHit[] => searchIndex({ index: searchDocs, query });

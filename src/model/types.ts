@@ -67,6 +67,38 @@ export interface TreeNode {
   collapsed?: boolean;
 }
 
+// What kind of thing a search result is. Grows with the surfaces; the result row prints it, which
+// is what keeps one list of skills, CLAUDE.md files and hooks readable.
+//
+// Deliberately not annotated: a type here would erase the literals `SearchKind` derives from.
+export const SEARCH_KINDS = ['skill'] as const;
+
+export type SearchKind = (typeof SEARCH_KINDS)[number];
+
+// One searchable thing, chewed up ahead of the query: the label lowercased, plus a bitmask of the
+// positions each character occurs at. See docs/spotlight-search.md for what the masks buy.
+export interface SearchDoc {
+  // Unique across the index — a skill's path. Doubles as the row key.
+  id: string;
+  label: string;
+  kind: SearchKind;
+  // `label` lowercased. What the query actually matches against.
+  haystack: string;
+  // character → set bit per position it occurs at, one 32-bit word per 32 characters.
+  masks: Map<string, number[]>;
+  // Position in the panel's own ordering, used to break a tie between equal scores.
+  rank: number;
+  // Present but not in effect — a shadowed skill today. The row dims it.
+  inactive?: boolean;
+}
+
+export interface SearchHit {
+  doc: SearchDoc;
+  score: number;
+  // Indices in `label` the query matched, ascending. The row highlights them.
+  positions: number[];
+}
+
 export interface SurfaceArgs {
   snapshot: ConfigSnapshot;
 }
