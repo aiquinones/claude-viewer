@@ -16,7 +16,7 @@ const meta: Meta<typeof SkillNav> = {
     (Story) => (
       <div className="relative grid h-screen grid-cols-[minmax(0,1fr)] overflow-x-clip md:grid-cols-[minmax(160px,240px)_minmax(0,1fr)]">
         <Story />
-        <div className="relative z-0 p-5 text-sm text-muted-foreground">
+        <div className="relative z-0 p-5 pl-4 text-sm text-muted-foreground md:pl-2">
           The detail pane. Under 768px it has the whole width and the list slides over it.
         </div>
       </div>

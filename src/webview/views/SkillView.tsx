@@ -77,8 +77,10 @@ export const SkillView = ({ snapshot, reveal, onOpenFile, onRefresh, onBack }: S
           {/* The pane, not its children, is the scroll container the sticky headings resolve
               against — so the padding sits on the children and a heading bar can span the width.
               `relative z-0` makes it their stacking context too: the headings climb to z-29 to
-              stack against each other, which would otherwise put them over the nav sliding in. */}
-          <div className="relative z-0 min-w-0 overflow-y-auto overflow-x-clip">
+              stack against each other, which would otherwise put them over the nav sliding in.
+              `pl-4` is the one exception to padding-on-the-children: it's the rail's width, and a
+              full-bleed heading bar has to stop at it rather than rule a line through the handle. */}
+          <div className="relative z-0 min-w-0 overflow-y-auto overflow-x-clip pl-4 md:pl-2">
             {selected && (
               <>
                 <div className="p-5">
