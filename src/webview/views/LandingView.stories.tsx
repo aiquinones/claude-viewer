@@ -39,6 +39,13 @@ export const NoWorkspace: Story = {
   }
 };
 
+// Below `sm:` the cards stack. They keep the height they have two-across rather than growing with
+// the panel — the 4:3 ratio would make each card as tall as the panel is wide.
+export const NarrowPanel: Story = {
+  args: { snapshot: snapshot({ skills: allSkills }) },
+  globals: { viewport: { value: 'narrowPanel' } }
+};
+
 export const NoSkills: Story = {
   args: { snapshot: snapshot({ skills: [] }) }
 };
