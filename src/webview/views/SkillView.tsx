@@ -75,8 +75,10 @@ export const SkillView = ({ snapshot, reveal, onOpenFile, onRefresh, onBack }: S
             onSelect={(skill) => setSelectedPath(skill.path)}
           />
           {/* The pane, not its children, is the scroll container the sticky headings resolve
-              against — so the padding sits on the children and a heading bar can span the width. */}
-          <div className="min-w-0 overflow-y-auto overflow-x-clip">
+              against — so the padding sits on the children and a heading bar can span the width.
+              `relative z-0` makes it their stacking context too: the headings climb to z-29 to
+              stack against each other, which would otherwise put them over the nav sliding in. */}
+          <div className="relative z-0 min-w-0 overflow-y-auto overflow-x-clip">
             {selected && (
               <>
                 <div className="p-5">
