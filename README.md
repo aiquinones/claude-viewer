@@ -6,7 +6,7 @@ This is a VSCode extension for viewing the **RESOLVED** state for your agent, li
 
 ## Current State
 - [x] Skills View, coming from the user specific `~/.claude/` folder, the project's global `.claude/` folder, and active plugins.
-- [ ] System Prompt View, merging CLAUDE.md or similar files.
+- [x] System Prompt View, merging CLAUDE.md or similar files.
 - [ ] Memory View, for purging / tracking stale or important memories
 - [ ] Hooks for tool invocations etc
 - [ ] Permissions

@@ -2,6 +2,50 @@
 
 Notable changes to Claude Viewer, newest first.
 
+## 0.4.0 — 2026-08-09
+
+### Added
+
+- **The system prompt surface.** Every CLAUDE.md that loads for the workspace, in the order Claude
+  reads them — user, project, local, nested — with `@` imports walked recursively and indented under
+  whichever file pulled them in. Each file shows its size, an estimated token count, and a bar for
+  its share of the total. Nested files are marked "loads only under `<dir>/`" and kept out of the
+  headline number, so that number is what always loads. Clicking a file renders it.
+- **A skill's own content renders in the panel**, under the metadata: the SKILL.md below its
+  frontmatter, as markdown, with each heading pinned to the top of the pane while you're inside its
+  section.
+- **Spotlight filters.** Opening the search from a surface starts it narrowed to that surface, and
+  typing `filter:skill` lifts the word out of the box into a pill. `Backspace` or the pill's `x`
+  removes it.
+- **A magnifier button** beside every view's refresh button, so the search is reachable without the
+  keyboard. Its tooltip prints the chord.
+
+### Changed
+
+- **The skills list narrows and then gets out of the way.** Its column is 160–240px, and on a narrow
+  panel it leaves the layout entirely — parked off the left edge, slid back by hovering the handle or
+  tabbing into it. A skill's body gets the full width in a split editor group.
+- **The winner of a name collision is a crown by the name** rather than a block of text, with the
+  shadowed copies behind a hover card. A skill's tool overrides moved below its content.
+
+### Fixed
+
+- The spotlight input no longer draws the focus ring VS Code injects into webviews.
+- Landing page cards no longer grow when they stack on a narrow panel.
+- A skill's content no longer runs underneath the list's hover handle, and the sticky headings no
+  longer paint over the list as it slides in.
+
+## 0.3.0 — 2026-08-03
+
+### Added
+
+- **The panel opens on a landing page** — "Viewing agent on `<folder>`" and one card per config
+  surface — instead of dropping straight into skills.
+- **A sidebar tree** in its own activity bar container, nested surface → scope → skill. Clicking a
+  row opens the panel on it.
+- **Spotlight search.** `Cmd+F` or `Cmd+K` in the panel opens a search box over whatever view is up;
+  typing matches skill names as a subsequence, arrows walk the results, Enter opens one.
+
 ## 0.2.0 — 2026-08-02
 
 ### Added
