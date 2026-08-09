@@ -10,6 +10,7 @@ const meta: Meta<typeof LandingView> = {
   args: {
     onOpenSurface: () => undefined,
     onUnavailableSurface: () => undefined,
+    onSearch: () => undefined,
     onRefresh: () => undefined
   },
   decorators: [

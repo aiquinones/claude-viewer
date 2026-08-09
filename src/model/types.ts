@@ -71,6 +71,9 @@ export interface TreeNode {
 // is what keeps one list of skills, CLAUDE.md files and hooks readable.
 //
 // Deliberately not annotated: a type here would erase the literals `SearchKind` derives from.
+//
+// A kind doubles as a filter word — `filter:skill` — so no kind may be a prefix of another, or the
+// shorter one would claim the token before you finished typing the longer one.
 export const SEARCH_KINDS = ['skill'] as const;
 
 export type SearchKind = (typeof SEARCH_KINDS)[number];

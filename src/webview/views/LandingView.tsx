@@ -1,6 +1,5 @@
-import { RefreshCw } from 'lucide-react';
 import { ConfigSnapshot } from '../../model/types';
-import { Button } from '@/components/ui/button';
+import { PanelActions } from '../PanelActions';
 import { SurfaceCard } from '../SurfaceCard';
 import { SURFACES, Surface, SurfaceId, getDetailForSurface } from '../surfaces';
 
@@ -9,6 +8,7 @@ interface LandingViewProps {
   onOpenSurface: (id: SurfaceId) => void;
   // A surface with no view yet. The host answers with a VS Code notification.
   onUnavailableSurface: (title: string) => void;
+  onSearch: () => void;
   onRefresh: () => void;
 }
 
@@ -17,6 +17,7 @@ export const LandingView = ({
   snapshot,
   onOpenSurface,
   onUnavailableSurface,
+  onSearch,
   onRefresh
 }: LandingViewProps) => {
   const open = (surface: Surface): void =>
@@ -30,9 +31,7 @@ export const LandingView = ({
     <div className="flex h-full flex-col overflow-y-auto overflow-x-clip">
       <header className="flex items-start justify-between gap-3 px-6 pt-6 pb-5">
         <Heading workspaceRoot={snapshot.workspaceRoot} />
-        <Button variant="ghost" size="icon" title="Refresh" onClick={onRefresh}>
-          <RefreshCw />
-        </Button>
+        <PanelActions onSearch={onSearch} onRefresh={onRefresh} />
       </header>
 
       {/* An explicit column count rather than auto-fit: the panel is narrow and the cards are the

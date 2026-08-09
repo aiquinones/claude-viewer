@@ -1,9 +1,5 @@
 import { useEffect, useState } from 'react';
-
-// Cmd+F is the find key everywhere; Cmd+K is the one web apps use for exactly this box. Both,
-// because a webview only gets the keys the workbench didn't claim first.
-const isOpenChord = (event: KeyboardEvent): boolean =>
-  (event.metaKey || event.ctrlKey) && !event.altKey && (event.key === 'f' || event.key === 'k');
+import { isOpenChord } from './chord';
 
 // Whether the spotlight is up, and the one listener that opens it. `openedAt` is the mount key:
 // hitting the chord while it's already open has to give you an empty box back, and that only
@@ -22,5 +18,10 @@ export const useSpotlight = () => {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  return { openedAt, dismiss: (): void => setOpenedAt(undefined) };
+  return {
+    openedAt,
+    // What the magnifier in the header calls. Same remount rule as the chord.
+    open: (): void => setOpenedAt(Date.now()),
+    dismiss: (): void => setOpenedAt(undefined)
+  };
 };

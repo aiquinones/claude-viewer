@@ -10,7 +10,12 @@ import { SkillView } from './SkillView';
 const meta: Meta<typeof SkillView> = {
   title: 'Skills/SkillView',
   component: SkillView,
-  args: { onOpenFile: () => undefined, onRefresh: () => undefined, onBack: () => undefined },
+  args: {
+    onOpenFile: () => undefined,
+    onSearch: () => undefined,
+    onRefresh: () => undefined,
+    onBack: () => undefined
+  },
   decorators: [
     (Story) => (
       <div className="h-screen">
