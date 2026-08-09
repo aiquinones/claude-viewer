@@ -7,7 +7,7 @@ import { PanelActions } from '../PanelActions';
 import { SkillBody } from '../SkillBody';
 import { SkillDetail } from '../SkillDetail';
 import { SkillNav } from '../SkillNav';
-import { useSkillBody } from '../useSkillBody';
+import { useFileBody } from '../useFileBody';
 
 interface SkillViewProps {
   snapshot: ConfigSnapshot;
@@ -47,7 +47,7 @@ export const SkillView = ({
     ? skills.filter((skill) => skill.shadowedBy === selected.path)
     : [];
   const shadowedCount: number = skills.filter((skill) => skill.shadowedBy).length;
-  const { body, error, loading } = useSkillBody({
+  const { body, error, loading } = useFileBody({
     path: selected?.path,
     loadedAt: snapshot.loadedAt
   });

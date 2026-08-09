@@ -12,7 +12,8 @@ const meta: Meta<typeof PromptList> = {
   component: PromptList,
   args: {
     workspaceRoot: '/Users/dev/repos/example-app',
-    onOpenFile: () => undefined
+    selectedOrder: undefined,
+    onSelect: () => undefined
   },
   decorators: [
     (Story) => (
@@ -42,4 +43,9 @@ export const OnlyConditionalFiles: Story = {
 
 export const WithBrokenImports: Story = {
   args: { files: brokenPromptFiles }
+};
+
+// A row stays lit while its body renders below — in the panel that body is the pane's second half.
+export const WithSelection: Story = {
+  args: { files: allPromptFiles, selectedOrder: 2 }
 };

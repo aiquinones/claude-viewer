@@ -133,7 +133,6 @@ const Detail = ({
       return (
         <SystemPromptView
           snapshot={snapshot}
-          onOpenFile={onOpenFile}
           onRefresh={onRefresh}
           onBack={onBack}
         />

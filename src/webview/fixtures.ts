@@ -306,3 +306,34 @@ Body text under a heading whose parent was never written.
 export const searchDocs: SearchDoc[] = buildSearchIndex(snapshot({ skills: allSkills }));
 
 export const hitsFor = (query: string): SearchHit[] => searchIndex({ index: searchDocs, query });
+
+// A CLAUDE.md body — synthetic, like everything here. Unlike skillMarkdown it has no frontmatter,
+// which is the whole difference between the two bodies the panel renders.
+export const promptMarkdown: string = `# CLAUDE.md
+
+Guidance for Claude Code when working in this repository.
+
+## What this is
+
+A synthetic example app, used to exercise the panel. Nothing here describes a real project.
+
+## Conventions
+
+- TypeScript strict mode, always
+- Named exports only — no default exports
+- Files under ~200 lines; split when one grows past it
+
+## Imports
+
+@./docs/style.md pulls the house style in. A line like that inside a fenced block is an
+example rather than an import:
+
+\`\`\`
+@not-an-import.md
+\`\`\`
+
+## Gotchas
+
+Nested CLAUDE.md files load only when Claude is working under their directory, so what the
+model actually sees depends on where it was started.
+`;

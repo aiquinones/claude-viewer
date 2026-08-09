@@ -156,9 +156,10 @@ export interface Reveal {
   nonce: number;
 }
 
-// One skill's SKILL.md below the frontmatter, answering a `requestBody`. `path` is echoed back so
-// a reply that arrives after the selection moved on can be dropped.
-export interface SkillBody {
+// The text of one config file, answering a `requestBody` — a SKILL.md below its frontmatter, or a
+// CLAUDE.md whole. `path` is echoed back so a reply that arrives after the selection moved on can
+// be dropped.
+export interface FileBody {
   path: string;
   body: string;
   error?: string;
@@ -168,7 +169,7 @@ export interface SkillBody {
 export type HostMessage =
   | { type: 'snapshot'; snapshot: ConfigSnapshot }
   | ({ type: 'reveal' } & Reveal)
-  | ({ type: 'skillBody' } & SkillBody);
+  | ({ type: 'fileBody' } & FileBody);
 
 // Webview → host. `surfaceUnavailable` carries only the surface's name: the host owns the
 // sentence, the same way it owns which paths `openFile` will accept.

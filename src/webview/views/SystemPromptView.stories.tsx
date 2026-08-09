@@ -13,7 +13,7 @@ import { SystemPromptView } from './SystemPromptView';
 const meta: Meta<typeof SystemPromptView> = {
   title: 'SystemPrompt/SystemPromptView',
   component: SystemPromptView,
-  args: { onOpenFile: () => undefined, onRefresh: () => undefined, onBack: () => undefined },
+  args: { onRefresh: () => undefined, onBack: () => undefined },
   decorators: [
     (Story) => (
       <div className="h-screen">
@@ -49,4 +49,10 @@ export const NoFiles: Story = {
 // A missing import and a cycle. Neither stops the walk, and the headline total still adds up.
 export const BrokenImports: Story = {
   args: { snapshot: snapshot({ skills: allSkills, systemPrompt: brokenPromptFiles }) }
+};
+
+// Selection is internal, so this story is the starting state — click a row to render its body
+// below the list. The Storybook stub answers `requestBody` with a fixture, standing in for the host.
+export const ClickARowToRender: Story = {
+  args: { snapshot: snapshot({ skills: allSkills, systemPrompt: allPromptFiles }) }
 };

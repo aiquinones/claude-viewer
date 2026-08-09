@@ -4,13 +4,21 @@ import { alwaysLoads, conditional, formatTokens, plural, totals } from './prompt
 
 interface PromptListProps {
   files: SystemPromptFile[];
+  // `order` of the file whose body is showing, or undefined when nothing is selected. Order rather
+  // than path: a path can appear twice — imported by two files, or as the entry that ends a cycle.
+  selectedOrder: number | undefined;
   workspaceRoot: string | undefined;
-  onOpenFile: (path: string) => void;
+  onSelect: (file: SystemPromptFile) => void;
 }
 
 // Two sections, because they answer different questions: what every request pays for, and what
 // only loads when Claude runs somewhere in particular.
-export const PromptList = ({ files, workspaceRoot, onOpenFile }: PromptListProps) => {
+export const PromptList = ({
+  files,
+  selectedOrder,
+  workspaceRoot,
+  onSelect
+}: PromptListProps) => {
   const always: SystemPromptFile[] = alwaysLoads(files);
   const maybe: SystemPromptFile[] = conditional(files);
 
@@ -20,15 +28,17 @@ export const PromptList = ({ files, workspaceRoot, onOpenFile }: PromptListProps
         title="Always loads"
         note={`${plural(always.length, 'file')} · ~${formatTokens(totals(always).estimatedTokens)} est. tokens`}
         files={always}
+        selectedOrder={selectedOrder}
         workspaceRoot={workspaceRoot}
-        onOpenFile={onOpenFile}
+        onSelect={onSelect}
       />
       <PromptSection
         title="Loads conditionally"
         note={`${plural(maybe.length, 'file')} · ~${formatTokens(totals(maybe).estimatedTokens)} est. tokens, only under their own directory`}
         files={maybe}
+        selectedOrder={selectedOrder}
         workspaceRoot={workspaceRoot}
-        onOpenFile={onOpenFile}
+        onSelect={onSelect}
       />
     </div>
   );
@@ -38,16 +48,18 @@ interface PromptSectionProps {
   title: string;
   note: string;
   files: SystemPromptFile[];
+  selectedOrder: number | undefined;
   workspaceRoot: string | undefined;
-  onOpenFile: (path: string) => void;
+  onSelect: (file: SystemPromptFile) => void;
 }
 
 const PromptSection = ({
   title,
   note,
   files,
+  selectedOrder,
   workspaceRoot,
-  onOpenFile
+  onSelect
 }: PromptSectionProps) => {
   if (files.length === 0) return null;
 
@@ -65,8 +77,9 @@ const PromptSection = ({
           key={`${file.order}-${file.path}`}
           file={file}
           groupChars={groupChars}
+          selected={file.order === selectedOrder}
           workspaceRoot={workspaceRoot}
-          onOpenFile={onOpenFile}
+          onSelect={onSelect}
         />
       ))}
     </section>

@@ -16,7 +16,8 @@ const meta: Meta<typeof PromptFileRow> = {
     // The largest file in the fixture stack, so the shares read the way they do in the panel.
     groupChars: projectPrompt.chars,
     workspaceRoot: '/Users/dev/repos/example-app',
-    onOpenFile: () => undefined
+    selected: false,
+    onSelect: () => undefined
   },
   decorators: [
     (Story) => (
@@ -57,4 +58,9 @@ export const BrokenImport: Story = {
 
 export const Circular: Story = {
   args: { file: { ...circularImport, order: 5 } }
+};
+
+// The selected row. The open-in-editor button reveals on hover, so it isn't in this shot.
+export const Selected: Story = {
+  args: { file: projectPrompt, selected: true }
 };

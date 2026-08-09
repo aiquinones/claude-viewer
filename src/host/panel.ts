@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
+import { readTextFile } from '../config/read';
 import { ConfigError, Result } from '../config/result';
 import { loadSkillBody } from '../model/skill-body';
-import { ConfigSnapshot, SkillBody, WebviewMessage } from '../model/types';
+import { ConfigSnapshot, FileBody, WebviewMessage } from '../model/types';
 import {
   cachedSnapshot,
   currentSnapshot,
@@ -89,16 +90,21 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'surfaceUnavailable') return _surfaceUnavailable(message.title);
 };
 
-// The selected skill's SKILL.md, read on demand rather than shipped with every snapshot. Same
-// path check as `_openFile`: only skills the host itself found are readable.
+// The selected file's text, read on demand rather than shipped with every snapshot. Same path
+// check as `_openFile`: only files the host itself found are readable.
+//
+// A SKILL.md is sent below its frontmatter — the fields above it are already on the entry. A
+// CLAUDE.md goes whole: it has no frontmatter, and a `---` at its top is a rule, not a block.
 const _sendBody = async (path: string): Promise<void> => {
-  if (!_isKnownSkill(path)) return;
+  if (!_isKnownFile(path)) return;
 
-  const read: Result<string, ConfigError> = await loadSkillBody(path);
-  const message: SkillBody = read.ok
+  const read: Result<string, ConfigError> = _isKnownSkill(path)
+    ? await loadSkillBody(path)
+    : await readTextFile(path);
+  const message: FileBody = read.ok
     ? { path, body: read.value }
     : { path, body: '', error: read.error.message };
-  await panel?.webview.postMessage({ type: 'skillBody', ...message });
+  await panel?.webview.postMessage({ type: 'fileBody', ...message });
 };
 
 const _isKnownSkill = (path: string): boolean =>
