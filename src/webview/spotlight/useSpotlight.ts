@@ -18,10 +18,12 @@ export const useSpotlight = () => {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
+  // Named for the caller, not for the hook: App holds several open/dismiss pairs, and `open` on
+  // its own says nothing about what opens.
   return {
-    openedAt,
+    spotlightOpenedAt: openedAt,
     // What the magnifier in the header calls. Same remount rule as the chord.
-    open: (): void => setOpenedAt(Date.now()),
-    dismiss: (): void => setOpenedAt(undefined)
+    openSpotlight: (): void => setOpenedAt(Date.now()),
+    dismissSpotlight: (): void => setOpenedAt(undefined)
   };
 };

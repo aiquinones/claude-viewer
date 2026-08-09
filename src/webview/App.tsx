@@ -20,7 +20,7 @@ export const App = () => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
   // A skill picked in here. Same shape as the host's reveal, so SkillView takes one prop either way.
   const [selected, setSelected] = useState<Reveal | undefined>(undefined);
-  const { openedAt, open, dismiss } = useSpotlight();
+  const { spotlightOpenedAt, openSpotlight, dismissSpotlight } = useSpotlight();
 
   const openSurface = (id: SurfaceId): void => {
     setSurface(id);
@@ -44,11 +44,11 @@ export const App = () => {
   // A result knows its kind, and the kind names the surface that renders it.
   const chooseResult = (doc: SearchDoc): void => {
     const target: SurfaceId | undefined = surfaceForKind(doc.kind);
-    if (!target) return dismiss();
+    if (!target) return dismissSpotlight();
 
     setSelected({ path: doc.id, nonce: Date.now() });
     openSurface(target);
-    dismiss();
+    dismissSpotlight();
   };
 
   if (!snapshot) return <Loading />;
@@ -62,7 +62,7 @@ export const App = () => {
             snapshot={snapshot}
             onOpenSurface={openSurface}
             onUnavailableSurface={reportUnavailable}
-            onSearch={open}
+            onSearch={openSpotlight}
             onRefresh={refresh}
           />
         }
@@ -72,7 +72,7 @@ export const App = () => {
               snapshot={snapshot}
               reveal={selected}
               onOpenFile={openFile}
-              onSearch={open}
+              onSearch={openSpotlight}
               onRefresh={refresh}
               onBack={() => setShowDetail(false)}
             />
@@ -81,13 +81,13 @@ export const App = () => {
       />
 
       {/* Keyed on the open, so hitting the chord again gives an empty box back. */}
-      {openedAt !== undefined && (
+      {spotlightOpenedAt !== undefined && (
         <Spotlight
-          key={openedAt}
+          key={spotlightOpenedAt}
           index={searchIndex}
           initialFilters={kindForSurface(showDetail ? surface : undefined)}
           onChoose={chooseResult}
-          onDismiss={dismiss}
+          onDismiss={dismissSpotlight}
         />
       )}
     </>
