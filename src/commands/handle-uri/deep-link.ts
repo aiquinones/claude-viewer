@@ -1,11 +1,11 @@
-import { SCOPES, Scope } from '../../model/types';
+import { SKILL_SCOPES, SkillScope } from '../../model/types';
 
 // What a vscode://canoq.claude-viewer/… link asks for. Parsing is kept separate from acting on it
 // so the whole grammar reads in one screen and needs no editor host to check.
 export type DeepLink =
   | { kind: 'panel' }
   | { kind: 'pick'; query?: string }
-  | { kind: 'skill'; name: string; scope?: Scope };
+  | { kind: 'skill'; name: string; scope?: SkillScope };
 
 interface ParseDeepLinkArgs {
   // Already percent-decoded, the way vscode.Uri hands it over.
@@ -29,5 +29,5 @@ export const parseDeepLink = ({ path, query }: ParseDeepLinkArgs): DeepLink => {
 };
 
 // A `?scope=` the user typed, so it's a string until proven otherwise.
-const _asScope = (value: string | null): Scope | undefined =>
-  SCOPES.find((scope) => scope === value);
+const _asScope = (value: string | null): SkillScope | undefined =>
+  SKILL_SCOPES.find((scope) => scope === value);

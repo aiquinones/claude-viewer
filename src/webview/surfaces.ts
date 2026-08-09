@@ -3,7 +3,8 @@
 //
 // Webview-only, so it lives here rather than in model/types.ts — none of it crosses to the host.
 
-import { ConfigSnapshot, SkillEntry } from '../model/types';
+import { ConfigSnapshot, SkillEntry, SystemPromptFile } from '../model/types';
+import { alwaysLoads, formatTokens, plural, totals } from './prompt-totals';
 
 export type SurfaceStatus = 'ready' | 'soon';
 
@@ -31,11 +32,14 @@ export const SURFACES = [
     title: 'System Prompt',
     blurb: 'The CLAUDE.md files that load, in order, and what they cost per request.',
     accent: 'var(--vscode-charts-purple, #b180d7)',
-    status: 'soon'
+    status: 'ready'
   }
 ] as const satisfies readonly SurfaceShape[];
 
-export type Surface = (typeof SURFACES)[number];
+// `status` is widened back out of the literal types on purpose. The rest of them are what SurfaceId
+// derives from, but a status pinned to 'ready' turns every "is this one still coming" check into a
+// no-overlap type error the day the last `soon` surface ships.
+export type Surface = Omit<(typeof SURFACES)[number], 'status'> & { status: SurfaceStatus };
 
 export type SurfaceId = Surface['id'];
 
@@ -51,8 +55,20 @@ export const getDetailForSurface = ({ surface, snapshot }: DetailForSurfaceArgs)
     case 'skills':
       return skillsDetail(snapshot.skills);
     case 'system-prompt':
-      return 'Not built yet';
+      return promptDetail(snapshot.systemPrompt);
   }
+};
+
+// A surface's accent, for a view that wants to match the card it was opened from.
+export const surfaceAccent = (id: SurfaceId): string =>
+  SURFACES.find((surface) => surface.id === id)?.accent ?? 'var(--vscode-foreground)';
+
+// Only the files that always load, matching the surface's own headline number.
+const promptDetail = (files: SystemPromptFile[]): string => {
+  const always = totals(alwaysLoads(files));
+  if (always.files === 0) return 'None found';
+
+  return `${plural(always.files, 'file')} · ~${formatTokens(always.estimatedTokens)} est. tokens`;
 };
 
 const skillsDetail = (skills: SkillEntry[]): string => {

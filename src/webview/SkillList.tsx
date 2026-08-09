@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { SCOPES, Reveal, Scope, SkillEntry } from '../model/types';
+import { SKILL_SCOPES, Reveal, SkillEntry, SkillScope } from '../model/types';
 import { SkillRow } from './SkillRow';
 
 interface SkillListProps {
@@ -10,7 +10,7 @@ interface SkillListProps {
   onSelect: (skill: SkillEntry) => void;
 }
 
-const SCOPE_LABEL: Record<Scope, string> = {
+const SCOPE_LABEL: Record<SkillScope, string> = {
   project: 'Project',
   user: 'User',
   plugin: 'Plugin'
@@ -19,7 +19,7 @@ const SCOPE_LABEL: Record<Scope, string> = {
 // Grouped by scope in precedence order, so the list itself shows which skills win by sitting
 // first. Plugin scope is the long tail — collapsing it gets your own skills back on one screen.
 export const SkillList = ({ skills, selectedPath, reveal, onSelect }: SkillListProps) => {
-  const [collapsed, setCollapsed] = useState<Scope[]>([]);
+  const [collapsed, setCollapsed] = useState<SkillScope[]>([]);
 
   // Plugin scope is the group people collapse, and it's where a deep link most often lands.
   // Expanding just that group leaves every other manual collapse alone.
@@ -30,7 +30,7 @@ export const SkillList = ({ skills, selectedPath, reveal, onSelect }: SkillListP
     setCollapsed((previous) => previous.filter((scope) => scope !== revealed.scope));
   }, [reveal]);
 
-  const toggle = (scope: Scope): void =>
+  const toggle = (scope: SkillScope): void =>
     setCollapsed((previous) =>
       previous.includes(scope)
         ? previous.filter((entry) => entry !== scope)
@@ -41,7 +41,7 @@ export const SkillList = ({ skills, selectedPath, reveal, onSelect }: SkillListP
     // `px-2` is the gutter the rows' highlight sits in — they're `w-full`, so without it the pill
     // runs into the pane's edges instead of floating inside them.
     <div className="flex flex-col gap-4 px-2">
-      {SCOPES.map((scope) => {
+      {SKILL_SCOPES.map((scope) => {
         const inScope: SkillEntry[] = skills.filter((skill) => skill.scope === scope);
         if (inScope.length === 0) return null;
 

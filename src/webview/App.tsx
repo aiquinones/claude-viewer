@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { buildSearchIndex } from '../model/search/build-index';
-import { Reveal, SearchDoc } from '../model/types';
+import { ConfigSnapshot, Reveal, SearchDoc } from '../model/types';
 import { Spotlight } from './spotlight/Spotlight';
 import { kindForSurface, surfaceForKind } from './spotlight/surface-kind';
 import { useSpotlight } from './spotlight/useSpotlight';
@@ -9,6 +9,7 @@ import { useSnapshot } from './useSnapshot';
 import { ViewSlider } from './ViewSlider';
 import { LandingView } from './views/LandingView';
 import { SkillView } from './views/SkillView';
+import { SystemPromptView } from './views/SystemPromptView';
 
 // Holds the host bridge and owns navigation. The views know nothing about it, so the next surface
 // is a sibling under views/ plus an entry in SURFACES.
@@ -67,16 +68,15 @@ export const App = () => {
           />
         }
         detail={
-          surface === 'skills' ? (
-            <SkillView
-              snapshot={snapshot}
-              reveal={selected}
-              onOpenFile={openFile}
-              onSearch={openSpotlight}
-              onRefresh={refresh}
-              onBack={() => setShowDetail(false)}
-            />
-          ) : null
+          <Detail
+            surface={surface}
+            snapshot={snapshot}
+            reveal={selected}
+            onOpenFile={openFile}
+            onSearch={openSpotlight}
+            onRefresh={refresh}
+            onBack={() => setShowDetail(false)}
+          />
         }
       />
 
@@ -92,6 +92,53 @@ export const App = () => {
       )}
     </>
   );
+};
+
+interface DetailProps {
+  surface: SurfaceId | undefined;
+  snapshot: ConfigSnapshot;
+  reveal?: Reveal;
+  onOpenFile: (path: string) => void;
+  onSearch: () => void;
+  onRefresh: () => void;
+  onBack: () => void;
+}
+
+// Which surface is in the detail pane. Switching on the id means a new SURFACES entry without a
+// view here is a type error rather than a blank pane.
+const Detail = ({
+  surface,
+  snapshot,
+  reveal,
+  onOpenFile,
+  onSearch,
+  onRefresh,
+  onBack
+}: DetailProps) => {
+  switch (surface) {
+    case undefined:
+      return null;
+    case 'skills':
+      return (
+        <SkillView
+          snapshot={snapshot}
+          reveal={reveal}
+          onOpenFile={onOpenFile}
+          onSearch={onSearch}
+          onRefresh={onRefresh}
+          onBack={onBack}
+        />
+      );
+    case 'system-prompt':
+      return (
+        <SystemPromptView
+          snapshot={snapshot}
+          onOpenFile={onOpenFile}
+          onRefresh={onRefresh}
+          onBack={onBack}
+        />
+      );
+  }
 };
 
 const Loading = () => (

@@ -1,6 +1,14 @@
 import { buildSearchIndex } from '../model/search/build-index';
 import { searchIndex } from '../model/search/search';
-import { ConfigIssue, ConfigSnapshot, Reveal, SearchDoc, SearchHit, SkillEntry } from '../model/types';
+import {
+  ConfigIssue,
+  ConfigSnapshot,
+  Reveal,
+  SearchDoc,
+  SearchHit,
+  SkillEntry,
+  SystemPromptFile
+} from '../model/types';
 
 // Synthetic only. Never paste real config in here — working on this extension means reading your
 // own ~/.claude, and that directory holds permissions, MCP env vars, and API keys.
@@ -110,14 +118,114 @@ export const allSkills: SkillEntry[] = [
   longDescription
 ];
 
+// One CLAUDE.md. `chars` drives the size, the token estimate, and the share bar, so the stories
+// derive it the same way the loader does rather than carrying two numbers that can disagree.
+const makePromptFile = (
+  overrides: Partial<SystemPromptFile> & Pick<SystemPromptFile, 'path' | 'scope' | 'chars'>
+): SystemPromptFile => ({
+  order: 0,
+  estimatedTokens: Math.round(overrides.chars / 4),
+  depth: 0,
+  issues: [],
+  ...overrides
+});
+
+export const userPrompt: SystemPromptFile = makePromptFile({
+  path: `${HOME}/CLAUDE.md`,
+  scope: 'user',
+  chars: 4180
+});
+
+export const projectPrompt: SystemPromptFile = makePromptFile({
+  path: `${WORKSPACE}/CLAUDE.md`,
+  scope: 'project',
+  chars: 12480
+});
+
+// What `@AGENTS.md` on line 1 of the project CLAUDE.md pulls in.
+export const importedAgents: SystemPromptFile = makePromptFile({
+  path: `${WORKSPACE}/AGENTS.md`,
+  scope: 'project',
+  chars: 2040,
+  importedBy: projectPrompt.path,
+  depth: 1
+});
+
+// An import two hops down, to prove the indent keeps working past one level.
+export const importedStyle: SystemPromptFile = makePromptFile({
+  path: `${HOME}/house-style.md`,
+  scope: 'project',
+  chars: 860,
+  importedBy: importedAgents.path,
+  depth: 2
+});
+
+export const localPrompt: SystemPromptFile = makePromptFile({
+  path: `${WORKSPACE}/CLAUDE.local.md`,
+  scope: 'local',
+  chars: 620
+});
+
+export const nestedPrompt: SystemPromptFile = makePromptFile({
+  path: `${WORKSPACE}/packages/api/CLAUDE.md`,
+  scope: 'nested',
+  chars: 2380,
+  conditionalOn: 'packages/api'
+});
+
+export const missingImport: SystemPromptFile = makePromptFile({
+  path: `${WORKSPACE}/docs/CONVENTIONS.md`,
+  scope: 'project',
+  chars: 0,
+  importedBy: projectPrompt.path,
+  depth: 1,
+  issues: [error('imported but not found — nothing is added to the prompt')]
+});
+
+export const circularImport: SystemPromptFile = makePromptFile({
+  path: `${WORKSPACE}/AGENTS.md`,
+  scope: 'project',
+  chars: 0,
+  importedBy: importedStyle.path,
+  depth: 3,
+  issues: [warning('circular import — already open further up this chain, so it stops here')]
+});
+
+// Numbered the way the loader numbers them: the flattened walk, in order.
+const inLoadOrder = (files: SystemPromptFile[]): SystemPromptFile[] =>
+  files.map((file, index) => ({ ...file, order: index + 1 }));
+
+export const allPromptFiles: SystemPromptFile[] = inLoadOrder([
+  userPrompt,
+  projectPrompt,
+  importedAgents,
+  importedStyle,
+  localPrompt,
+  nestedPrompt
+]);
+
+export const brokenPromptFiles: SystemPromptFile[] = inLoadOrder([
+  userPrompt,
+  projectPrompt,
+  importedAgents,
+  importedStyle,
+  circularImport,
+  missingImport
+]);
+
+// No project scope at all — what the panel shows with no folder open.
+export const userOnlyPromptFiles: SystemPromptFile[] = inLoadOrder([userPrompt]);
+
 interface SnapshotArgs {
   skills: SkillEntry[];
+  systemPrompt?: SystemPromptFile[];
   workspaceRoot?: string;
 }
 
-export const snapshot = ({ skills, workspaceRoot }: SnapshotArgs): ConfigSnapshot => ({
+export const snapshot = ({ skills, systemPrompt, workspaceRoot }: SnapshotArgs): ConfigSnapshot => ({
   workspaceRoot: workspaceRoot ?? WORKSPACE,
   skills,
+  systemPrompt: systemPrompt ?? allPromptFiles,
   loadedAt: Date.UTC(2026, 7, 1)
 });
 

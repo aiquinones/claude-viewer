@@ -1,18 +1,18 @@
-import { SCOPES, Scope, SkillEntry } from './types';
+import { SKILL_SCOPES, SkillEntry, SkillScope } from './types';
 
-// Most specific scope wins a name collision, and SCOPES is in that order, so position is rank.
+// Most specific scope wins a name collision, and SKILL_SCOPES is in that order, so position is rank.
 //
 // ASSUMPTION, not yet verified against Claude Code itself — see
 // tracking/ideas/verify-skill-precedence.md. It matches how settings layers resolve, but until
 // it's tested the UI says so rather than stating it as fact.
-export const scopeRank = (scope: Scope): number => SCOPES.indexOf(scope);
+export const scopeRank = (scope: SkillScope): number => SKILL_SCOPES.indexOf(scope);
 
 // Marks every losing skill with the path of the one that wins its name. Losers stay in the list —
 // a skill you can't see is the problem this tool exists to fix.
 interface FindSkillByNameArgs {
   skills: SkillEntry[];
   name: string;
-  scope?: Scope;
+  scope?: SkillScope;
 }
 
 // Resolves a name the way a deep link means it: the skill that actually runs. Pinning a scope

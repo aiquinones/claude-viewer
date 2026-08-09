@@ -104,6 +104,11 @@ const _sendBody = async (path: string): Promise<void> => {
 const _isKnownSkill = (path: string): boolean =>
   cachedSnapshot()?.skills.some((skill) => skill.path === path) ?? false;
 
+// Anything the host itself put in the snapshot — a SKILL.md or a CLAUDE.md — is openable.
+const _isKnownFile = (path: string): boolean =>
+  _isKnownSkill(path) ||
+  (cachedSnapshot()?.systemPrompt.some((file) => file.path === path) ?? false);
+
 // Clicking a surface that has no view yet. A notification rather than a line in the panel, so the
 // landing page stays a grid of cards and the answer lands where VS Code's other answers do.
 const _surfaceUnavailable = async (title: string): Promise<void> => {
@@ -138,10 +143,10 @@ const _post = async (snapshot: ConfigSnapshot): Promise<void> => {
   await panel?.webview.postMessage({ type: 'snapshot', snapshot });
 };
 
-// Opens a SKILL.md in the editor. Only paths the host itself put in the snapshot are honored,
+// Opens a config file in the editor. Only paths the host itself put in the snapshot are honored,
 // so the webview can't turn into a way to read arbitrary files.
 const _openFile = async (path: string): Promise<void> => {
-  if (!_isKnownSkill(path)) return;
+  if (!_isKnownFile(path)) return;
 
   const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(vscode.Uri.file(path));
   await vscode.window.showTextDocument(doc, {
