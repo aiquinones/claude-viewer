@@ -38,7 +38,9 @@ export const SkillList = ({ skills, selectedPath, reveal, onSelect }: SkillListP
     );
 
   return (
-    <div className="flex flex-col gap-4">
+    // `px-2` is the gutter the rows' highlight sits in — they're `w-full`, so without it the pill
+    // runs into the pane's edges instead of floating inside them.
+    <div className="flex flex-col gap-4 px-2">
       {SCOPES.map((scope) => {
         const inScope: SkillEntry[] = skills.filter((skill) => skill.scope === scope);
         if (inScope.length === 0) return null;
