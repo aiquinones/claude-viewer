@@ -23,7 +23,9 @@ export const SurfaceCard = ({ surface, detail, onOpen }: SurfaceCardProps) => {
       onClick={() => onOpen(surface)}
       style={{ '--surface-accent': surface.accent } as CSSProperties}
       className={cn(
-        'surface-card group relative flex aspect-[4/3] min-h-44 cursor-pointer flex-col justify-between',
+        // The 4:3 shape only holds two-across. Stacked, the card is the full panel width and the
+        // ratio would make it as tall as the panel is wide, so below `sm:` it keeps the floor.
+        'surface-card group relative flex min-h-44 cursor-pointer flex-col justify-between sm:aspect-[4/3]',
         'overflow-hidden rounded-xl border p-5 text-left transition-colors',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
         soon && 'opacity-75'
