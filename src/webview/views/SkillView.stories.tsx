@@ -28,6 +28,13 @@ export const Default: Story = {
   args: { snapshot: snapshot({ skills: allSkills }) }
 };
 
+// Under 768px the list lifts out of the grid and the body takes the full width. Hover the left
+// edge to slide it back. SkillNav's own stories are where the three rails are compared.
+export const NarrowPanel: Story = {
+  args: { snapshot: snapshot({ skills: allSkills }) },
+  globals: { viewport: { value: 'narrowPanel' } }
+};
+
 // No folder open: project scope is absent and the header says so rather than showing zero.
 export const NoWorkspace: Story = {
   args: {

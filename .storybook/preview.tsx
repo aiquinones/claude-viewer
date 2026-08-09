@@ -41,7 +41,16 @@ const preview: Preview = {
   initialGlobals: { theme: 'dark' },
   parameters: {
     layout: 'fullscreen',
-    controls: { matchers: { color: /(background|color)$/i } }
+    controls: { matchers: { color: /(background|color)$/i } },
+    // The panel's responsive rules are media queries, and a story iframe's viewport is the only
+    // thing those read — a narrow decorator won't trigger them. These are the two panel widths
+    // worth looking at: one editor group beside another, and the panel on its own.
+    viewport: {
+      options: {
+        narrowPanel: { name: 'Narrow panel', styles: { width: '520px', height: '900px' } },
+        widePanel: { name: 'Wide panel', styles: { width: '1100px', height: '900px' } }
+      }
+    }
   }
 };
 
