@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ShadowNotice } from './ShadowNotice';
-import { pluginDeploy, projectDeploy, userDeploy } from './fixtures';
+import { projectDeploy } from './fixtures';
 
 const meta: Meta<typeof ShadowNotice> = {
   title: 'Skills/ShadowNotice',
@@ -13,28 +13,12 @@ export default meta;
 
 type Story = StoryObj<typeof ShadowNotice>;
 
-// Standing on the losing skill.
+// Standing on the losing skill. The winning side is WinnerCrown, not this.
 export const Shadowed: Story = {
-  args: { winner: projectDeploy, shadowed: [] }
+  args: { winner: projectDeploy }
 };
 
-// Standing on the winner, one loser.
-export const WinsOverOne: Story = {
-  args: { winner: undefined, shadowed: [userDeploy] }
-};
-
-// Standing on the winner, several losers — checks the plural.
-export const WinsOverSeveral: Story = {
-  args: { winner: undefined, shadowed: [userDeploy, pluginDeploy] }
-};
-
-// No collision at all: renders nothing.
+// No collision: renders nothing.
 export const NoCollision: Story = {
-  args: { winner: undefined, shadowed: [] }
-};
-
-// Unreachable in the real model — a shadowed skill never wins anything, so it never shadows others.
-// Kept as a story because the component doesn't enforce that and shouldn't fall over if it changes.
-export const BothDirections: Story = {
-  args: { winner: projectDeploy, shadowed: [pluginDeploy] }
+  args: { winner: undefined }
 };

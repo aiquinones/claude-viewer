@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { IssueList } from './IssueList';
 import { ScopeBadge } from './ScopeBadge';
 import { ShadowNotice } from './ShadowNotice';
+import { WinnerCrown } from './WinnerCrown';
 
 interface SkillDetailProps {
   skill: SkillEntry;
@@ -27,6 +28,7 @@ export const SkillDetail = ({
     <header className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
         <h1 className="text-base font-semibold">{skill.name}</h1>
+        <WinnerCrown shadowed={shadowed} onSelectSkill={onSelectSkill} />
         <ScopeBadge scope={skill.scope} pluginName={skill.pluginName} />
         {skill.bundledFiles > 0 && (
           <Badge variant="muted">
@@ -46,7 +48,7 @@ export const SkillDetail = ({
       </Button>
     </header>
 
-    <ShadowNotice winner={winner} shadowed={shadowed} onSelectSkill={onSelectSkill} />
+    <ShadowNotice winner={winner} onSelectSkill={onSelectSkill} />
 
     <IssueList issues={skill.issues} />
 
@@ -60,23 +62,6 @@ export const SkillDetail = ({
         <p className="whitespace-pre-wrap text-sm leading-relaxed">{skill.description}</p>
       ) : (
         <p className="text-sm italic text-muted-foreground">none</p>
-      )}
-    </section>
-
-    <section className="flex flex-col gap-2">
-      <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        Allowed tools
-      </h2>
-      {skill.allowedTools.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5">
-          {skill.allowedTools.map((tool) => (
-            <Badge key={tool} variant="muted" className="mono">
-              {tool}
-            </Badge>
-          ))}
-        </div>
-      ) : (
-        <p className="text-sm italic text-muted-foreground">unrestricted — inherits the session</p>
       )}
     </section>
   </div>

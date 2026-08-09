@@ -29,7 +29,7 @@ type Story = StoryObj<typeof SkillDetail>;
 
 export const Default: Story = { args: { skill: plainSkill } };
 
-// The winner's side of a collision, with the skills it beats listed and linked.
+// The winner's side of a collision: a crown beside the name, and the losers behind its hover card.
 export const WinsCollision: Story = {
   args: { skill: projectDeploy, shadowed: [userDeploy, pluginDeploy] }
 };
@@ -39,8 +39,8 @@ export const Shadowed: Story = {
   args: { skill: userDeploy, winner: projectDeploy }
 };
 
-// No tools declared — the skill inherits the session rather than being restricted.
-export const NoAllowedTools: Story = { args: { skill: longDescription } };
+// A long description, which the detail pane never truncates.
+export const LongDescription: Story = { args: { skill: longDescription } };
 
 // The empty-description case, which is the bug the panel exists to make visible.
 export const NoDescription: Story = { args: { skill: noDescription } };

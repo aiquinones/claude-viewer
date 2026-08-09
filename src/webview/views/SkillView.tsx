@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ChevronLeft, RefreshCw } from 'lucide-react';
 import { ConfigSnapshot, Reveal, SkillEntry } from '../../model/types';
 import { Button } from '@/components/ui/button';
+import { AllowedTools } from '../AllowedTools';
 import { SkillBody } from '../SkillBody';
 import { SkillDetail } from '../SkillDetail';
 import { SkillNav } from '../SkillNav';
@@ -93,6 +94,7 @@ export const SkillView = ({ snapshot, reveal, onOpenFile, onRefresh, onBack }: S
                   />
                 </div>
                 <SkillBody body={body} error={error} loading={loading} />
+                <AllowedTools tools={selected.allowedTools} />
               </>
             )}
           </div>
