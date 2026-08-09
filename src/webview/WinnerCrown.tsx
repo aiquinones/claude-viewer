@@ -21,7 +21,7 @@ export const WinnerCrown = ({ shadowed, onSelectSkill }: WinnerCrownProps) => {
       <span
         tabIndex={0}
         aria-describedby={CARD_ID}
-        className="inline-flex cursor-default rounded-sm text-warn focus-visible:ring-1 focus-visible:ring-ring"
+        className="inline-flex cursor-default rounded-sm text-muted-foreground group-hover:text-foreground group-focus-within:text-foreground focus-visible:ring-1 focus-visible:ring-ring"
       >
         <Crown className="size-4" />
         <span className="sr-only">
