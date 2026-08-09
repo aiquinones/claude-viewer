@@ -4,7 +4,7 @@ import { ConfigSnapshot, Reveal, SkillEntry } from '../../model/types';
 import { Button } from '@/components/ui/button';
 import { SkillBody } from '../SkillBody';
 import { SkillDetail } from '../SkillDetail';
-import { SkillList } from '../SkillList';
+import { SkillNav } from '../SkillNav';
 import { useSkillBody } from '../useSkillBody';
 
 interface SkillViewProps {
@@ -64,15 +64,16 @@ export const SkillView = ({ snapshot, reveal, onOpenFile, onRefresh, onBack }: S
       {skills.length === 0 ? (
         <Empty />
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-[minmax(200px,300px)_minmax(0,1fr)]">
-          <div className="min-w-0 overflow-y-auto overflow-x-clip border-r border-border py-3">
-            <SkillList
-              skills={skills}
-              selectedPath={selected?.path}
-              reveal={reveal}
-              onSelect={(skill) => setSelectedPath(skill.path)}
-            />
-          </div>
+        // One column under `md`, where SkillNav overlays instead of sitting in the grid. `relative`
+        // is what its parked-off-screen panel positions against, and `overflow-x-clip` is what
+        // keeps that panel from turning into scrollable width.
+        <div className="relative grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-x-clip md:grid-cols-[minmax(160px,240px)_minmax(0,1fr)]">
+          <SkillNav
+            skills={skills}
+            selectedPath={selected?.path}
+            reveal={reveal}
+            onSelect={(skill) => setSelectedPath(skill.path)}
+          />
           {/* The pane, not its children, is the scroll container the sticky headings resolve
               against — so the padding sits on the children and a heading bar can span the width. */}
           <div className="min-w-0 overflow-y-auto overflow-x-clip">

@@ -106,6 +106,18 @@
   }
 }
 
+/* The skills nav sliding back from the left edge on a narrow panel. Timing lives here for the
+   same reason .view-pane's does — an inline transition would beat the reduced-motion query. */
+.skill-nav {
+  transition: transform 160ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skill-nav {
+    transition-duration: 0s;
+  }
+}
+
 /* Landing-page surface cards. Each card sets --surface-accent inline, so the color lives with the
    surface and only the mixing lives here. */
 .surface-card {
