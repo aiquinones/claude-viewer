@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { allSkills, snapshot } from '../fixtures';
+import { allSkills, snapshot, userOnlyPromptFiles } from '../fixtures';
 import { LandingView } from './LandingView';
 
 const meta: Meta<typeof LandingView> = {
@@ -34,7 +34,10 @@ export const Default: Story = {
 export const NoWorkspace: Story = {
   args: {
     snapshot: {
-      ...snapshot({ skills: allSkills.filter((skill) => skill.scope !== 'project') }),
+      ...snapshot({
+        skills: allSkills.filter((skill) => skill.scope !== 'project'),
+        systemPrompt: userOnlyPromptFiles
+      }),
       workspaceRoot: undefined
     }
   }
@@ -47,8 +50,9 @@ export const NarrowPanel: Story = {
   globals: { viewport: { value: 'narrowPanel' } }
 };
 
-export const NoSkills: Story = {
-  args: { snapshot: snapshot({ skills: [] }) }
+// Both cards with nothing behind them — the counts are the only thing that changes.
+export const NothingConfigured: Story = {
+  args: { snapshot: snapshot({ skills: [], systemPrompt: [] }) }
 };
 
 // Deep paths are the common case, and the heading has to stay one line.

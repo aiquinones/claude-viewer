@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import type { Decorator, Meta, StoryObj } from '@storybook/react-vite';
 import { ConfigSnapshot, Reveal } from '../model/types';
 import { App } from './App';
-import { allSkills, pluginDeploy, reveal, snapshot } from './fixtures';
+import { allSkills, pluginDeploy, reveal, snapshot, userOnlyPromptFiles } from './fixtures';
 
 // The host normally posts the snapshot; here the story does. App registers its listener on mount,
 // and a parent's effect runs after its children's, so the message can't arrive too early.
@@ -34,18 +34,22 @@ export const Landing: Story = {
   decorators: [withSnapshot(snapshot({ skills: allSkills }))]
 };
 
-// No folder open — project scope is absent and the heading says so.
+// No folder open — project scope is absent from both surfaces and the heading says so.
 export const NoWorkspace: Story = {
   decorators: [
     withSnapshot({
-      ...snapshot({ skills: allSkills.filter((skill) => skill.scope !== 'project') }),
+      ...snapshot({
+        skills: allSkills.filter((skill) => skill.scope !== 'project'),
+        systemPrompt: userOnlyPromptFiles
+      }),
       workspaceRoot: undefined
     })
   ]
 };
 
-export const NoSkills: Story = {
-  decorators: [withSnapshot(snapshot({ skills: [] }))]
+// Neither surface finds anything. Both cards keep their slot and say so.
+export const NothingConfigured: Story = {
+  decorators: [withSnapshot(snapshot({ skills: [], systemPrompt: [] }))]
 };
 
 // A deep link names one skill, so the panel has to slide past the landing page on its own.

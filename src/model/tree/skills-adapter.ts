@@ -1,18 +1,18 @@
 import {
   ConfigIssue,
   ConfigSnapshot,
-  SCOPES,
-  Scope,
+  SKILL_SCOPES,
   SkillEntry,
+  SkillScope,
   SurfaceArgs,
   TreeNode,
   TreeNodeIcon
 } from '../types';
 
-// Skills → scope → skill, in SCOPES order so top to bottom is precedence.
+// Skills → scope → skill, in SKILL_SCOPES order so top to bottom is precedence.
 // Nesting is what makes a shadowed skill read as a collision rather than a duplicated row.
 export const skillsNode = ({ snapshot }: SurfaceArgs): TreeNode => {
-  const groups: TreeNode[] = SCOPES.map((scope) => scopeGroup({ snapshot, scope })).filter(
+  const groups: TreeNode[] = SKILL_SCOPES.map((scope) => scopeGroup({ snapshot, scope })).filter(
     (group): group is TreeNode => group !== undefined
   );
 
@@ -26,7 +26,7 @@ export const skillsNode = ({ snapshot }: SurfaceArgs): TreeNode => {
 
 interface ScopeGroupArgs {
   snapshot: ConfigSnapshot;
-  scope: Scope;
+  scope: SkillScope;
 }
 
 // An empty scope still gets a row when the scope exists — "nothing in it" and "not searched"

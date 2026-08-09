@@ -1,14 +1,24 @@
 // Shared shapes for the host and the webview. The host builds these from disk; the webview
 // only ever reads them.
 
-// Skill scopes, most specific first — the array order *is* the precedence order, so `scopeRank`
-// reads position off it. Memory adds 'local' and 'nested' when that surface lands.
+// Two surfaces, two orderings, and they aren't the same list read backwards — each one gets its
+// own array, and `Scope` is the union.
 //
 // Deliberately not annotated: a type here would erase the literals that `Scope` is derived from,
 // and deriving is what keeps adding a scope to one edit instead of four.
-export const SCOPES = ['project', 'user', 'plugin'] as const;
 
-export type Scope = (typeof SCOPES)[number];
+// Skills, most specific first — the array order *is* the precedence order, so `scopeRank` reads
+// position off it.
+export const SKILL_SCOPES = ['project', 'user', 'plugin'] as const;
+
+// System prompt, first loaded first. Nothing overrides anything here; the order is the content.
+export const PROMPT_SCOPES = ['user', 'project', 'local', 'nested'] as const;
+
+export type SkillScope = (typeof SKILL_SCOPES)[number];
+
+export type PromptScope = (typeof PROMPT_SCOPES)[number];
+
+export type Scope = SkillScope | PromptScope;
 
 export type IssueSeverity = 'warning' | 'error';
 
@@ -21,7 +31,7 @@ export interface ConfigIssue {
 
 // A directory that may contain `<name>/SKILL.md` subdirectories.
 export interface SkillRoot {
-  scope: Scope;
+  scope: SkillScope;
   dir: string;
   pluginName?: string;
 }
@@ -31,7 +41,7 @@ export interface SkillEntry {
   name: string;
   description: string;
   allowedTools: string[];
-  scope: Scope;
+  scope: SkillScope;
   // Absolute path to SKILL.md. Unique per entry, so it doubles as the row key.
   path: string;
   pluginName?: string;
@@ -42,9 +52,39 @@ export interface SkillEntry {
   issues: ConfigIssue[];
 }
 
+// A CLAUDE.md the loader knows to look for, before it's read. `nested` roots carry the directory
+// they load under; the other three always load.
+export interface PromptRoot {
+  scope: PromptScope;
+  path: string;
+  conditionalOn?: string;
+}
+
+// One file in the system prompt. Nothing here overrides anything — the whole stack is
+// concatenated — so the interesting fields are the position and the size.
+export interface SystemPromptFile {
+  // Absolute path. Unique per entry, so it doubles as the row key.
+  path: string;
+  scope: PromptScope;
+  // Position in the flattened load order, imports included.
+  order: number;
+  chars: number;
+  // chars / 4. A heuristic, not a tokenizer — the UI says "est." wherever it shows.
+  estimatedTokens: number;
+  // Path of the file whose `@` line pulled this one in.
+  importedBy?: string;
+  // 0 for a file found on disk, +1 per import hop.
+  depth: number;
+  // Directory Claude has to be working under for this file to load at all.
+  conditionalOn?: string;
+  issues: ConfigIssue[];
+}
+
 export interface ConfigSnapshot {
   workspaceRoot: string | undefined;
   skills: SkillEntry[];
+  // Flat and already in load order. `depth` is all the view needs to draw the import tree.
+  systemPrompt: SystemPromptFile[];
   loadedAt: number;
 }
 
@@ -116,9 +156,10 @@ export interface Reveal {
   nonce: number;
 }
 
-// One skill's SKILL.md below the frontmatter, answering a `requestBody`. `path` is echoed back so
-// a reply that arrives after the selection moved on can be dropped.
-export interface SkillBody {
+// The text of one config file, answering a `requestBody` — a SKILL.md below its frontmatter, or a
+// CLAUDE.md whole. `path` is echoed back so a reply that arrives after the selection moved on can
+// be dropped.
+export interface FileBody {
   path: string;
   body: string;
   error?: string;
@@ -128,7 +169,7 @@ export interface SkillBody {
 export type HostMessage =
   | { type: 'snapshot'; snapshot: ConfigSnapshot }
   | ({ type: 'reveal' } & Reveal)
-  | ({ type: 'skillBody' } & SkillBody);
+  | ({ type: 'fileBody' } & FileBody);
 
 // Webview → host. `surfaceUnavailable` carries only the surface's name: the host owns the
 // sentence, the same way it owns which paths `openFile` will accept.

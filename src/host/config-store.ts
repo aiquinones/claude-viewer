@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { skillRoots } from '../config/paths';
+import { CLAUDE_FILE, LOCAL_CLAUDE_FILE, skillRoots, userClaudeDir } from '../config/paths';
 import { buildSnapshot } from '../model/snapshot';
 import { ConfigSnapshot, SkillRoot } from '../model/types';
 import { workspaceRoot } from './workspace';
@@ -29,21 +29,31 @@ export const refreshSnapshot = async (): Promise<ConfigSnapshot> => {
   return next;
 };
 
-// One watcher per skill root — config changes mid-session.
+// One watcher per skill root, plus the CLAUDE.md files — config changes mid-session.
 export const startWatching = async (): Promise<void> => {
   const roots: SkillRoot[] = await skillRoots(workspaceRoot());
+  for (const root of roots) watch({ dir: root.dir, glob: '**/*' });
 
-  for (const root of roots) {
-    const pattern: vscode.RelativePattern = new vscode.RelativePattern(
-      vscode.Uri.file(root.dir),
-      '**/*'
-    );
-    const watcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(pattern);
-    watcher.onDidChange(scheduleRefresh);
-    watcher.onDidCreate(scheduleRefresh);
-    watcher.onDidDelete(scheduleRefresh);
-    watchers.push(watcher);
-  }
+  // An imported file that isn't a CLAUDE.md — an AGENTS.md, a house-style file — isn't covered
+  // here, so editing one needs the refresh button. Watching every .md in the workspace is worse.
+  watch({ dir: userClaudeDir(), glob: CLAUDE_FILE });
+
+  const folder: string | undefined = workspaceRoot();
+  if (folder) watch({ dir: folder, glob: `**/{${CLAUDE_FILE},${LOCAL_CLAUDE_FILE}}` });
+};
+
+interface WatchArgs {
+  dir: string;
+  glob: string;
+}
+
+const watch = ({ dir, glob }: WatchArgs): void => {
+  const pattern: vscode.RelativePattern = new vscode.RelativePattern(vscode.Uri.file(dir), glob);
+  const watcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(pattern);
+  watcher.onDidChange(scheduleRefresh);
+  watcher.onDidCreate(scheduleRefresh);
+  watcher.onDidDelete(scheduleRefresh);
+  watchers.push(watcher);
 };
 
 export const stopWatching = (): void => {

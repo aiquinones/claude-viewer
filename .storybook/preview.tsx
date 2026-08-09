@@ -1,19 +1,24 @@
 import { useEffect } from 'react';
 import type { Decorator, Preview } from '@storybook/react-vite';
 import '../src/webview/styles.css';
-import { skillMarkdown } from '../src/webview/fixtures';
+import { promptMarkdown, skillMarkdown } from '../src/webview/fixtures';
 import { applyTheme, ThemeName } from './vscode-theme';
 
 // App reaches for the webview bridge at module scope, which doesn't exist outside the editor.
 // Stubbing it here — before any story loads — lets the full panel render with its messages going
-// nowhere. The exception is `requestBody`: nothing answering it leaves the skills surface sitting
-// on "Reading…", so the stub plays host and posts a fixture back.
+// nowhere. The exception is `requestBody`: nothing answering it leaves a selected file sitting on
+// "Reading…", so the stub plays host and posts a fixture back.
+//
+// Which fixture follows the same split the host makes: a SKILL.md comes back below its
+// frontmatter, anything else — a CLAUDE.md — comes back whole.
 (window as unknown as { acquireVsCodeApi: () => { postMessage: (message: unknown) => void } })
   .acquireVsCodeApi = () => ({
   postMessage: (message: unknown) => {
     const request = message as { type?: string; path?: string };
     if (request?.type !== 'requestBody') return;
-    window.postMessage({ type: 'skillBody', path: request.path, body: skillMarkdown }, '*');
+
+    const body: string = request.path?.endsWith('SKILL.md') ? skillMarkdown : promptMarkdown;
+    window.postMessage({ type: 'fileBody', path: request.path, body }, '*');
   }
 });
 

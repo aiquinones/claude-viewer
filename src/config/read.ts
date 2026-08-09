@@ -1,4 +1,5 @@
-import { promises as fs } from 'node:fs';
+import { Dirent, promises as fs } from 'node:fs';
+import { join } from 'node:path';
 import { Result, ConfigError, ok, err } from './result';
 
 // Reads a UTF-8 file. A missing file is a normal outcome here, not a failure to shout about.
@@ -27,6 +28,47 @@ export const listDirectories = async (dir: string): Promise<string[]> => {
   } catch {
     return [];
   }
+};
+
+interface FindFilesNamedArgs {
+  dir: string;
+  fileName: string;
+  // Directory names to never descend into.
+  skip: readonly string[];
+  // How many levels below `dir` to walk. 0 looks in `dir` only.
+  maxDepth: number;
+}
+
+// Every `<dir>/**/<fileName>`, as absolute paths. A walk rather than a glob so the skip list and
+// the depth cap are enforced before a directory is opened, not after.
+export const findFilesNamed = async ({
+  dir,
+  fileName,
+  skip,
+  maxDepth
+}: FindFilesNamedArgs): Promise<string[]> => {
+  if (maxDepth < 0) return [];
+
+  let entries: Dirent[];
+  try {
+    entries = await fs.readdir(dir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+
+  const here: string[] = entries
+    .filter((entry) => entry.isFile() && entry.name === fileName)
+    .map((entry) => join(dir, entry.name));
+
+  const below: string[][] = await Promise.all(
+    entries
+      .filter((entry) => entry.isDirectory() && !skip.includes(entry.name))
+      .map((entry) =>
+        findFilesNamed({ dir: join(dir, entry.name), fileName, skip, maxDepth: maxDepth - 1 })
+      )
+  );
+
+  return [...here, ...below.flat()];
 };
 
 // Counts files under `dir`, recursively. Used for the bundled references/ and scripts/ badges.
