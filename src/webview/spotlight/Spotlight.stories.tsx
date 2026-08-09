@@ -13,7 +13,8 @@ export default meta;
 
 type Story = StoryObj<typeof Spotlight>;
 
-// How it opens: no rows at all. Type to search, arrow down into the results, Enter to open one.
+// How it opens from the landing page: no filter, no rows. The hint line is the only thing that
+// says `filter:` exists.
 export const Empty: Story = {
   args: {}
 };
@@ -35,4 +36,14 @@ export const Capped: Story = {
 
 export const NoMatch: Story = {
   args: { initialQuery: 'zzz' }
+};
+
+// Opened from inside the skills surface, so it starts narrowed before you type a character.
+export const FilteredToSkills: Story = {
+  args: { initialFilters: ['skill'], initialQuery: 'dep' }
+};
+
+// A filter with an empty box. The hint line is gone — there's no other kind left to suggest.
+export const FilterOnlyNoQuery: Story = {
+  args: { initialFilters: ['skill'] }
 };

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { buildSearchIndex } from '../model/search/build-index';
 import { Reveal, SearchDoc } from '../model/types';
 import { Spotlight } from './spotlight/Spotlight';
+import { kindForSurface, surfaceForKind } from './spotlight/surface-kind';
 import { useSpotlight } from './spotlight/useSpotlight';
 import { SurfaceId } from './surfaces';
 import { useSnapshot } from './useSnapshot';
@@ -19,7 +20,7 @@ export const App = () => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
   // A skill picked in here. Same shape as the host's reveal, so SkillView takes one prop either way.
   const [selected, setSelected] = useState<Reveal | undefined>(undefined);
-  const { openedAt, dismiss } = useSpotlight();
+  const { spotlightOpenedAt, openSpotlight, dismissSpotlight } = useSpotlight();
 
   const openSurface = (id: SurfaceId): void => {
     setSurface(id);
@@ -40,10 +41,14 @@ export const App = () => {
     [snapshot]
   );
 
+  // A result knows its kind, and the kind names the surface that renders it.
   const chooseResult = (doc: SearchDoc): void => {
+    const target: SurfaceId | undefined = surfaceForKind(doc.kind);
+    if (!target) return dismissSpotlight();
+
     setSelected({ path: doc.id, nonce: Date.now() });
-    openSurface('skills');
-    dismiss();
+    openSurface(target);
+    dismissSpotlight();
   };
 
   if (!snapshot) return <Loading />;
@@ -57,6 +62,7 @@ export const App = () => {
             snapshot={snapshot}
             onOpenSurface={openSurface}
             onUnavailableSurface={reportUnavailable}
+            onSearch={openSpotlight}
             onRefresh={refresh}
           />
         }
@@ -66,6 +72,7 @@ export const App = () => {
               snapshot={snapshot}
               reveal={selected}
               onOpenFile={openFile}
+              onSearch={openSpotlight}
               onRefresh={refresh}
               onBack={() => setShowDetail(false)}
             />
@@ -74,12 +81,13 @@ export const App = () => {
       />
 
       {/* Keyed on the open, so hitting the chord again gives an empty box back. */}
-      {openedAt !== undefined && (
+      {spotlightOpenedAt !== undefined && (
         <Spotlight
-          key={openedAt}
+          key={spotlightOpenedAt}
           index={searchIndex}
+          initialFilters={kindForSurface(showDetail ? surface : undefined)}
           onChoose={chooseResult}
-          onDismiss={dismiss}
+          onDismiss={dismissSpotlight}
         />
       )}
     </>

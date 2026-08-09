@@ -3,26 +3,31 @@ import { ConfigSnapshot, SearchDoc, SearchKind, SkillEntry } from '../types';
 
 const WORD_BITS: number = 32;
 
-interface MakeDocArgs {
+// A doc before it's chewed up. `rank` is position in the whole index, so it's assigned once at the
+// end rather than per surface.
+interface DocSeed {
   id: string;
   label: string;
   kind: SearchKind;
-  rank: number;
   inactive?: boolean;
 }
 
+interface MakeDocArgs extends DocSeed {
+  rank: number;
+}
+
 // Everything in the snapshot the spotlight can find, in the panel's own order so `rank` breaks
-// score ties the way the lists already do. The next surface appends its own docs here.
+// score ties the way the lists already do. The next surface appends its own seeds here.
 export const buildSearchIndex = (snapshot: ConfigSnapshot): SearchDoc[] =>
-  [...snapshot.skills].sort(bySalience).map((skill: SkillEntry, rank: number) =>
-    makeDoc({
-      id: skill.path,
-      label: skill.name,
-      kind: 'skill',
-      rank,
-      inactive: skill.shadowedBy !== undefined
-    })
-  );
+  skillSeeds(snapshot.skills).map((seed, rank) => makeDoc({ ...seed, rank }));
+
+const skillSeeds = (skills: SkillEntry[]): DocSeed[] =>
+  [...skills].sort(bySalience).map((skill) => ({
+    id: skill.path,
+    label: skill.name,
+    kind: 'skill',
+    inactive: skill.shadowedBy !== undefined
+  }));
 
 // One pass over the label, setting a bit per character position. Everything the matcher does is a
 // bit op against these, so a name is never scanned again once it's indexed.

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ChevronLeft, RefreshCw } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { ConfigSnapshot, Reveal, SkillEntry } from '../../model/types';
 import { Button } from '@/components/ui/button';
 import { AllowedTools } from '../AllowedTools';
+import { PanelActions } from '../PanelActions';
 import { SkillBody } from '../SkillBody';
 import { SkillDetail } from '../SkillDetail';
 import { SkillNav } from '../SkillNav';
@@ -13,13 +14,21 @@ interface SkillViewProps {
   // The palette or a vscode:// link asking for one skill.
   reveal?: Reveal;
   onOpenFile: (path: string) => void;
+  onSearch: () => void;
   onRefresh: () => void;
   onBack: () => void;
 }
 
 // Everything about the skills surface: which one is selected, the list, the detail. App renders
 // one of these, so the next surface is a sibling view rather than another branch in App.
-export const SkillView = ({ snapshot, reveal, onOpenFile, onRefresh, onBack }: SkillViewProps) => {
+export const SkillView = ({
+  snapshot,
+  reveal,
+  onOpenFile,
+  onSearch,
+  onRefresh,
+  onBack
+}: SkillViewProps) => {
   const [selectedPath, setSelectedPath] = useState<string | undefined>(undefined);
 
   // A reveal comes from outside the webview, so it wins over whatever was clicked in here.
@@ -57,9 +66,7 @@ export const SkillView = ({ snapshot, reveal, onOpenFile, onRefresh, onBack }: S
             {!snapshot.workspaceRoot && ' · no folder open, user + plugin scopes only'}
           </span>
         </div>
-        <Button variant="ghost" size="icon" title="Refresh" onClick={onRefresh}>
-          <RefreshCw />
-        </Button>
+        <PanelActions onSearch={onSearch} onRefresh={onRefresh} />
       </header>
 
       {skills.length === 0 ? (
