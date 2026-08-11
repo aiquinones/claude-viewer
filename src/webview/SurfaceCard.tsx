@@ -2,6 +2,7 @@ import { CSSProperties } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useCursorGlow } from './glow/useCursorGlow';
 import { Surface } from './surfaces';
 
 interface SurfaceCardProps {
@@ -11,14 +12,16 @@ interface SurfaceCardProps {
   onOpen: (surface: Surface) => void;
 }
 
-// A card holding three lines of text is this big on purpose: the space is for the per-surface
-// background animation that lands later. The accent arrives as --surface-accent, so one component
-// covers every surface and styles.css does the mixing.
+// A card holding three lines of text is this big on purpose: the space is what the glow moves
+// through. The accent arrives as --surface-accent, so one component covers every surface and
+// styles.css does the mixing.
 export const SurfaceCard = ({ surface, detail, onOpen }: SurfaceCardProps) => {
   const soon: boolean = surface.status === 'soon';
+  const { cardRef, glowRef } = useCursorGlow<HTMLButtonElement>();
 
   return (
     <button
+      ref={cardRef}
       type="button"
       onClick={() => onOpen(surface)}
       style={{ '--surface-accent': surface.accent } as CSSProperties}
@@ -26,15 +29,20 @@ export const SurfaceCard = ({ surface, detail, onOpen }: SurfaceCardProps) => {
         // The 4:3 shape only holds two-across. Stacked, the card is the full panel width and the
         // ratio would make it as tall as the panel is wide, so below `sm:` it keeps the floor.
         'surface-card group relative flex min-h-44 cursor-pointer flex-col justify-between sm:aspect-[4/3]',
-        'overflow-hidden rounded-xl border p-5 text-left transition-colors',
+        // `overflow-clip` rather than hidden: hidden keeps a scrollport, and a glow sitting past
+        // the bottom-right corner extends it — a focus inside the card could then scroll it.
+        'overflow-clip rounded-xl border p-5 text-left transition-colors',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
         soon && 'opacity-75'
       )}
     >
-      {/* Stands in for the real animation — a soft accent wash that drifts on hover. */}
+      {/* Parked in the corner, and pulled to the cursor by useCursorGlow while you're over the
+          card. No `transition-transform` — in v4 that covers `translate` too, and a CSS transition
+          on the property the frame loop writes fights it every frame. Scale eases in styles.css. */}
       <div
+        ref={glowRef}
         aria-hidden
-        className="surface-glow pointer-events-none absolute -right-10 -top-10 size-40 rounded-full blur-2xl transition-transform duration-500 group-hover:scale-125"
+        className="surface-glow pointer-events-none absolute -right-10 -top-10 size-40 rounded-full blur-2xl group-hover:scale-125"
       />
 
       <div className="relative flex flex-col gap-1.5">

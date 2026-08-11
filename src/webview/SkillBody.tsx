@@ -1,4 +1,5 @@
 import { CircleAlert } from 'lucide-react';
+import { Loading } from './loading/Loading';
 import { Markdown } from './markdown/Markdown';
 
 interface SkillBodyProps {
@@ -26,7 +27,7 @@ const Content = ({ body, error, loading }: SkillBodyProps) => {
       </p>
     );
   }
-  if (loading) return <p className="text-sm text-muted-foreground">Reading…</p>;
+  if (loading) return <Loading label="Reading SKILL.md" />;
   if (!body?.trim()) {
     return <p className="text-sm italic text-muted-foreground">nothing below the frontmatter</p>;
   }

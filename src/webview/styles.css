@@ -131,8 +131,95 @@
   background: color-mix(in srgb, var(--surface-accent) 16%, var(--background));
 }
 
+/* useCursorGlow writes `translate` every frame, so only `scale` may carry a transition here — the
+   two would otherwise fight over the same property. Same reason the glow can't use Tailwind's
+   `transition-transform`, which in v4 covers translate as well. */
 .surface-glow {
   background: color-mix(in srgb, var(--surface-accent) 40%, transparent);
+  transition: scale 500ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface-glow {
+    transition-duration: 0s;
+  }
+}
+
+/* The loading robot's eyes. One gesture per tick, alternating: a tick passes and it blinks, a tick
+   passes and it looks to the sides. That's two animations of two ticks each, the second started a
+   tick late — one animation would have to fire both gestures in the same period.
+   `--robot-tick` is set inline by the component.
+
+   They compose rather than collide because they drive different properties: `scale` and `translate`
+   are separate from each other and from `transform`, and the browser applies all three. Writing
+   both as `transform` would let the later animation win outright and the blink would never show.
+
+   `transform-box` is declared because an SVG child's default box is its own bounding box — the
+   origins below are view-box coordinates. */
+.robot-eye {
+  transform-box: view-box;
+  animation:
+    robot-blink calc(var(--robot-tick, 1s) * 2) ease-in-out infinite,
+    robot-glance calc(var(--robot-tick, 1s) * 2) ease-in-out infinite;
+  animation-delay: 0s, var(--robot-tick, 1s);
+}
+
+.robot-eye-left {
+  transform-origin: 9px 14px;
+}
+
+.robot-eye-right {
+  transform-origin: 15px 14px;
+}
+
+/* Rest for a tick, then a blink of about a twelfth of one. */
+@keyframes robot-blink {
+  0%, 46%   { scale: 1 1; }
+  50%       { scale: 1 0.05; }
+  54%, 100% { scale: 1 1; }
+}
+
+/* Left, hold, right, hold, back — starting a tick after the blink and done well before the next. */
+@keyframes robot-glance {
+  0%, 42%   { translate: 0 0; }
+  50%, 58%  { translate: -1.6px 0; }
+  66%, 74%  { translate: 1.6px 0; }
+  82%, 100% { translate: 0 0; }
+}
+
+/* The loading bar. Takes the accent of whichever surface is waiting, where one is set. */
+.progress-fill,
+.progress-sweep {
+  background: var(--surface-accent, var(--vscode-progressBar-background, var(--foreground)));
+}
+
+.progress-fill {
+  transition: width 120ms linear;
+}
+
+.progress-sweep {
+  animation: progress-sweep 1.2s ease-in-out infinite;
+}
+
+/* Starts one fill-width left of the track and ends one track-width past it — the fill is a
+   quarter of the track, so 400% of itself is the far edge. */
+@keyframes progress-sweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .robot-eye {
+    animation: none;
+  }
+
+  /* A stopped sweep would sit at the left quarter looking stuck, so it fills the track instead
+     and dims to say it isn't a measurement. These win over w-1/4 by being unlayered. */
+  .progress-sweep {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
 }
 
 /* VS Code injects an unlayered `input:focus { outline: 1px solid -webkit-focus-ring-color }` into

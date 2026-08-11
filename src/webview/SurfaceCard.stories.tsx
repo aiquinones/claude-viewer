@@ -4,6 +4,9 @@ import { SURFACES } from './surfaces';
 
 // One card per state. The accents come from --vscode-charts-*, so flip the theme toolbar to check
 // both — a color that reads well on Dark+ can vanish on Light+.
+//
+// The glow only moves under a real cursor: hover a card and it springs over, leave and it drifts
+// back to the corner every story renders it in.
 const meta: Meta<typeof SurfaceCard> = {
   title: 'Landing/SurfaceCard',
   component: SurfaceCard,
