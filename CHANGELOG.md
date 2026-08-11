@@ -2,7 +2,7 @@
 
 Notable changes to Claude Viewer, newest first.
 
-## Unreleased
+## 0.6.1 — 2026-08-10
 
 ### Changed
 
