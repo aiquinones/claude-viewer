@@ -48,9 +48,9 @@ export const SkillList = ({ skills, selectedPath, reveal, onSelect }: SkillListP
         if (inScope.length === 0) return null;
 
         const isCollapsed: boolean = collapsed.includes(scope);
-        // A collapsed group still says how many of its skills are being ignored, and what the ones
-        // that aren't cost — plugin scope being the long tail is the thing worth seeing.
-        const shadowedCount: number = inScope.filter((skill) => skill.shadowedBy).length;
+        // A collapsed group still says what the skills in it cost — plugin scope being the long
+        // tail is the thing worth seeing. Which of them are shadowed is a per-row matter, and the
+        // rows already say so.
         const listingTokens: number = listingTotals(listed(inScope)).estimatedTokens;
 
         return (
@@ -69,7 +69,6 @@ export const SkillList = ({ skills, selectedPath, reveal, onSelect }: SkillListP
               )}
               <span>
                 {SCOPE_LABEL[scope]} · {inScope.length}
-                {shadowedCount > 0 && ` · ${shadowedCount} shadowed`}
                 <span className="normal-case font-normal"> · ~{formatTokens(listingTokens)}</span>
               </span>
             </button>

@@ -74,12 +74,11 @@ const promptDetail = (files: SystemPromptFile[]): string => {
 };
 
 // Tokens here are the listing cost — what having these skills installed adds to every request,
-// which is the same question the prompt card answers.
+// which is the same question the prompt card answers. Shadowing is a detail for the surface, not
+// for a card whose job is to say whether it's worth opening.
 const skillsDetail = (skills: SkillEntry[]): string => {
   if (skills.length === 0) return 'None found';
 
-  const shadowed: number = skills.filter((skill) => skill.shadowedBy).length;
   const tokens: number = listingTotals(listed(skills)).estimatedTokens;
-  const found: string = `${skills.length} found · ~${formatTokens(tokens)} est. tokens`;
-  return shadowed > 0 ? `${found} · ${shadowed} shadowed` : found;
+  return `${skills.length} found · ~${formatTokens(tokens)} est. tokens`;
 };
