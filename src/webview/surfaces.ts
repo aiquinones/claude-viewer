@@ -4,7 +4,9 @@
 // Webview-only, so it lives here rather than in model/types.ts — none of it crosses to the host.
 
 import { ConfigSnapshot, SkillEntry, SystemPromptFile } from '../model/types';
-import { alwaysLoads, formatTokens, plural, totals } from './prompt-totals';
+import { formatTokens, plural } from './format-size';
+import { alwaysLoads, totals } from './prompt-totals';
+import { listed, listingTotals } from './skill-totals';
 
 export type SurfaceStatus = 'ready' | 'soon';
 
@@ -71,10 +73,13 @@ const promptDetail = (files: SystemPromptFile[]): string => {
   return `${plural(always.files, 'file')} · ~${formatTokens(always.estimatedTokens)} est. tokens`;
 };
 
+// Tokens here are the listing cost — what having these skills installed adds to every request,
+// which is the same question the prompt card answers.
 const skillsDetail = (skills: SkillEntry[]): string => {
   if (skills.length === 0) return 'None found';
 
   const shadowed: number = skills.filter((skill) => skill.shadowedBy).length;
-  const found: string = `${skills.length} found`;
+  const tokens: number = listingTotals(listed(skills)).estimatedTokens;
+  const found: string = `${skills.length} found · ~${formatTokens(tokens)} est. tokens`;
   return shadowed > 0 ? `${found} · ${shadowed} shadowed` : found;
 };

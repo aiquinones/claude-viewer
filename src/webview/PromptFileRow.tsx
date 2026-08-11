@@ -1,9 +1,10 @@
+import { RefObject } from 'react';
 import { CornerDownRight } from 'lucide-react';
 import { SystemPromptFile } from '../model/types';
 import { cn } from '@/lib/utils';
 import { IssueList } from './IssueList';
 import { ScopeBadge } from './ScopeBadge';
-import { formatBytes, formatTokens } from './prompt-totals';
+import { formatBytes, formatTokens } from './format-size';
 
 interface PromptFileRowProps {
   file: SystemPromptFile;
@@ -11,6 +12,9 @@ interface PromptFileRowProps {
   groupChars: number;
   selected: boolean;
   workspaceRoot: string | undefined;
+  // Held by the view and attached here only while this row is the selected one — it's what
+  // "go to selection" scrolls back to.
+  selectionRef?: RefObject<HTMLDivElement>;
   onSelect: (file: SystemPromptFile) => void;
 }
 
@@ -27,13 +31,18 @@ export const PromptFileRow = ({
   groupChars,
   selected,
   workspaceRoot,
+  selectionRef,
   onSelect
 }: PromptFileRowProps) => {
   const share: number = groupChars > 0 ? (file.chars / groupChars) * 100 : 0;
   const broken: boolean = file.issues.some((issue) => issue.severity === 'error');
 
   return (
-    <div className="flex flex-col" style={{ paddingLeft: file.depth * INDENT_PER_DEPTH }}>
+    <div
+      ref={selected ? selectionRef : undefined}
+      className="flex flex-col"
+      style={{ paddingLeft: file.depth * INDENT_PER_DEPTH }}
+    >
         <button
           type="button"
           onClick={() => onSelect(file)}

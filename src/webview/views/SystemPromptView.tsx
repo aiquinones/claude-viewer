@@ -1,17 +1,28 @@
 import { CSSProperties, useEffect, useState } from 'react';
-import { ChevronLeft, RefreshCw } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { ConfigSnapshot, SystemPromptFile } from '../../model/types';
 import { Button } from '@/components/ui/button';
+import { PanelActions } from '../PanelActions';
 import { PromptBody } from '../PromptBody';
 import { PromptList } from '../PromptList';
-import { alwaysLoads, formatTokens, plural, totals } from '../prompt-totals';
+import { formatTokens, plural } from '../format-size';
+import { alwaysLoads, totals } from '../prompt-totals';
 import { surfaceAccent } from '../surfaces';
 import { useFileBody } from '../useFileBody';
+import { useSelectionScroll } from '../useSelectionScroll';
 
 interface SystemPromptViewProps {
   snapshot: ConfigSnapshot;
+  onSearch: () => void;
   onRefresh: () => void;
   onBack: () => void;
+}
+
+// A pick, and when it happened. The nonce is what makes re-picking the file that's already open
+// scroll to it again — the order alone doesn't change, so nothing would fire.
+interface Selection {
+  order: number;
+  nonce: number;
 }
 
 // The CLAUDE.md stack in load order, with the selected file rendered underneath it. One column
@@ -19,6 +30,7 @@ interface SystemPromptViewProps {
 // the view and the body sits below it in the same scroll rather than beside it.
 export const SystemPromptView = ({
   snapshot,
+  onSearch,
   onRefresh,
   onBack
 }: SystemPromptViewProps) => {
@@ -28,20 +40,25 @@ export const SystemPromptView = ({
 
   // Which file's text is showing. Nothing is selected to begin with, and nothing renders until
   // something is — the list is the view, the body is what you asked for on top of it.
-  const [selectedOrder, setSelectedOrder] = useState<number | undefined>(undefined);
+  const [selection, setSelection] = useState<Selection | undefined>(undefined);
   const selected: SystemPromptFile | undefined = files.find(
-    (file) => file.order === selectedOrder
+    (file) => file.order === selection?.order
   );
 
   // A refresh can renumber the list or drop the file entirely. Holding an order that no longer
   // resolves would leave the body pane showing nothing with a row still lit, so it clears.
   useEffect(() => {
-    if (selectedOrder !== undefined && !selected) setSelectedOrder(undefined);
-  }, [selectedOrder, selected]);
+    if (selection && !selected) setSelection(undefined);
+  }, [selection, selected]);
 
   const { body, error, loading } = useFileBody({
     path: selected?.path,
     loadedAt: snapshot.loadedAt
+  });
+
+  const { paneRef, bodyAnchorRef, selectionRef, inBody, goToSelection } = useSelectionScroll({
+    hasSelection: selected !== undefined,
+    selectionNonce: selection?.nonce ?? 0
   });
 
   return (
@@ -61,9 +78,12 @@ export const SystemPromptView = ({
             {!snapshot.workspaceRoot && ' · no folder open, user scope only'}
           </span>
         </div>
-        <Button variant="ghost" size="icon" title="Refresh" onClick={onRefresh}>
-          <RefreshCw />
-        </Button>
+        {/* The way back up, and only once you're far enough down to have lost the list. */}
+        <PanelActions
+          onGoToSelection={inBody ? goToSelection : undefined}
+          onSearch={onSearch}
+          onRefresh={onRefresh}
+        />
       </header>
 
       {files.length === 0 ? (
@@ -71,15 +91,22 @@ export const SystemPromptView = ({
       ) : (
         // This pane, not its children, is the scroll container the body's sticky headings resolve
         // against. `relative z-0` keeps their z-scale contained here rather than panel-wide.
-        <div className="relative z-0 min-h-0 flex-1 overflow-y-auto overflow-x-clip">
+        <div
+          ref={paneRef}
+          className="relative z-0 min-h-0 flex-1 overflow-y-auto overflow-x-clip"
+        >
           <div className="px-2">
             <PromptList
               files={files}
-              selectedOrder={selectedOrder}
+              selectedOrder={selection?.order}
               workspaceRoot={snapshot.workspaceRoot}
-              onSelect={(file) => setSelectedOrder(file.order)}
+              selectionRef={selectionRef}
+              onSelect={(file) => setSelection({ order: file.order, nonce: Date.now() })}
             />
           </div>
+          {/* Zero height, at the body's top edge: what the pick scrolls to, and what says you got
+              there. A ref on the body itself would still count as on screen halfway down it. */}
+          <div ref={bodyAnchorRef} />
           <PromptBody file={selected} body={body} error={error} loading={loading} />
         </div>
       )}

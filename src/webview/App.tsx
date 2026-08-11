@@ -133,6 +133,7 @@ const Detail = ({
       return (
         <SystemPromptView
           snapshot={snapshot}
+          onSearch={onSearch}
           onRefresh={onRefresh}
           onBack={onBack}
         />

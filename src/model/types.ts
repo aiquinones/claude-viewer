@@ -47,6 +47,14 @@ export interface SkillEntry {
   pluginName?: string;
   // Files under references/ and scripts/, counted so the row can say a skill ships extras.
   bundledFiles: number;
+  // The whole SKILL.md — what the skill costs once Claude opens it. Same field names as
+  // SystemPromptFile, because it's the same measurement.
+  chars: number;
+  estimatedTokens: number;
+  // Just the name and the description, which sit in the system prompt on every request whether or
+  // not the skill ever runs.
+  listingChars: number;
+  listingEstimatedTokens: number;
   // Path of the same-named skill that wins, when this one is shadowed.
   shadowedBy?: string;
   issues: ConfigIssue[];
