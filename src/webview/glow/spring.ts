@@ -18,12 +18,11 @@ interface StepSpringArgs {
   dt: number;
 }
 
-// How hard the band pulls, and how fast the motion bleeds off. Together they put the damping ratio
-// near 0.63: a jump across the card overshoots ~6% and settles in about 0.6s, and a cursor sweeping
-// at 600px/s is trailed by ~50px. Softer than this and the glow stops reading as attached to the
-// cursor — at 130/16 the same sweep leaves it 66px behind, a third of a card.
-const STIFFNESS: number = 180;
-const DAMPING: number = 17;
+// How hard the band pulls, and how fast the motion bleeds off — damping ratio near 0.74, so a jump
+// across the card overshoots ~2.5% and takes ~0.9s to settle. Stiffer than this reads as snappy
+// rather than heavy: at 180/17 the same jump overshoots 6% and is done in 0.6s.
+const STIFFNESS: number = 90;
+const DAMPING: number = 14;
 
 // A 60Hz frame is two of these. Integrating in fixed slices means a long frame is more steps rather
 // than one bigger one — a single 200ms step at this stiffness would fling the glow off the card.

@@ -12,6 +12,10 @@ interface CursorGlow<Card extends HTMLElement> {
 
 const HOME: Point = { x: 0, y: 0 };
 
+// The glow aims this far along the line from its corner to the cursor, so it leans toward you
+// rather than sitting under you. At 1 it lands on the cursor and reads as glued to it.
+const PULL: number = 0.8;
+
 // Pulls the glow toward the cursor while it's over the card, and back to where CSS parked it once
 // it leaves. Positions are offsets from that resting spot, so a card whose script never runs — a
 // static story, reduced motion — is already in the right place at (0, 0).
@@ -62,8 +66,8 @@ export const useCursorGlow = <Card extends HTMLElement>(): CursorGlow<Card> => {
       // offsetLeft/offsetTop are layout, untouched by the translate above — so the resting center
       // stays whatever the utility classes on the glow say it is.
       target.current = {
-        x: event.clientX - bounds.left - (glow.offsetLeft + glow.offsetWidth / 2),
-        y: event.clientY - bounds.top - (glow.offsetTop + glow.offsetHeight / 2)
+        x: (event.clientX - bounds.left - (glow.offsetLeft + glow.offsetWidth / 2)) * PULL,
+        y: (event.clientY - bounds.top - (glow.offsetTop + glow.offsetHeight / 2)) * PULL
       };
       start();
     };
