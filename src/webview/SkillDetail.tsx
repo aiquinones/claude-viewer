@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { IssueList } from './IssueList';
 import { ScopeBadge } from './ScopeBadge';
 import { ShadowNotice } from './ShadowNotice';
+import { SkillCost } from './SkillCost';
 import { WinnerCrown } from './WinnerCrown';
 
 interface SkillDetailProps {
@@ -64,5 +65,7 @@ export const SkillDetail = ({
         <p className="text-sm italic text-muted-foreground">none</p>
       )}
     </section>
+
+    <SkillCost skill={skill} />
   </div>
 );

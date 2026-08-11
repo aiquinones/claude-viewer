@@ -1,6 +1,7 @@
 import { promptRoots } from '../../config/paths';
 import { readTextFile } from '../../config/read';
 import { ConfigError, Result } from '../../config/result';
+import { estimateTokens } from '../estimate-tokens';
 import { ConfigIssue, PromptRoot, SystemPromptFile } from '../types';
 import { findImportSpecs, resolveImport } from './imports';
 
@@ -102,7 +103,7 @@ const entry = ({ path, root, depth, text, issues, importedBy }: EntryArgs): Syst
   // Filled in by loadSystemPrompt once the walk is done and the list is flat.
   order: 0,
   chars: text.length,
-  estimatedTokens: Math.round(text.length / 4),
+  estimatedTokens: estimateTokens(text.length),
   importedBy,
   depth,
   conditionalOn: root.conditionalOn,

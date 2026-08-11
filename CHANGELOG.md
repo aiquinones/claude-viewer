@@ -2,7 +2,23 @@
 
 Notable changes to Claude Viewer, newest first.
 
-## 0.4.0 — 2026-08-09
+## Unreleased
+
+### Added
+
+- **Token counts on the skills surface**, split by when you pay them: a skill's name and description
+  are in the system prompt on every request, while its SKILL.md is only read once Claude picks it.
+  The detail shows both, the scope headings and the view header total the listed one, and a shadowed
+  skill counts for nothing — it's never listed.
+- **Go to selection.** Picking a CLAUDE.md scrolls down to its text; a button in the header scrolls
+  you back to the row you left, and appears only once you're far enough down to need it.
+- **A search button on the system prompt surface**, which had a bare refresh button where every
+  other view has both.
+
+### Changed
+
+- **The system prompt's two sections fold** from their headings, the way the skills list folds a
+  scope. The subtotal stays in the heading, so a folded section still says what it costs.
 
 ### Added
 

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { SKILL_SCOPES, Reveal, SkillEntry, SkillScope } from '../model/types';
 import { SkillRow } from './SkillRow';
+import { formatTokens } from './format-size';
+import { listed, listingTotals } from './skill-totals';
 
 interface SkillListProps {
   skills: SkillEntry[];
@@ -46,14 +48,17 @@ export const SkillList = ({ skills, selectedPath, reveal, onSelect }: SkillListP
         if (inScope.length === 0) return null;
 
         const isCollapsed: boolean = collapsed.includes(scope);
-        // A collapsed group still says how many of its skills are being ignored.
-        const shadowedCount: number = inScope.filter((skill) => skill.shadowedBy).length;
+        // A collapsed group still says what the skills in it cost — plugin scope being the long
+        // tail is the thing worth seeing. Which of them are shadowed is a per-row matter, and the
+        // rows already say so.
+        const listingTokens: number = listingTotals(listed(inScope)).estimatedTokens;
 
         return (
           <section key={scope} className="flex flex-col gap-1">
             <button
               type="button"
               onClick={() => toggle(scope)}
+              title={`${SCOPE_LABEL[scope]} skills · ~${formatTokens(listingTokens)} est. tokens of descriptions in the system prompt`}
               className="flex w-full items-center gap-1 rounded-md px-3 py-1 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground cursor-pointer hover:bg-accent"
               aria-expanded={!isCollapsed}
             >
@@ -64,7 +69,7 @@ export const SkillList = ({ skills, selectedPath, reveal, onSelect }: SkillListP
               )}
               <span>
                 {SCOPE_LABEL[scope]} · {inScope.length}
-                {shadowedCount > 0 && ` · ${shadowedCount} shadowed`}
+                <span className="normal-case font-normal"> · ~{formatTokens(listingTokens)}</span>
               </span>
             </button>
 

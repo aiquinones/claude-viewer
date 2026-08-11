@@ -23,3 +23,9 @@ type Story = StoryObj<typeof PanelActions>;
 export const Default: Story = {
   args: {}
 };
+
+// The third button only exists while there's somewhere to go back to — the system prompt view
+// passes the handler once you've scrolled down into a file's text.
+export const WithGoToSelection: Story = {
+  args: { onGoToSelection: () => undefined }
+};

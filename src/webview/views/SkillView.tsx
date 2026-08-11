@@ -7,6 +7,8 @@ import { PanelActions } from '../PanelActions';
 import { SkillBody } from '../SkillBody';
 import { SkillDetail } from '../SkillDetail';
 import { SkillNav } from '../SkillNav';
+import { formatTokens } from '../format-size';
+import { listed, listingTotals } from '../skill-totals';
 import { useFileBody } from '../useFileBody';
 
 interface SkillViewProps {
@@ -47,6 +49,9 @@ export const SkillView = ({
     ? skills.filter((skill) => skill.shadowedBy === selected.path)
     : [];
   const shadowedCount: number = skills.filter((skill) => skill.shadowedBy).length;
+  // Only the skills that are actually listed — a shadowed one costs nothing, the same way a
+  // conditional CLAUDE.md stays out of the prompt surface's headline.
+  const listingTokens: number = listingTotals(listed(skills)).estimatedTokens;
   const { body, error, loading } = useFileBody({
     path: selected?.path,
     loadedAt: snapshot.loadedAt
@@ -61,7 +66,7 @@ export const SkillView = ({
         <div className="mr-auto flex flex-col gap-0.5">
           <span className="text-sm font-semibold">Skills</span>
           <span className="text-xs text-muted-foreground">
-            {skills.length} found
+            {skills.length} found · ~{formatTokens(listingTokens)} est. tokens listed
             {shadowedCount > 0 && ` · ${shadowedCount} shadowed`}
             {!snapshot.workspaceRoot && ' · no folder open, user + plugin scopes only'}
           </span>

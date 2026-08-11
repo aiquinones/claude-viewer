@@ -1,3 +1,4 @@
+import { estimateTokens } from '../model/estimate-tokens';
 import { buildSearchIndex } from '../model/search/build-index';
 import { searchIndex } from '../model/search/search';
 import {
@@ -15,14 +16,30 @@ import {
 const WORKSPACE: string = '/Users/dev/repos/example-app';
 const HOME: string = '/Users/dev/.claude';
 
-const makeSkill = (overrides: Partial<SkillEntry> & Pick<SkillEntry, 'name' | 'scope'>): SkillEntry => ({
-  description: 'Does a thing. Use when the user asks for that thing.',
-  allowedTools: [],
-  path: `${HOME}/skills/${overrides.name}/SKILL.md`,
-  bundledFiles: 0,
-  issues: [],
-  ...overrides
-});
+// `chars` is the SKILL.md's size and the listing is derived from the name and description, both
+// the way the loader does it — a fixture carrying its own token counts would sooner or later
+// disagree with the text it sits next to.
+const makeSkill = (
+  overrides: Partial<SkillEntry> & Pick<SkillEntry, 'name' | 'scope'>
+): SkillEntry => {
+  const chars: number = overrides.chars ?? 3240;
+  const listing: string = `${overrides.name}: ${overrides.description ?? DEFAULT_DESCRIPTION}`;
+
+  return {
+    description: DEFAULT_DESCRIPTION,
+    allowedTools: [],
+    path: `${HOME}/skills/${overrides.name}/SKILL.md`,
+    bundledFiles: 0,
+    issues: [],
+    ...overrides,
+    chars,
+    estimatedTokens: estimateTokens(chars),
+    listingChars: listing.length,
+    listingEstimatedTokens: estimateTokens(listing.length)
+  };
+};
+
+const DEFAULT_DESCRIPTION: string = 'Does a thing. Use when the user asks for that thing.';
 
 export const warning = (message: string): ConfigIssue => ({ severity: 'warning', message });
 
@@ -36,7 +53,8 @@ export const projectDeploy: SkillEntry = makeSkill({
   description:
     'Ship the current branch. Use when the user asks to deploy, release, push to production, or cut a version.',
   allowedTools: ['Read', 'Bash(git *)', 'Bash(pnpm run deploy, pnpm run rollback)'],
-  bundledFiles: 3
+  bundledFiles: 3,
+  chars: 9120
 });
 
 export const userDeploy: SkillEntry = makeSkill({
@@ -70,10 +88,12 @@ export const noDescription: SkillEntry = makeSkill({
   issues: [warning('no description — Claude has nothing to match against')]
 });
 
+// Nothing was read, so it costs nothing — the zero case the cost lines have to survive.
 export const noSkillFile: SkillEntry = makeSkill({
   name: 'half-finished',
   scope: 'user',
   description: '',
+  chars: 0,
   issues: [error('no SKILL.md in this directory')]
 });
 
@@ -100,6 +120,7 @@ export const bothIssues: SkillEntry = makeSkill({
   name: 'tangled',
   scope: 'user',
   description: '',
+  chars: 0,
   issues: [
     error('could not read SKILL.md: EACCES permission denied'),
     warning('no description — Claude has nothing to match against')
@@ -124,7 +145,7 @@ const makePromptFile = (
   overrides: Partial<SystemPromptFile> & Pick<SystemPromptFile, 'path' | 'scope' | 'chars'>
 ): SystemPromptFile => ({
   order: 0,
-  estimatedTokens: Math.round(overrides.chars / 4),
+  estimatedTokens: estimateTokens(overrides.chars),
   depth: 0,
   issues: [],
   ...overrides

@@ -13,7 +13,7 @@ import { SystemPromptView } from './SystemPromptView';
 const meta: Meta<typeof SystemPromptView> = {
   title: 'SystemPrompt/SystemPromptView',
   component: SystemPromptView,
-  args: { onRefresh: () => undefined, onBack: () => undefined },
+  args: { onSearch: () => undefined, onRefresh: () => undefined, onBack: () => undefined },
   decorators: [
     (Story) => (
       <div className="h-screen">
@@ -53,6 +53,9 @@ export const BrokenImports: Story = {
 
 // Selection is internal, so this story is the starting state — click a row to render its body
 // below the list. The Storybook stub answers `requestBody` with a fixture, standing in for the host.
+//
+// Clicking also scrolls down to that body, which brings up the third header button: it takes you
+// back to the row you left. Scroll up by hand and it goes away again.
 export const ClickARowToRender: Story = {
   args: { snapshot: snapshot({ skills: allSkills, systemPrompt: allPromptFiles }) }
 };

@@ -3,6 +3,7 @@ import { parseFrontmatter, Frontmatter } from '../config/frontmatter';
 import { SKILL_FILE, skillRoots } from '../config/paths';
 import { countFiles, listDirectories, readTextFile } from '../config/read';
 import { ConfigError, Result } from '../config/result';
+import { estimateTokens } from './estimate-tokens';
 import { parseSkillFrontmatter, SkillFrontmatter } from './skill-schema';
 import { resolveShadowing, scopeRank } from './shadowing';
 import { ConfigIssue, SkillEntry, SkillRoot } from './types';
@@ -38,6 +39,10 @@ const loadSkill = async ({ root, dirName }: LoadSkillArgs): Promise<SkillEntry> 
     path,
     pluginName: root.pluginName,
     bundledFiles,
+    chars: 0,
+    estimatedTokens: 0,
+    listingChars: 0,
+    listingEstimatedTokens: 0,
     issues: []
   };
 
@@ -47,25 +52,50 @@ const loadSkill = async ({ root, dirName }: LoadSkillArgs): Promise<SkillEntry> 
       read.error.kind === 'not-found'
         ? `no ${SKILL_FILE} in this directory`
         : `could not read ${SKILL_FILE}: ${read.error.message}`;
-    return { ...base, issues: [error(message)] };
+    return withListingCost({ ...base, issues: [error(message)] });
   }
+
+  // The file was read, so it has a size even when nothing below this parses.
+  const sized: SkillEntry = {
+    ...base,
+    chars: read.value.length,
+    estimatedTokens: estimateTokens(read.value.length)
+  };
 
   const parsed: Result<Frontmatter, string> = parseFrontmatter(read.value);
   if (!parsed.ok) {
-    return { ...base, issues: [warning('no frontmatter block — Claude sees no description')] };
+    return withListingCost({
+      ...sized,
+      issues: [warning('no frontmatter block — Claude sees no description')]
+    });
   }
 
   const frontmatter: SkillFrontmatter | undefined = parseSkillFrontmatter(parsed.value.fields);
   if (!frontmatter) {
-    return { ...base, issues: [warning('frontmatter did not validate — shown as the raw file')] };
+    return withListingCost({
+      ...sized,
+      issues: [warning('frontmatter did not validate — shown as the raw file')]
+    });
   }
 
-  return {
-    ...base,
+  return withListingCost({
+    ...sized,
     name: frontmatter.name ?? dirName,
     description: frontmatter.description ?? '',
     allowedTools: frontmatter.allowedTools,
     issues: collectIssues({ frontmatter, dirName })
+  });
+};
+
+// What the skill costs on every request: the line Claude reads when deciding whether to invoke it.
+// Approximate — the real listing wraps the pair in a little punctuation — but the size of the
+// description is what the number is there to show.
+const withListingCost = (entry: SkillEntry): SkillEntry => {
+  const listing: string = `${entry.name}: ${entry.description}`;
+  return {
+    ...entry,
+    listingChars: listing.length,
+    listingEstimatedTokens: estimateTokens(listing.length)
   };
 };
 
