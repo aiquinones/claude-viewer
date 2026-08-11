@@ -11,6 +11,11 @@ interface SelectionScrollArgs {
   contentReady: boolean;
 }
 
+// How far below the pane's top edge the "you're in the body now" line sits. A scroll to the anchor
+// leaves it exactly on that edge, and exactly-on isn't past it — the button wouldn't appear until
+// you nudged the wheel. Two pixels also guarantee the observer sees a crossing there at all.
+const EDGE_MARGIN: number = 2;
+
 interface SelectionScroll {
   // The scroll container. Both the observer's root and the fallback scroll target.
   paneRef: RefObject<HTMLDivElement>;
@@ -49,8 +54,9 @@ export const useSelectionScroll = ({
     if (contentReady) settled.current = selectionNonce;
   }, [selectionNonce, hasSelection, contentReady]);
 
-  // Not-intersecting alone doesn't say which way: the anchor is also outside the pane while you're
-  // still up in the list. Comparing the two tops is what separates "scrolled past" from "not yet".
+  // Whether the anchor has reached the top of the pane, which is the same question as whether the
+  // list is still behind you. `isIntersecting` can't answer it — the anchor is equally outside the
+  // pane while you're up in the list — so the two tops get compared instead.
   useEffect(() => {
     const pane: HTMLDivElement | null = paneRef.current;
     const anchor: HTMLDivElement | null = bodyAnchorRef.current;
@@ -60,11 +66,8 @@ export const useSelectionScroll = ({
     }
 
     const observer: IntersectionObserver = new IntersectionObserver(
-      ([entry]) => {
-        const paneTop: number = entry.rootBounds?.top ?? 0;
-        setInBody(!entry.isIntersecting && entry.boundingClientRect.top < paneTop);
-      },
-      { root: pane }
+      ([entry]) => setInBody(entry.boundingClientRect.top <= (entry.rootBounds?.top ?? 0)),
+      { root: pane, rootMargin: `-${EDGE_MARGIN}px 0px 0px 0px` }
     );
     observer.observe(anchor);
 
