@@ -135,12 +135,23 @@
   background: color-mix(in srgb, var(--surface-accent) 40%, transparent);
 }
 
-/* The loading robot's eyes: one blink, then a glance left and right, per tick. The duration reads
-   `--robot-tick`, which the component sets inline. `transform-box` is declared because an SVG
-   child's default box is its own bounding box — the origins below are view-box coordinates. */
+/* The loading robot's eyes. One gesture per tick, alternating: a tick passes and it blinks, a tick
+   passes and it looks to the sides. That's two animations of two ticks each, the second started a
+   tick late — one animation would have to fire both gestures in the same period.
+   `--robot-tick` is set inline by the component.
+
+   They compose rather than collide because they drive different properties: `scale` and `translate`
+   are separate from each other and from `transform`, and the browser applies all three. Writing
+   both as `transform` would let the later animation win outright and the blink would never show.
+
+   `transform-box` is declared because an SVG child's default box is its own bounding box — the
+   origins below are view-box coordinates. */
 .robot-eye {
   transform-box: view-box;
-  animation: robot-idle var(--robot-tick, 1s) ease-in-out infinite;
+  animation:
+    robot-blink calc(var(--robot-tick, 1s) * 2) ease-in-out infinite,
+    robot-glance calc(var(--robot-tick, 1s) * 2) ease-in-out infinite;
+  animation-delay: 0s, var(--robot-tick, 1s);
 }
 
 .robot-eye-left {
@@ -151,13 +162,19 @@
   transform-origin: 15px 14px;
 }
 
-@keyframes robot-idle {
-  0%, 34%   { transform: translateX(0) scaleY(1); }
-  38%       { transform: translateX(0) scaleY(0.05); }
-  42%, 56%  { transform: translateX(0) scaleY(1); }
-  64%, 72%  { transform: translateX(-1.6px) scaleY(1); }
-  80%, 88%  { transform: translateX(1.6px) scaleY(1); }
-  96%, 100% { transform: translateX(0) scaleY(1); }
+/* Rest for a tick, then a blink of about a twelfth of one. */
+@keyframes robot-blink {
+  0%, 46%   { scale: 1 1; }
+  50%       { scale: 1 0.05; }
+  54%, 100% { scale: 1 1; }
+}
+
+/* Left, hold, right, hold, back — starting a tick after the blink and done well before the next. */
+@keyframes robot-glance {
+  0%, 42%   { translate: 0 0; }
+  50%, 58%  { translate: -1.6px 0; }
+  66%, 74%  { translate: 1.6px 0; }
+  82%, 100% { translate: 0 0; }
 }
 
 /* The loading bar. Takes the accent of whichever surface is waiting, where one is set. */

@@ -17,10 +17,14 @@ export default meta;
 
 type Story = StoryObj<typeof Robot>;
 
+// A gesture every second: blink, pause, glance, pause.
 export const Default: Story = {};
 
 // The slower tick, for deciding between the two by looking at them.
 export const SlowTick: Story = { args: { tickMs: 2000 } };
+
+// Where the alternation is easiest to see, and to check the gestures never overlap.
+export const VerySlowTick: Story = { args: { tickMs: 3000, className: 'size-24' } };
 
 export const Small: Story = { args: { className: 'size-6' } };
 

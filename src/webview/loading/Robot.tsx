@@ -1,7 +1,8 @@
 import { CSSProperties } from 'react';
 
 interface RobotProps {
-  // How long one blink-and-glance cycle takes.
+  // How long between one gesture and the next. A tick passes and it blinks, a tick passes and it
+  // looks to the sides — so a full round trip is two of these.
   tickMs?: number;
   className?: string;
 }
