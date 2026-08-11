@@ -2,7 +2,7 @@
   "name": "claude-viewer",
   "displayName": "Claude Viewer",
   "description": "Written by AI as a placeholder; human description coming soon. See which Claude Code skills actually apply in your workspace, and which scope each one won from.",
-  "version": "0.4.0",
+  "version": "0.6.0",
   "publisher": "canoq",
   "license": "MIT",
   "icon": "resources/icon.png",
