@@ -2,6 +2,15 @@
 
 Notable changes to Claude Viewer, newest first.
 
+## Unreleased
+
+### Changed
+
+- **The marketplace listing has a demo.** A 15-second loop of the panel resolving skills and the
+  CLAUDE.md stack, at the top of the README. It's fetched from the repo rather than packaged, so
+  the download is unchanged.
+- **A real description**, replacing the placeholder that led with the fact it was AI-written.
+
 ## 0.6.0 — 2026-08-10
 
 ### Added

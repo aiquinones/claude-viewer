@@ -4,6 +4,8 @@
 
 This is a VSCode extension for viewing the **RESOLVED** state for your agent, like Claude Code. Once a harness is initialized, there's a merger of skills, system prompt `md`s, memories etc. This extension provides a visualization of all these, in a way that makes maintaining agents easier.
 
+![Claude Viewer resolving skills and the CLAUDE.md stack for a workspace](images/demo.gif)
+
 ## Current State
 - [x] Skills View, coming from the user specific `~/.claude/` folder, the project's global `.claude/` folder, and active plugins.
 - [x] System Prompt View, merging CLAUDE.md or similar files.
