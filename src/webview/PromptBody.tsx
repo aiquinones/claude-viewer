@@ -1,5 +1,6 @@
 import { CircleAlert } from 'lucide-react';
 import { SystemPromptFile } from '../model/types';
+import { Loading } from './loading/Loading';
 import { Markdown } from './markdown/Markdown';
 
 interface PromptBodyProps {
@@ -37,7 +38,8 @@ const Content = ({ file, body, error, loading }: PromptBodyProps) => {
       </p>
     );
   }
-  if (loading) return <p className="text-sm text-muted-foreground">Reading…</p>;
+  // The heading above already names the file, so the label doesn't repeat it.
+  if (loading) return <Loading label="Reading…" />;
 
   // A row can stand for a file that isn't on disk — an unresolved import, or a cycle that stops
   // here. It has issues to explain itself, so the body says the short version.
