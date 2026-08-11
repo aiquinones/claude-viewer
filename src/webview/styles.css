@@ -131,8 +131,18 @@
   background: color-mix(in srgb, var(--surface-accent) 16%, var(--background));
 }
 
+/* useCursorGlow writes `translate` every frame, so only `scale` may carry a transition here — the
+   two would otherwise fight over the same property. Same reason the glow can't use Tailwind's
+   `transition-transform`, which in v4 covers translate as well. */
 .surface-glow {
   background: color-mix(in srgb, var(--surface-accent) 40%, transparent);
+  transition: scale 500ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface-glow {
+    transition-duration: 0s;
+  }
 }
 
 /* VS Code injects an unlayered `input:focus { outline: 1px solid -webkit-focus-ring-color }` into
