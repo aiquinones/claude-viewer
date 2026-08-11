@@ -2,7 +2,7 @@
 
 Notable changes to Claude Viewer, newest first.
 
-## Unreleased
+## 0.6.0 — 2026-08-10
 
 ### Added
 
@@ -14,11 +14,19 @@ Notable changes to Claude Viewer, newest first.
   you back to the row you left, and appears only once you're far enough down to need it.
 - **A search button on the system prompt surface**, which had a bare refresh button where every
   other view has both.
+- **One loading component** behind every wait in the panel — the icon's robot, which blinks and
+  glances while you wait, over a progress bar in the surface's own accent.
+- **The landing cards' glow follows the cursor**, on a spring, and drifts back to its corner when
+  you leave.
 
 ### Changed
 
 - **The system prompt's two sections fold** from their headings, the way the skills list folds a
   scope. The subtotal stays in the heading, so a folded section still says what it costs.
+- **The shadow count is off the skills card and the scope headings** — the crown on the winning
+  skill already says a name collided.
+
+## 0.4.0 — 2026-08-09
 
 ### Added
 
