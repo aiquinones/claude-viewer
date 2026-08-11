@@ -6,6 +6,9 @@ interface SelectionScrollArgs {
   // Bumped on every pick, including re-picking the file that's already open. A boolean or the
   // file's order wouldn't change on a re-pick, and the scroll has to happen anyway.
   selectionNonce: number;
+  // Whether the file's text has arrived. The body is one "Reading…" line until it does, and you
+  // can't scroll to a page that isn't there yet.
+  contentReady: boolean;
 }
 
 interface SelectionScroll {
@@ -25,18 +28,26 @@ interface SelectionScroll {
 // Both halves need the same three elements, so they're one hook rather than two.
 export const useSelectionScroll = ({
   hasSelection,
-  selectionNonce
+  selectionNonce,
+  contentReady
 }: SelectionScrollArgs): SelectionScroll => {
   const paneRef = useRef<HTMLDivElement>(null);
   const bodyAnchorRef = useRef<HTMLDivElement>(null);
   const selectionRef = useRef<HTMLDivElement>(null);
   const [inBody, setInBody] = useState<boolean>(false);
+  // The pick this hook has already followed all the way down.
+  const settled = useRef<number | undefined>(undefined);
 
-  // The pick and the scroll land in the same commit, so the anchor is already mounted here.
+  // Twice per pick, because the text arrives after the click: the first scroll starts moving
+  // against a body that's still one "Reading…" line, and the second finishes the trip once there's
+  // a page to land on. Stopping at `settled` is what keeps a later re-read — a refresh, a file
+  // changing on disk — from yanking you back to the top while you're reading.
   useEffect(() => {
-    if (!hasSelection) return;
+    if (!hasSelection || settled.current === selectionNonce) return;
+
     scrollTo(bodyAnchorRef.current);
-  }, [selectionNonce, hasSelection]);
+    if (contentReady) settled.current = selectionNonce;
+  }, [selectionNonce, hasSelection, contentReady]);
 
   // Not-intersecting alone doesn't say which way: the anchor is also outside the pane while you're
   // still up in the list. Comparing the two tops is what separates "scrolled past" from "not yet".

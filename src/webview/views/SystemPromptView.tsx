@@ -58,7 +58,9 @@ export const SystemPromptView = ({
 
   const { paneRef, bodyAnchorRef, selectionRef, inBody, goToSelection } = useSelectionScroll({
     hasSelection: selected !== undefined,
-    selectionNonce: selection?.nonce ?? 0
+    selectionNonce: selection?.nonce ?? 0,
+    // An error is an answer too — short, but final, so there's no second arrival to wait for.
+    contentReady: !loading
   });
 
   return (
