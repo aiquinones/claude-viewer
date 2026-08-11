@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { buildSearchIndex } from '../model/search/build-index';
 import { ConfigSnapshot, Reveal, SearchDoc } from '../model/types';
+import { Loading } from './loading/Loading';
 import { Spotlight } from './spotlight/Spotlight';
 import { kindForSurface, surfaceForKind } from './spotlight/surface-kind';
 import { useSpotlight } from './spotlight/useSpotlight';
@@ -10,6 +11,10 @@ import { ViewSlider } from './ViewSlider';
 import { LandingView } from './views/LandingView';
 import { SkillView } from './views/SkillView';
 import { SystemPromptView } from './views/SystemPromptView';
+
+// What the first snapshot usually costs. Longer than a file read: it walks the workspace for
+// nested CLAUDE.md files, which on a big repo is seconds — past this the bar stops guessing.
+const SNAPSHOT_EXPECTED_MS: number = 1500;
 
 // Holds the host bridge and owns navigation. The views know nothing about it, so the next surface
 // is a sibling under views/ plus an entry in SURFACES.
@@ -52,7 +57,15 @@ export const App = () => {
     dismissSpotlight();
   };
 
-  if (!snapshot) return <Loading />;
+  // `h-screen`, not `h-full`: this returns before ViewSlider, which is what otherwise gives the
+  // tree a resolved height to be a percentage of.
+  if (!snapshot) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loading label="Reading configuration…" expectedMs={SNAPSHOT_EXPECTED_MS} />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -139,7 +152,3 @@ const Detail = ({
       );
   }
 };
-
-const Loading = () => (
-  <div className="p-5 text-sm text-muted-foreground">Reading configuration…</div>
-);

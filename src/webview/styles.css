@@ -135,6 +135,66 @@
   background: color-mix(in srgb, var(--surface-accent) 40%, transparent);
 }
 
+/* The loading robot's eyes: one blink, then a glance left and right, per tick. The duration reads
+   `--robot-tick`, which the component sets inline. `transform-box` is declared because an SVG
+   child's default box is its own bounding box — the origins below are view-box coordinates. */
+.robot-eye {
+  transform-box: view-box;
+  animation: robot-idle var(--robot-tick, 1s) ease-in-out infinite;
+}
+
+.robot-eye-left {
+  transform-origin: 9px 14px;
+}
+
+.robot-eye-right {
+  transform-origin: 15px 14px;
+}
+
+@keyframes robot-idle {
+  0%, 34%   { transform: translateX(0) scaleY(1); }
+  38%       { transform: translateX(0) scaleY(0.05); }
+  42%, 56%  { transform: translateX(0) scaleY(1); }
+  64%, 72%  { transform: translateX(-1.6px) scaleY(1); }
+  80%, 88%  { transform: translateX(1.6px) scaleY(1); }
+  96%, 100% { transform: translateX(0) scaleY(1); }
+}
+
+/* The loading bar. Takes the accent of whichever surface is waiting, where one is set. */
+.progress-fill,
+.progress-sweep {
+  background: var(--surface-accent, var(--vscode-progressBar-background, var(--foreground)));
+}
+
+.progress-fill {
+  transition: width 120ms linear;
+}
+
+.progress-sweep {
+  animation: progress-sweep 1.2s ease-in-out infinite;
+}
+
+/* Starts one fill-width left of the track and ends one track-width past it — the fill is a
+   quarter of the track, so 400% of itself is the far edge. */
+@keyframes progress-sweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .robot-eye {
+    animation: none;
+  }
+
+  /* A stopped sweep would sit at the left quarter looking stuck, so it fills the track instead
+     and dims to say it isn't a measurement. These win over w-1/4 by being unlayered. */
+  .progress-sweep {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
+}
+
 /* VS Code injects an unlayered `input:focus { outline: 1px solid -webkit-focus-ring-color }` into
    every webview, and an unlayered rule beats anything in a Tailwind layer — so `outline-none` can't
    turn it off. The opt-out has to stay outside `@layer` and out-specify `input:focus`. */
