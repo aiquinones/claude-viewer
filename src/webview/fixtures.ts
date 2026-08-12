@@ -2,6 +2,12 @@ import { estimateTokens } from '../model/estimate-tokens';
 import { buildSearchIndex } from '../model/search/build-index';
 import { searchIndex } from '../model/search/search';
 import {
+  BudgetValue,
+  DEFAULT_SETTINGS,
+  SkillBudgetOverride,
+  ViewerSettings
+} from '../model/settings/settings';
+import {
   ConfigIssue,
   ConfigSnapshot,
   Reveal,
@@ -263,6 +269,28 @@ export const snapshot = ({ skills, systemPrompt, workspaceRoot }: SnapshotArgs):
 
 // What the host posts when the palette or a deep link names a skill.
 export const reveal = (skill: SkillEntry): Reveal => ({ path: skill.path, nonce: 1 });
+
+interface BudgetSettingsArgs {
+  description?: BudgetValue;
+  content?: BudgetValue;
+  overrides?: Record<string, SkillBudgetOverride>;
+}
+
+// Budgets as the host resolves them: a number plus the layer that set it. Anything left out falls
+// back to the shipped default, which is also what a panel with nothing configured shows.
+export const budgetSettings = ({
+  description,
+  content,
+  overrides
+}: BudgetSettingsArgs = {}): ViewerSettings => ({
+  budgets: {
+    skills: {
+      description: description ?? DEFAULT_SETTINGS.budgets.skills.description,
+      content: content ?? DEFAULT_SETTINGS.budgets.skills.content,
+      overrides: overrides ?? {}
+    }
+  }
+});
 
 // A SKILL.md body, shaped like a real one and long enough that the headings actually stack while
 // you scroll. Covers every token the renderer handles.

@@ -33,6 +33,36 @@
     "onUri"
   ],
   "contributes": {
+    "configuration": {
+      "title": "Claude Viewer",
+      "properties": {
+        "claudeViewer.budgets.skills.description": {
+          "type": "number",
+          "default": 100,
+          "minimum": 0,
+          "markdownDescription": "Estimated tokens a skill's name and description should cost. This pair sits in the system prompt on **every request**, whether or not the skill ever runs. Set to `0` to turn the check off."
+        },
+        "claudeViewer.budgets.skills.content": {
+          "type": "number",
+          "default": 2000,
+          "minimum": 0,
+          "markdownDescription": "Estimated tokens a skill's whole `SKILL.md` should cost. This is read **once Claude picks the skill**, not before. Set to `0` to turn the check off."
+        },
+        "claudeViewer.budgets.skills.overrides": {
+          "type": "object",
+          "default": {},
+          "markdownDescription": "Per-skill budgets, keyed by skill name. Either field may be omitted — overriding one doesn't set the other.\n\n```json\n{ \"dev-feature\": { \"content\": 4000 } }\n```",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "description": { "type": "number", "minimum": 0 },
+              "content": { "type": "number", "minimum": 0 }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
     "viewsContainers": {
       "activitybar": [
         {

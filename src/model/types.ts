@@ -1,6 +1,8 @@
 // Shared shapes for the host and the webview. The host builds these from disk; the webview
 // only ever reads them.
 
+import { ViewerSettings } from './settings/settings';
+
 // Two surfaces, two orderings, and they aren't the same list read backwards — each one gets its
 // own array, and `Scope` is the union.
 //
@@ -173,17 +175,21 @@ export interface FileBody {
   error?: string;
 }
 
-// Host → webview.
+// Host → webview. Settings ride their own message rather than a field on the snapshot: changing a
+// budget shouldn't re-walk the disk for every CLAUDE.md to answer a question the disk never had.
 export type HostMessage =
   | { type: 'snapshot'; snapshot: ConfigSnapshot }
+  | { type: 'settings'; settings: ViewerSettings }
   | ({ type: 'reveal' } & Reveal)
   | ({ type: 'fileBody' } & FileBody);
 
 // Webview → host. `surfaceUnavailable` carries only the surface's name: the host owns the
-// sentence, the same way it owns which paths `openFile` will accept.
+// sentence, the same way it owns which paths `openFile` will accept. `openSettings` is the same
+// deal — the webview asks, the host knows which keys to filter the Settings UI to.
 export type WebviewMessage =
   | { type: 'ready' }
   | { type: 'refresh' }
   | { type: 'openFile'; path: string }
   | { type: 'requestBody'; path: string }
-  | { type: 'surfaceUnavailable'; title: string };
+  | { type: 'surfaceUnavailable'; title: string }
+  | { type: 'openSettings' };
