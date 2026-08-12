@@ -1,5 +1,11 @@
 import * as vscode from 'vscode';
-import { CLAUDE_FILE, LOCAL_CLAUDE_FILE, skillRoots, userClaudeDir } from '../config/paths';
+import {
+  CLAUDE_FILE,
+  LOCAL_CLAUDE_FILE,
+  sessionsDir,
+  skillRoots,
+  userClaudeDir
+} from '../config/paths';
 import { buildSnapshot } from '../model/snapshot';
 import { ConfigSnapshot, SkillRoot } from '../model/types';
 import { workspaceRoot } from './workspace';
@@ -40,6 +46,11 @@ export const startWatching = async (): Promise<void> => {
 
   const folder: string | undefined = workspaceRoot();
   if (folder) watch({ dir: folder, glob: `**/{${CLAUDE_FILE},${LOCAL_CLAUDE_FILE}}` });
+
+  // An agent starting or exiting is one of these files appearing or disappearing. What each agent
+  // is *doing* lives in its transcript, which isn't watched: those change on every tool call, and
+  // a rebuild walks the workspace. The view ages its own rows instead.
+  watch({ dir: sessionsDir(), glob: '*.json' });
 };
 
 interface WatchArgs {

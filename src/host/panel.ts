@@ -127,10 +127,12 @@ const _sendGraph = async (): Promise<void> => {
 const _isKnownSkill = (path: string): boolean =>
   cachedSnapshot()?.skills.some((skill) => skill.path === path) ?? false;
 
-// Anything the host itself put in the snapshot — a SKILL.md or a CLAUDE.md — is openable.
+// Anything the host itself put in the snapshot — a SKILL.md, a CLAUDE.md, a live agent's
+// transcript — is openable.
 const _isKnownFile = (path: string): boolean =>
   _isKnownSkill(path) ||
-  (cachedSnapshot()?.systemPrompt.some((file) => file.path === path) ?? false);
+  (cachedSnapshot()?.systemPrompt.some((file) => file.path === path) ?? false) ||
+  (cachedSnapshot()?.agents.some((agent) => agent.transcriptPath === path) ?? false);
 
 // Clicking a surface that has no view yet. A notification rather than a line in the panel, so the
 // landing page stays a grid of cards and the answer lands where VS Code's other answers do.

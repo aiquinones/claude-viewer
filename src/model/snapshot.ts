@@ -1,3 +1,4 @@
+import { loadAgentSessions } from './sessions/load';
 import { loadSkills } from './skills';
 import { loadSystemPrompt } from './system-prompt/load';
 import { ConfigSnapshot } from './types';
@@ -7,10 +8,11 @@ import { ConfigSnapshot } from './types';
 export const buildSnapshot = async (
   workspaceRoot: string | undefined
 ): Promise<ConfigSnapshot> => {
-  const [skills, systemPrompt] = await Promise.all([
+  const [skills, systemPrompt, agents] = await Promise.all([
     loadSkills(workspaceRoot),
-    loadSystemPrompt(workspaceRoot)
+    loadSystemPrompt(workspaceRoot),
+    loadAgentSessions()
   ]);
 
-  return { workspaceRoot, skills, systemPrompt, loadedAt: Date.now() };
+  return { workspaceRoot, skills, systemPrompt, agents, loadedAt: Date.now() };
 };

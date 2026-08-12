@@ -90,11 +90,55 @@ export interface SystemPromptFile {
   issues: ConfigIssue[];
 }
 
+// How a session's transcript ends. A finished turn always ends the same way — an assistant line
+// whose only block is text — so everything else is mid-turn.
+//
+// Deliberately not annotated: a type here would erase the literals the union derives from.
+export const TRANSCRIPT_TAILS = ['settled', 'working'] as const;
+
+export type TranscriptTail = (typeof TRANSCRIPT_TAILS)[number];
+
+// What an agent is doing, as far as the disk can say. Nothing writes this down — `sessions/activity`
+// derives it from how the transcript ends and how long ago that was.
+export const AGENT_ACTIVITIES = ['running', 'blocked', 'idle'] as const;
+
+export type AgentActivity = (typeof AGENT_ACTIVITIES)[number];
+
+// One Claude Code process that exists right now, joined to its transcript. Unlike every other entry
+// here this describes something live, so the time fields are absolute — the view ages them against
+// its own clock rather than trusting when the snapshot was built.
+export interface AgentSession {
+  // Unique per session. Doubles as the row key.
+  sessionId: string;
+  pid: number;
+  // The handle `ListAgents` prints and `SendMessage` addresses, e.g. `claude-viewer-0f`.
+  name: string;
+  // Where the agent is working. A session inside a worktree reports the worktree, not the repo.
+  cwd: string;
+  transcriptPath: string;
+  // Claude Code's own generated title, rewritten as the session goes on. Absent until it writes one.
+  title?: string;
+  // The last prompt, already truncated by Claude Code.
+  lastPrompt?: string;
+  tail: TranscriptTail;
+  // The tool the agent is waiting on, when the transcript ends on a tool call. The name only: the
+  // input is arbitrary text from the agent's own work, and this panel gets screenshotted.
+  pendingTool?: string;
+  // When the transcript was last written, and when the process started.
+  lastActivityAt: number;
+  startedAt: number;
+  version: string;
+  entrypoint: string;
+  issues: ConfigIssue[];
+}
+
 export interface ConfigSnapshot {
   workspaceRoot: string | undefined;
   skills: SkillEntry[];
   // Flat and already in load order. `depth` is all the view needs to draw the import tree.
   systemPrompt: SystemPromptFile[];
+  // Live processes, most recently active first. Empty is a normal answer.
+  agents: AgentSession[];
   loadedAt: number;
 }
 
