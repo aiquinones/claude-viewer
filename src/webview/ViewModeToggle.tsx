@@ -12,21 +12,18 @@ interface ViewModeToggleProps {
   onChange: (mode: SkillViewMode) => void;
 }
 
-// The segmented control above the Content heading. A map over VIEW_MODES rather than three
-// written-out buttons, so a fourth mode is one entry there and nothing here.
+// The segmented control at the end of the Content heading's row. A map over VIEW_MODES rather than
+// three written-out buttons, so a fourth mode is one entry there and nothing here.
 export const ViewModeToggle = ({ mode, blockers, onChange }: ViewModeToggleProps) => (
   <div
     role="group"
     aria-label="View as"
     style={{ '--mode-index': VIEW_MODES.findIndex((entry) => entry.id === mode) } as CSSProperties}
-    className="relative flex items-center rounded-lg border border-border bg-muted p-0.5"
+    className="relative flex shrink-0 items-center rounded-lg border border-border bg-muted p-1"
   >
     {/* The moving part: one button-sized tile that slides to whichever mode is on. Every button is
         the same width, so where it goes is its index — nothing has to be measured. */}
-    <span
-      aria-hidden
-      className="mode-indicator absolute left-0.5 top-0.5 size-6 rounded-md bg-background shadow-sm"
-    />
+    <span aria-hidden className="mode-indicator absolute left-1 top-1 size-7 rounded-md bg-background shadow-sm" />
     {VIEW_MODES.map((entry) => (
       <ModeButton
         key={entry.id}
@@ -70,7 +67,7 @@ const ModeButton = ({ entry, active, blocker, onChange }: ModeButtonProps) => {
         aria-pressed={active}
         aria-disabled={Boolean(blocker)}
         onClick={() => !blocker && onChange(entry.id)}
-        className={`relative flex size-6 items-center justify-center rounded-md transition-colors ${modeClass(
+        className={`relative flex size-7 items-center justify-center rounded-md transition-colors ${modeClass(
           { active, blocked: Boolean(blocker) }
         )}`}
       >
