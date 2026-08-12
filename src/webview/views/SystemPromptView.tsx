@@ -109,7 +109,13 @@ export const SystemPromptView = ({
           {/* Zero height, at the body's top edge: what the pick scrolls to, and what says you got
               there. A ref on the body itself would still count as on screen halfway down it. */}
           <div ref={bodyAnchorRef} />
-          <PromptBody file={selected} body={body} error={error} loading={loading} />
+          <PromptBody
+            file={selected}
+            body={body}
+            error={error}
+            loading={loading}
+            workspaceRoot={snapshot.workspaceRoot}
+          />
         </div>
       )}
     </div>

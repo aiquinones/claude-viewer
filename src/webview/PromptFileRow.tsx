@@ -4,6 +4,7 @@ import { SystemPromptFile } from '../model/types';
 import { cn } from '@/lib/utils';
 import { IssueList } from './IssueList';
 import { ScopeBadge } from './ScopeBadge';
+import { displayDirectory, fileName } from './display-path';
 import { formatBytes, formatTokens } from './format-size';
 
 interface PromptFileRowProps {
@@ -76,7 +77,7 @@ export const PromptFileRow = ({
           </span>
 
           <span className="mono w-full truncate pl-7 text-xs text-muted-foreground">
-            {directory({ path: file.path, workspaceRoot })}
+            {displayDirectory({ path: file.path, workspaceRoot })}
             {file.conditionalOn && ` · loads only under ${file.conditionalOn}/`}
           </span>
 
@@ -96,23 +97,4 @@ export const PromptFileRow = ({
       )}
     </div>
   );
-};
-
-const fileName = (path: string): string => path.split(/[/\\]/).pop() ?? path;
-
-interface DirectoryArgs {
-  path: string;
-  workspaceRoot: string | undefined;
-}
-
-// Display only: inside the workspace it's the relative directory, outside it the absolute one with
-// a home prefix folded to `~`. The row's title attribute always carries the full path.
-const directory = ({ path, workspaceRoot }: DirectoryArgs): string => {
-  const dir: string = path.split(/[/\\]/).slice(0, -1).join('/');
-
-  if (workspaceRoot && dir.startsWith(workspaceRoot)) {
-    return dir.slice(workspaceRoot.length).replace(/^\//, '') || '.';
-  }
-
-  return dir.replace(/^\/(Users|home)\/[^/]+/, '~');
 };

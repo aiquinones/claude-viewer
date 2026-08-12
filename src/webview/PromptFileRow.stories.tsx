@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
+  WORKSPACE,
   circularImport,
   importedAgents,
   missingImport,
@@ -15,7 +16,7 @@ const meta: Meta<typeof PromptFileRow> = {
   args: {
     // The largest file in the fixture stack, so the shares read the way they do in the panel.
     groupChars: projectPrompt.chars,
-    workspaceRoot: '/Users/dev/repos/example-app',
+    workspaceRoot: WORKSPACE,
     selected: false,
     onSelect: () => undefined
   },
