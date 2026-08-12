@@ -1,5 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { circularImport, missingImport, projectPrompt, promptMarkdown } from './fixtures';
+import {
+  WORKSPACE,
+  circularImport,
+  deepNestedPrompt,
+  missingImport,
+  projectPrompt,
+  promptMarkdown,
+  userPrompt
+} from './fixtures';
 import { PromptBody } from './PromptBody';
 
 const meta: Meta<typeof PromptBody> = {
@@ -9,7 +17,8 @@ const meta: Meta<typeof PromptBody> = {
     file: projectPrompt,
     body: promptMarkdown,
     error: undefined,
-    loading: false
+    loading: false,
+    workspaceRoot: WORKSPACE
   },
   decorators: [
     (Story) => (
@@ -24,7 +33,20 @@ export default meta;
 
 type Story = StoryObj<typeof PromptBody>;
 
+// At the workspace root there's no directory left to show, so the title is just the name.
 export const Default: Story = {};
+
+// Outside the workspace, where the directory folds to `~`. Scroll it: the path stays pinned and
+// the file's own headings stack underneath it.
+export const UserFile: Story = {
+  args: { file: userPrompt }
+};
+
+// The path the pane can't fit. The directory truncates and the filename survives — the reverse
+// would leave every row of this surface reading the same.
+export const DeepPath: Story = {
+  args: { file: deepNestedPrompt }
+};
 
 // Nothing selected. The pane is empty rather than prompting — the list above it is the view.
 export const NoSelection: Story = {

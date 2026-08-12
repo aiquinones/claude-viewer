@@ -13,7 +13,9 @@ import {
 
 // Synthetic only. Never paste real config in here — working on this extension means reading your
 // own ~/.claude, and that directory holds permissions, MCP env vars, and API keys.
-const WORKSPACE: string = '/Users/dev/repos/example-app';
+// Exported because a story rendering a single row or body has to pass the root the paths below are
+// relative to — without it every path renders as an absolute one.
+export const WORKSPACE: string = '/Users/dev/repos/example-app';
 const HOME: string = '/Users/dev/.claude';
 
 // `chars` is the SKILL.md's size and the listing is derived from the name and description, both
@@ -192,6 +194,15 @@ export const nestedPrompt: SystemPromptFile = makePromptFile({
   scope: 'nested',
   chars: 2380,
   conditionalOn: 'packages/api'
+});
+
+// A path with no chance of fitting, so the body title has to decide what to drop. Everything in
+// this surface is named CLAUDE.md, which is what makes the directory the part worth keeping.
+export const deepNestedPrompt: SystemPromptFile = makePromptFile({
+  path: `${WORKSPACE}/packages/integrations/salesforce/connectors/webhooks/CLAUDE.md`,
+  scope: 'nested',
+  chars: 1120,
+  conditionalOn: 'packages/integrations/salesforce/connectors/webhooks'
 });
 
 export const missingImport: SystemPromptFile = makePromptFile({
