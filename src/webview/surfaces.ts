@@ -42,7 +42,7 @@ export const SURFACES = [
     title: 'Active Agents',
     blurb: 'Claude Code sessions running right now, and what each one is doing.',
     accent: 'var(--vscode-charts-green, #89d185)',
-    status: 'soon'
+    status: 'ready'
   }
 ] as const satisfies readonly SurfaceShape[];
 
