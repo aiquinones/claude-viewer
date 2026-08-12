@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { readTextFile } from '../config/read';
 import { ConfigError, Result } from '../config/result';
+import { ViewerSettings } from '../model/settings/settings';
 import { loadSkillBody } from '../model/skill-body';
 import { ConfigSnapshot, FileBody, WebviewMessage } from '../model/types';
 import {
@@ -9,6 +10,7 @@ import {
   onDidChangeSnapshot,
   refreshSnapshot
 } from './config-store';
+import { currentSettings, onDidChangeSettings, revealSettings } from './settings-store';
 import { getWebviewHtml } from './shell-html';
 
 // Registered in package.json under contributes.commands — the two have to agree.
@@ -20,6 +22,7 @@ export const PANEL_TITLE: string = 'Claude Viewer';
 
 let panel: vscode.WebviewPanel | undefined;
 let snapshotSubscription: vscode.Disposable | undefined;
+let settingsSubscription: vscode.Disposable | undefined;
 // The webview can't hear anything until it has booted and said so.
 let webviewReady: boolean = false;
 // A reveal that arrived before that, held until it can be delivered.
@@ -71,10 +74,14 @@ export const openPanel = ({ context, revealPath }: OpenPanelArgs): void => {
 
   // The store owns the watchers; the panel just listens while it's open.
   snapshotSubscription = onDidChangeSnapshot((snapshot) => void _post(snapshot));
+  // Its own channel: a budget changing shouldn't re-walk the disk for a snapshot nothing asked for.
+  settingsSubscription = onDidChangeSettings((settings) => void _postSettings(settings));
 
   panel.onDidDispose(() => {
     snapshotSubscription?.dispose();
     snapshotSubscription = undefined;
+    settingsSubscription?.dispose();
+    settingsSubscription = undefined;
     panel = undefined;
     webviewReady = false;
     pendingReveal = undefined;
@@ -88,6 +95,7 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'openFile') return _openFile(message.path);
   if (message.type === 'requestBody') return _sendBody(message.path);
   if (message.type === 'surfaceUnavailable') return _surfaceUnavailable(message.title);
+  if (message.type === 'openSettings') return revealSettings();
 };
 
 // The selected file's text, read on demand rather than shipped with every snapshot. Same path
@@ -125,6 +133,7 @@ const _surfaceUnavailable = async (title: string): Promise<void> => {
 // follows. Posting the reveal any earlier would drop it on the floor.
 const _onReady = async (): Promise<void> => {
   webviewReady = true;
+  await _postSettings(currentSettings());
   await _post(await currentSnapshot());
 
   const waiting: string | undefined = pendingReveal;
@@ -147,6 +156,11 @@ const _reveal = async (path: string): Promise<void> => {
 const _post = async (snapshot: ConfigSnapshot): Promise<void> => {
   if (!webviewReady) return;
   await panel?.webview.postMessage({ type: 'snapshot', snapshot });
+};
+
+const _postSettings = async (settings: ViewerSettings): Promise<void> => {
+  if (!webviewReady) return;
+  await panel?.webview.postMessage({ type: 'settings', settings });
 };
 
 // Opens a config file in the editor. Only paths the host itself put in the snapshot are honored,

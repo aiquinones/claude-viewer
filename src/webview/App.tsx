@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { buildSearchIndex } from '../model/search/build-index';
 import { ConfigSnapshot, Reveal, SearchDoc } from '../model/types';
 import { Loading } from './loading/Loading';
+import { SettingsProvider } from './settings/SettingsContext';
 import { Spotlight } from './spotlight/Spotlight';
 import { kindForSurface, surfaceForKind } from './spotlight/surface-kind';
 import { useSpotlight } from './spotlight/useSpotlight';
@@ -19,7 +20,8 @@ const SNAPSHOT_EXPECTED_MS: number = 1500;
 // Holds the host bridge and owns navigation. The views know nothing about it, so the next surface
 // is a sibling under views/ plus an entry in SURFACES.
 export const App = () => {
-  const { snapshot, reveal, refresh, openFile, reportUnavailable } = useSnapshot();
+  const { snapshot, settings, reveal, refresh, openFile, reportUnavailable, openSettings } =
+    useSnapshot();
   // Which surface the detail pane renders, and whether the slider is showing it. Separate signals
   // because the surface has to outlive the slide home — clearing it would blank the pane mid-exit.
   const [surface, setSurface] = useState<SurfaceId | undefined>(undefined);
@@ -68,7 +70,7 @@ export const App = () => {
   }
 
   return (
-    <>
+    <SettingsProvider settings={settings} openSettings={openSettings}>
       <ViewSlider
         showDetail={showDetail}
         home={
@@ -103,7 +105,7 @@ export const App = () => {
           onDismiss={dismissSpotlight}
         />
       )}
-    </>
+    </SettingsProvider>
   );
 };
 
