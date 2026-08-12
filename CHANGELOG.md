@@ -2,10 +2,29 @@
 
 Notable changes to Claude Viewer, newest first.
 
-## Unreleased
+## 0.8.0 — 2026-08-12
+
+### Added
+
+- **The Active Agents surface.** Every Claude Code session running right now, grouped by whether
+  it's working in this workspace, with a state, how long since it last did anything, the tool it's
+  waiting on, and a link to the PR it opened. Clicking a row opens that session's transcript. States
+  are inferred from how the transcript ends and how long ago that was, so a row crosses from Working
+  to Waiting on its own without anything changing on disk.
+- **A skill's references as a graph.** The Content section toggles between the text and a picture of
+  the viewed skill's neighbourhood — itself, the skills it names, and the skills that name it — with
+  a directed edge wherever one skill's description or body refers to another. Drag a node and
+  everything tied to it follows. A skill with no references leaves the toggle dimmed.
+- **Skill costs read against a budget.** `claudeViewer.budgets.skills.description` and `.content` are
+  limits you set, with `.overrides` for the one skill that legitimately costs more, and a bar under
+  each number says within, near, or over. The (i) beside the Cost heading names where each limit came
+  from — the default, your setting, this workspace, or your override — and says when you pay each
+  cost and what a normal skill runs. These are the first VS Code settings the extension reads.
 
 ### Changed
 
+- **The CLAUDE.md you're reading is named by its path**, pinned above the file's own headings as the
+  top row of the sticky stack — so the top of the pane says which file and which section.
 - **The palette commands are renamed.** **Claude Viewer: Open** is now **Claude Viewer: Launch
   Viewer**, and **Open Skill…** is now **Find Skill…**. Both used to start with the word Claude
   Code's own commands start with, so typing "open" returned a mixed list. Their ids moved with
@@ -13,6 +32,11 @@ Notable changes to Claude Viewer, newest first.
   ids needs updating.
 - Every contributed command now gets its "Claude Viewer" prefix from `category` instead of two of
   the four spelling it into the title.
+
+### Fixed
+
+- The Content heading and its mode toggle sit on one line, centred in the block, instead of in
+  separate bands with the toggle overflowing its row.
 
 ## 0.6.1 — 2026-08-10
 
