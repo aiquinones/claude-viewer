@@ -10,20 +10,11 @@ import { BudgetBar, budgetTextClass } from './BudgetBar';
 import { BudgetInfo } from './BudgetInfo';
 import { formatBytes, formatTokens } from './format-size';
 import { useSettings } from './settings/SettingsContext';
+import { FIELD_LABELS, FIELD_NOTES } from './skill-budget-labels';
 
 interface SkillCostProps {
   skill: SkillEntry;
 }
-
-const FIELD_LABELS: Record<SkillBudgetField, string> = {
-  description: 'Description',
-  content: 'Content'
-};
-
-const FIELD_NOTES: Record<SkillBudgetField, string> = {
-  description: 'name and description, on every request',
-  content: 'the whole SKILL.md, read when the skill runs'
-};
 
 // What a skill costs, which is two numbers rather than one: its name and description sit in the
 // system prompt whether or not it ever runs, and the file itself is only read once Claude picks it.
@@ -62,11 +53,12 @@ const CostRow = ({ skill, field }: CostRowProps) => {
     <div className="flex flex-col gap-1 text-xs">
       <div className="flex flex-wrap items-baseline justify-between gap-x-2">
         <span className="font-medium">{FIELD_LABELS[field]}</span>
+        {/* What it costs, and nothing else. The bar carries the share of the budget and the (i)
+            card carries the limit — printing `x / y` here said the same thing a third time. */}
         <span
           className={`mono ${shadowed ? 'line-through opacity-60' : budgetTextClass(reading?.level)}`}
         >
-          ~{formatTokens(tokens)}
-          {reading && ` / ${formatTokens(reading.limit)}`} est. tokens
+          ~{formatTokens(tokens)} est. tokens
         </span>
       </div>
       {reading && <BudgetBar reading={reading} />}
