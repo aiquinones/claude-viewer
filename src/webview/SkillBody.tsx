@@ -1,24 +1,100 @@
+import { useMemo } from 'react';
 import { CircleAlert } from 'lucide-react';
+import { SkillGraph } from '../model/types';
+import { ModeBlockers, ViewModeToggle } from './ViewModeToggle';
+import { plural } from './format-size';
+import { GraphView } from './graph/GraphView';
+import { neighborhood } from './graph/neighborhood';
 import { Loading } from './loading/Loading';
-import { Markdown } from './markdown/Markdown';
+import { Markdown, STICKY_ROW_CLASS } from './markdown/Markdown';
+import { SkillViewMode } from './view-modes';
 
 interface SkillBodyProps {
-  // SKILL.md below its frontmatter. Undefined while the host is still reading it.
+  mode: SkillViewMode;
+  blockers: ModeBlockers;
+  onChangeMode: (mode: SkillViewMode) => void;
+  // Text mode: SKILL.md below its frontmatter. Undefined while the host is still reading it.
+  body: string | undefined;
+  error: string | undefined;
+  loading: boolean;
+  // Graph mode: who mentions whom, across every listed skill. Narrowed to the viewed skill's own
+  // neighbourhood before anything draws it.
+  graph: SkillGraph | undefined;
+  viewedPath: string | undefined;
+  onOpenSkill: (path: string) => void;
+}
+
+// Everything Claude reads after the description, and the other ways of looking at it. `px-5` here
+// is what the sticky headings inside reach back through, so the two have to agree.
+export const SkillBody = ({
+  mode,
+  blockers,
+  onChangeMode,
+  body,
+  error,
+  loading,
+  graph,
+  viewedPath,
+  onOpenSkill
+}: SkillBodyProps) => {
+  const shown: SkillGraph | undefined = useMemo(
+    () => (graph ? neighborhood({ graph, path: viewedPath }) : undefined),
+    [graph, viewedPath]
+  );
+
+  return (
+    <section className="flex flex-col px-5 pb-8">
+      {/* Rows 0 and 1 of the pinned stack — the toggle over the heading — which is what keeps the
+          toggle reachable however far down the file you are. Its height has to stay an exact
+          multiple of the pinned row, or every heading offset below it lands wrong: that's the
+          `offsetRows={2}` the markdown gets, and the two have to agree. */}
+      <div
+        style={{ zIndex: 30 }}
+        className={`sticky top-0 -mx-5 flex ${STICKY_ROWS_CLASS} flex-col border-b border-border bg-background px-5`}
+      >
+        <div className="flex h-9 items-center justify-end">
+          <ViewModeToggle mode={mode} blockers={blockers} onChange={onChangeMode} />
+        </div>
+        <h2 className="flex h-5 min-w-0 items-center truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {heading({ mode, graph: shown })}
+        </h2>
+      </div>
+
+      <div className="pt-3">
+        {mode === 'graph' ? (
+          <Graph graph={shown} viewedPath={viewedPath} onOpenSkill={onOpenSkill} />
+        ) : (
+          <Content body={body} error={error} loading={loading} />
+        )}
+      </div>
+    </section>
+  );
+};
+
+// Two of the markdown's pinned rows, to the pixel: h-9 over h-5 is 3.5rem, and STICKY_ROW_CLASS is
+// h-7. Written as a constant next to the offset it has to match.
+const STICKY_ROWS: number = 2;
+const STICKY_ROWS_CLASS: string = 'h-14';
+
+interface HeadingArgs {
+  mode: SkillViewMode;
+  graph: SkillGraph | undefined;
+}
+
+const heading = ({ mode, graph }: HeadingArgs): string => {
+  if (mode !== 'graph') return 'Content';
+  if (!graph) return 'Graph';
+  // Counts the picture, not the whole install: `graph` is already the neighbourhood by here.
+  return `Graph · ${plural(graph.nodes.length, 'skill')} · ${plural(graph.edges.length, 'link')}`;
+};
+
+interface ContentProps {
   body: string | undefined;
   error: string | undefined;
   loading: boolean;
 }
 
-// Everything Claude reads after the description. `px-5` here is what the sticky headings inside
-// reach back through, so the two have to agree.
-export const SkillBody = ({ body, error, loading }: SkillBodyProps) => (
-  <section className="flex flex-col gap-2 px-5 pb-8">
-    <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Content</h2>
-    <Content body={body} error={error} loading={loading} />
-  </section>
-);
-
-const Content = ({ body, error, loading }: SkillBodyProps) => {
+const Content = ({ body, error, loading }: ContentProps) => {
   if (error) {
     return (
       <p className="flex items-start gap-2 text-xs text-error">
@@ -32,5 +108,27 @@ const Content = ({ body, error, loading }: SkillBodyProps) => {
     return <p className="text-sm italic text-muted-foreground">nothing below the frontmatter</p>;
   }
 
-  return <Markdown raw={body} />;
+  // The toggle and the heading are pinned above, so every heading in here starts two slots lower.
+  return <Markdown raw={body} offsetRows={STICKY_ROWS} />;
+};
+
+interface GraphProps {
+  graph: SkillGraph | undefined;
+  viewedPath: string | undefined;
+  onOpenSkill: (path: string) => void;
+}
+
+const Graph = ({ graph, viewedPath, onOpenSkill }: GraphProps) => {
+  if (!graph) return <Loading label="Reading every SKILL.md" />;
+
+  // Reachable from a story or a one-skill install; the toggle blocks it everywhere else.
+  if (graph.nodes.length === 0) {
+    return (
+      <p className="text-sm italic text-muted-foreground">
+        no skill here names another, so there's nothing to draw
+      </p>
+    );
+  }
+
+  return <GraphView graph={graph} viewedPath={viewedPath} onOpenSkill={onOpenSkill} />;
 };

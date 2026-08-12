@@ -6,7 +6,8 @@
 import { ConfigSnapshot, SkillEntry, SystemPromptFile } from '../model/types';
 import { formatTokens, plural } from './format-size';
 import { alwaysLoads, totals } from './prompt-totals';
-import { listed, listingTotals } from './skill-totals';
+import { listed } from '../model/shadowing';
+import { listingTotals } from './skill-totals';
 
 export type SurfaceStatus = 'ready' | 'soon';
 

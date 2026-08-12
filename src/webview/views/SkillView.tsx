@@ -1,15 +1,20 @@
-import { useEffect, useState } from 'react';
+import { CSSProperties, useEffect, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
-import { ConfigSnapshot, Reveal, SkillEntry } from '../../model/types';
+import { listed } from '../../model/shadowing';
+import { ConfigSnapshot, Reveal, SkillEntry, SkillGraph } from '../../model/types';
 import { Button } from '@/components/ui/button';
 import { AllowedTools } from '../AllowedTools';
 import { PanelActions } from '../PanelActions';
 import { SkillBody } from '../SkillBody';
 import { SkillDetail } from '../SkillDetail';
 import { SkillNav } from '../SkillNav';
+import { ModeBlockers } from '../ViewModeToggle';
 import { formatTokens } from '../format-size';
-import { listed, listingTotals } from '../skill-totals';
+import { useSkillGraph } from '../graph/useSkillGraph';
+import { listingTotals } from '../skill-totals';
+import { surfaceAccent } from '../surfaces';
 import { useFileBody } from '../useFileBody';
+import { DEFAULT_VIEW_MODE, SkillViewMode } from '../view-modes';
 
 interface SkillViewProps {
   snapshot: ConfigSnapshot;
@@ -32,6 +37,7 @@ export const SkillView = ({
   onBack
 }: SkillViewProps) => {
   const [selectedPath, setSelectedPath] = useState<string | undefined>(undefined);
+  const [mode, setMode] = useState<SkillViewMode>(DEFAULT_VIEW_MODE);
 
   // A reveal comes from outside the webview, so it wins over whatever was clicked in here.
   useEffect(() => {
@@ -56,9 +62,21 @@ export const SkillView = ({
     path: selected?.path,
     loadedAt: snapshot.loadedAt
   });
+  // Asked for on mount, not on opening the graph: the toggle can't say whether this skill has
+  // references until the graph is in hand.
+  const { graph } = useSkillGraph(snapshot.loadedAt);
+
+  // The panel's selection follows a link out of the graph, and reading is what you asked for.
+  const openFromGraph = (path: string): void => {
+    setSelectedPath(path);
+    setMode('text');
+  };
 
   return (
-    <div className="flex h-full flex-col">
+    <div
+      className="flex h-full flex-col"
+      style={{ '--surface-accent': surfaceAccent('skills') } as CSSProperties}
+    >
       <header className="flex items-center gap-2 border-b border-border px-4 py-3">
         <Button variant="ghost" size="icon" title="Back" onClick={onBack}>
           <ChevronLeft />
@@ -105,8 +123,18 @@ export const SkillView = ({
                     onSelectSkill={setSelectedPath}
                   />
                 </div>
-                <SkillBody body={body} error={error} loading={loading} />
-                <AllowedTools tools={selected.allowedTools} />
+                <SkillBody
+                  mode={mode}
+                  blockers={modeBlockers({ graph, path: selected.path })}
+                  onChangeMode={setMode}
+                  body={body}
+                  error={error}
+                  loading={loading}
+                  graph={graph}
+                  viewedPath={selected.path}
+                  onOpenSkill={openFromGraph}
+                />
+                {mode === 'text' && <AllowedTools tools={selected.allowedTools} />}
               </>
             )}
           </div>
@@ -114,6 +142,19 @@ export const SkillView = ({
       )}
     </div>
   );
+};
+
+interface ModeBlockersArgs {
+  graph: SkillGraph | undefined;
+  path: string;
+}
+
+// A skill has references exactly when it's a node in the graph — the graph already dropped the
+// unconnected ones, so this is a lookup rather than a second rule that could drift from the first.
+const modeBlockers = ({ graph, path }: ModeBlockersArgs): ModeBlockers => {
+  if (!graph) return { graph: 'Building the graph…' };
+  if (graph.nodes.some((node) => node.path === path)) return {};
+  return { graph: 'This skill names no other, and none names it' };
 };
 
 const Empty = () => (
