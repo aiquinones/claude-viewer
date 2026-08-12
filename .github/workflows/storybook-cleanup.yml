@@ -1,0 +1,49 @@
+name: Storybook cleanup
+
+# Deletes a closed PR's preview folder from gh-pages. Without this the branch grows a
+# directory per PR forever.
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  remove:
+    name: Remove the preview
+    runs-on: ubuntu-latest
+    # Shares the publish lock, so a delete can't race a build that's pushing.
+    concurrency:
+      group: gh-pages
+      cancel-in-progress: false
+    steps:
+      - name: Has anything been published yet?
+        id: site
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          if git ls-remote --exit-code --heads "https://github.com/$REPO.git" gh-pages >/dev/null 2>&1; then
+            echo 'exists=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'exists=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.site.outputs.exists == 'true'
+        with:
+          ref: gh-pages
+
+      - name: Drop the folder
+        if: steps.site.outputs.exists == 'true'
+        env:
+          NUMBER: ${{ github.event.number }}
+        run: |
+          dir="pr-$NUMBER"
+          [ -d "$dir" ] || exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm -rq "$dir"
+          git commit -m "storybook: drop $dir"
+          git push

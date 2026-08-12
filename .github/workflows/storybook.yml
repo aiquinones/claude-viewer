@@ -1,0 +1,97 @@
+name: Storybook
+
+# Builds the component workbench and publishes it to the gh-pages branch: main at the
+# site root, every open PR under pr-<n>/. storybook-cleanup.yml deletes a PR's folder
+# when the PR closes.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    # A new push to the same branch makes the running build pointless.
+    concurrency:
+      group: storybook-build-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run build-storybook
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: storybook-static
+          path: storybook-static
+          retention-days: 7
+
+  publish:
+    name: Publish
+    needs: build
+    runs-on: ubuntu-latest
+    # A PR from a fork gets a read-only token, so it can build but can't publish.
+    if: >-
+      github.event_name == 'push' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    # Every run pushes to the same branch, so only one may publish at a time. Queued,
+    # not cancelled — a cancelled publish is a preview that never appears.
+    concurrency:
+      group: gh-pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: storybook-static
+          path: storybook-static
+
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./storybook-static
+          # Empty destination means the site root, which is where main goes.
+          destination_dir: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || '' }}
+          # Without this, publishing main would delete every open PR's folder.
+          keep_files: true
+          commit_message: "${{ github.event_name == 'pull_request' && format('storybook: pr-{0}', github.event.number) || 'storybook: main' }}"
+
+      - name: Comment the preview URL
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.number }}/
+        # One comment per PR, edited in place, found by the marker on its first line.
+        run: |
+          marker='<!-- storybook-preview -->'
+          body="$marker
+          📚 **Storybook preview:** $URL
+
+          Built from \`${SHA:0:7}\`. The folder is deleted when this PR closes."
+          id=$(gh api "repos/$REPO/issues/$NUMBER/comments" \
+            --jq "map(select(.body | startswith(\"$marker\"))) | .[0].id // empty")
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$id" -f body="$body"
+          else
+            gh api -X POST "repos/$REPO/issues/$NUMBER/comments" -f body="$body"
+          fi
