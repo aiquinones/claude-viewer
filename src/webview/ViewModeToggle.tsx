@@ -1,3 +1,4 @@
+import { CSSProperties } from 'react';
 import { Tooltip } from './Tooltip';
 import { SkillViewMode, VIEW_MODES, ViewMode } from './view-modes';
 
@@ -11,10 +12,18 @@ interface ViewModeToggleProps {
   onChange: (mode: SkillViewMode) => void;
 }
 
-// The segmented control in the Content heading. A map over VIEW_MODES rather than three written-out
-// buttons, so a fourth mode is one entry there and nothing here.
+// The segmented control above the Content heading. A map over VIEW_MODES rather than three
+// written-out buttons, so a fourth mode is one entry there and nothing here.
 export const ViewModeToggle = ({ mode, blockers, onChange }: ViewModeToggleProps) => (
-  <div role="group" aria-label="View as" className="flex items-center gap-px rounded-md bg-muted p-px">
+  <div
+    role="group"
+    aria-label="View as"
+    style={{ '--mode-index': VIEW_MODES.findIndex((entry) => entry.id === mode) } as CSSProperties}
+    className="relative flex items-center rounded-lg border border-border bg-muted p-1"
+  >
+    {/* The moving part: one button-sized tile that slides to whichever mode is on. Every button is
+        the same width, so where it goes is its index — nothing has to be measured. */}
+    <span aria-hidden className="mode-indicator absolute left-1 top-1 size-7 rounded-md bg-background shadow-sm" />
     {VIEW_MODES.map((entry) => (
       <ModeButton
         key={entry.id}
@@ -45,6 +54,8 @@ interface ModeButtonProps {
 
 // Blocked buttons keep their hover so the tooltip can explain them — which is the whole point of
 // dimming rather than hiding. `disabled` would kill the pointer events and the explanation with it.
+//
+// `relative` on every button puts it over the tile sliding underneath.
 const ModeButton = ({ entry, active, blocker, onChange }: ModeButtonProps) => {
   const Icon = entry.icon;
 
@@ -56,11 +67,11 @@ const ModeButton = ({ entry, active, blocker, onChange }: ModeButtonProps) => {
         aria-pressed={active}
         aria-disabled={Boolean(blocker)}
         onClick={() => !blocker && onChange(entry.id)}
-        className={`flex size-5 items-center justify-center rounded-[0.3rem] transition-colors ${modeClass(
+        className={`relative flex size-7 items-center justify-center rounded-md transition-colors ${modeClass(
           { active, blocked: Boolean(blocker) }
         )}`}
       >
-        <Icon className="size-3.5" />
+        <Icon className="size-4" />
       </button>
     </Tooltip>
   );
@@ -73,6 +84,6 @@ interface ModeClassArgs {
 
 const modeClass = ({ active, blocked }: ModeClassArgs): string => {
   if (blocked) return 'cursor-default text-muted-foreground/40';
-  if (active) return 'cursor-pointer bg-background text-foreground shadow-sm';
+  if (active) return 'cursor-pointer text-foreground';
   return 'cursor-pointer text-muted-foreground hover:text-foreground';
 };

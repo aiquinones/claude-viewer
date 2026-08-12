@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { CircleAlert } from 'lucide-react';
 import { SkillGraph } from '../model/types';
 import { ModeBlockers, ViewModeToggle } from './ViewModeToggle';
 import { plural } from './format-size';
 import { GraphView } from './graph/GraphView';
+import { neighborhood } from './graph/neighborhood';
 import { Loading } from './loading/Loading';
 import { Markdown, STICKY_ROW_CLASS } from './markdown/Markdown';
 import { SkillViewMode } from './view-modes';
@@ -15,7 +17,8 @@ interface SkillBodyProps {
   body: string | undefined;
   error: string | undefined;
   loading: boolean;
-  // Graph mode: who mentions whom, across every listed skill.
+  // Graph mode: who mentions whom, across every listed skill. Narrowed to the viewed skill's own
+  // neighbourhood before anything draws it.
   graph: SkillGraph | undefined;
   viewedPath: string | undefined;
   onOpenSkill: (path: string) => void;
@@ -33,31 +36,45 @@ export const SkillBody = ({
   graph,
   viewedPath,
   onOpenSkill
-}: SkillBodyProps) => (
-  <section className="flex flex-col px-5 pb-8">
-    {/* Row 0 of the pinned stack, which is what keeps the toggle reachable however far down the
-        file you are. A taller row would throw off every heading offset below it. */}
-    <div
-      style={{ zIndex: 30 }}
-      className={`sticky top-0 -mx-5 flex ${STICKY_ROW_CLASS} items-center gap-2 border-b border-border bg-background px-5`}
-    >
-      <h2 className="min-w-0 truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {heading({ mode, graph })}
-      </h2>
-      <div className="ml-auto">
-        <ViewModeToggle mode={mode} blockers={blockers} onChange={onChangeMode} />
-      </div>
-    </div>
+}: SkillBodyProps) => {
+  const shown: SkillGraph | undefined = useMemo(
+    () => (graph ? neighborhood({ graph, path: viewedPath }) : undefined),
+    [graph, viewedPath]
+  );
 
-    <div className="pt-3">
-      {mode === 'graph' ? (
-        <Graph graph={graph} viewedPath={viewedPath} onOpenSkill={onOpenSkill} />
-      ) : (
-        <Content body={body} error={error} loading={loading} />
-      )}
-    </div>
-  </section>
-);
+  return (
+    <section className="flex flex-col px-5 pb-8">
+      {/* Rows 0 and 1 of the pinned stack — the toggle over the heading — which is what keeps the
+          toggle reachable however far down the file you are. Its height has to stay an exact
+          multiple of the pinned row, or every heading offset below it lands wrong: that's the
+          `offsetRows={2}` the markdown gets, and the two have to agree. */}
+      <div
+        style={{ zIndex: 30 }}
+        className={`sticky top-0 -mx-5 flex ${STICKY_ROWS_CLASS} flex-col border-b border-border bg-background px-5`}
+      >
+        <div className="flex h-9 items-center justify-end">
+          <ViewModeToggle mode={mode} blockers={blockers} onChange={onChangeMode} />
+        </div>
+        <h2 className="flex h-5 min-w-0 items-center truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {heading({ mode, graph: shown })}
+        </h2>
+      </div>
+
+      <div className="pt-3">
+        {mode === 'graph' ? (
+          <Graph graph={shown} viewedPath={viewedPath} onOpenSkill={onOpenSkill} />
+        ) : (
+          <Content body={body} error={error} loading={loading} />
+        )}
+      </div>
+    </section>
+  );
+};
+
+// Two of the markdown's pinned rows, to the pixel: h-9 over h-5 is 3.5rem, and STICKY_ROW_CLASS is
+// h-7. Written as a constant next to the offset it has to match.
+const STICKY_ROWS: number = 2;
+const STICKY_ROWS_CLASS: string = 'h-14';
 
 interface HeadingArgs {
   mode: SkillViewMode;
@@ -67,6 +84,7 @@ interface HeadingArgs {
 const heading = ({ mode, graph }: HeadingArgs): string => {
   if (mode !== 'graph') return 'Content';
   if (!graph) return 'Graph';
+  // Counts the picture, not the whole install: `graph` is already the neighbourhood by here.
   return `Graph · ${plural(graph.nodes.length, 'skill')} · ${plural(graph.edges.length, 'link')}`;
 };
 
@@ -90,8 +108,8 @@ const Content = ({ body, error, loading }: ContentProps) => {
     return <p className="text-sm italic text-muted-foreground">nothing below the frontmatter</p>;
   }
 
-  // One row is already pinned above, so every heading in here starts a slot lower.
-  return <Markdown raw={body} offsetRows={1} />;
+  // The toggle and the heading are pinned above, so every heading in here starts two slots lower.
+  return <Markdown raw={body} offsetRows={STICKY_ROWS} />;
 };
 
 interface GraphProps {

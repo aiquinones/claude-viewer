@@ -25,8 +25,9 @@ type Story = StoryObj<typeof GraphView>;
 
 export const Default: Story = {};
 
-// Nothing selected in the panel — no ring, and every node reads the same until you hover one.
-export const NothingViewed: Story = { args: { viewedPath: undefined } };
-
 // The viewed skill is a leaf rather than the hub, which is the more common case.
 export const ViewingALeaf: Story = { args: { viewedPath: plainSkill.path } };
+
+// Nothing selected — the neighbourhood filter has no centre, so the whole graph draws. Only a
+// story gets here; the panel always has a skill selected.
+export const NothingViewed: Story = { args: { viewedPath: undefined } };

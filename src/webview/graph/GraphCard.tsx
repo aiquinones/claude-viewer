@@ -1,7 +1,6 @@
 import { X } from 'lucide-react';
 import { SkillGraphNode } from '../../model/types';
 import { Button } from '@/components/ui/button';
-import { ScopeBadge } from '../ScopeBadge';
 
 interface GraphCardProps {
   node: SkillGraphNode;
@@ -26,7 +25,6 @@ export const GraphCard = ({ node, setElement, onOpenSkill, onClose }: GraphCardP
         >
           <span className="truncate">{node.name}</span>
         </Button>
-        <ScopeBadge scope={node.scope} pluginName={node.pluginName} />
         <button
           type="button"
           aria-label="Close"

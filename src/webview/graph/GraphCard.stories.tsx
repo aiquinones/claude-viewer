@@ -33,8 +33,8 @@ type Story = StoryObj<typeof GraphCard>;
 
 export const Default: Story = {};
 
-// A plugin skill, where the badge carries the plugin's name instead of the scope.
-export const FromAPlugin: Story = { args: { node: toNode(longDescription) } };
+// More description than a card can hold — it clamps rather than growing over the graph.
+export const LongDescription: Story = { args: { node: toNode(longDescription) } };
 
 // Nothing to read: the card says so rather than leaving a gap under the name.
 export const NoDescription: Story = { args: { node: toNode(noDescription) } };

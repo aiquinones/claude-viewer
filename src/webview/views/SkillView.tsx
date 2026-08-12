@@ -1,4 +1,4 @@
-import { CSSProperties, useEffect, useRef, useState } from 'react';
+import { CSSProperties, useEffect, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { listed } from '../../model/shadowing';
 import { ConfigSnapshot, Reveal, SkillEntry, SkillGraph } from '../../model/types';
@@ -38,7 +38,6 @@ export const SkillView = ({
 }: SkillViewProps) => {
   const [selectedPath, setSelectedPath] = useState<string | undefined>(undefined);
   const [mode, setMode] = useState<SkillViewMode>(DEFAULT_VIEW_MODE);
-  const contentRef = useRef<HTMLDivElement | null>(null);
 
   // A reveal comes from outside the webview, so it wins over whatever was clicked in here.
   useEffect(() => {
@@ -66,13 +65,6 @@ export const SkillView = ({
   // Asked for on mount, not on opening the graph: the toggle can't say whether this skill has
   // references until the graph is in hand.
   const { graph } = useSkillGraph(snapshot.loadedAt);
-
-  // Switching to the graph scrolls it into view — the toggle sits at the top of a section that may
-  // well be below the fold when you press it.
-  const openMode = (next: SkillViewMode): void => {
-    setMode(next);
-    if (next === 'graph') contentRef.current?.scrollIntoView({ block: 'start' });
-  };
 
   // The panel's selection follows a link out of the graph, and reading is what you asked for.
   const openFromGraph = (path: string): void => {
@@ -131,19 +123,17 @@ export const SkillView = ({
                     onSelectSkill={setSelectedPath}
                   />
                 </div>
-                <div ref={contentRef}>
-                  <SkillBody
-                    mode={mode}
-                    blockers={modeBlockers({ graph, path: selected.path })}
-                    onChangeMode={openMode}
-                    body={body}
-                    error={error}
-                    loading={loading}
-                    graph={graph}
-                    viewedPath={selected.path}
-                    onOpenSkill={openFromGraph}
-                  />
-                </div>
+                <SkillBody
+                  mode={mode}
+                  blockers={modeBlockers({ graph, path: selected.path })}
+                  onChangeMode={setMode}
+                  body={body}
+                  error={error}
+                  loading={loading}
+                  graph={graph}
+                  viewedPath={selected.path}
+                  onOpenSkill={openFromGraph}
+                />
                 {mode === 'text' && <AllowedTools tools={selected.allowedTools} />}
               </>
             )}
