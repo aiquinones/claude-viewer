@@ -44,20 +44,18 @@ export const SkillBody = ({
 
   return (
     <section className="flex flex-col px-5 pb-8">
-      {/* Rows 0 and 1 of the pinned stack — the toggle over the heading — which is what keeps the
-          toggle reachable however far down the file you are. Its height has to stay an exact
-          multiple of the pinned row, or every heading offset below it lands wrong: that's the
+      {/* Rows 0 and 1 of the pinned stack — the heading and the toggle on one line — which is what
+          keeps the toggle reachable however far down the file you are. Its height has to stay an
+          exact multiple of the pinned row, or every heading offset below it lands wrong: that's the
           `offsetRows={2}` the markdown gets, and the two have to agree. */}
       <div
         style={{ zIndex: 30 }}
-        className={`sticky top-0 -mx-5 flex ${STICKY_ROWS_CLASS} flex-col border-b border-border bg-background px-5`}
+        className={`sticky top-0 -mx-5 flex ${STICKY_ROWS_CLASS} items-center justify-between gap-3 border-b border-border bg-background px-5`}
       >
-        <div className="flex h-9 items-center justify-end">
-          <ViewModeToggle mode={mode} blockers={blockers} onChange={onChangeMode} />
-        </div>
-        <h2 className="flex h-5 min-w-0 items-center truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <h2 className="min-w-0 truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {heading({ mode, graph: shown })}
         </h2>
+        <ViewModeToggle mode={mode} blockers={blockers} onChange={onChangeMode} />
       </div>
 
       <div className="pt-3">
@@ -71,8 +69,8 @@ export const SkillBody = ({
   );
 };
 
-// Two of the markdown's pinned rows, to the pixel: h-9 over h-5 is 3.5rem, and STICKY_ROW_CLASS is
-// h-7. Written as a constant next to the offset it has to match.
+// Two of the markdown's pinned rows, to the pixel: STICKY_ROW_CLASS is h-7, so the block is h-14.
+// One row of content centres in that height, and the 38px toggle is the tallest it can hold.
 const STICKY_ROWS: number = 2;
 const STICKY_ROWS_CLASS: string = 'h-14';
 

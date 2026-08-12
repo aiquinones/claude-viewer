@@ -12,14 +12,14 @@ interface ViewModeToggleProps {
   onChange: (mode: SkillViewMode) => void;
 }
 
-// The segmented control above the Content heading. A map over VIEW_MODES rather than three
-// written-out buttons, so a fourth mode is one entry there and nothing here.
+// The segmented control at the end of the Content heading's row. A map over VIEW_MODES rather than
+// three written-out buttons, so a fourth mode is one entry there and nothing here.
 export const ViewModeToggle = ({ mode, blockers, onChange }: ViewModeToggleProps) => (
   <div
     role="group"
     aria-label="View as"
     style={{ '--mode-index': VIEW_MODES.findIndex((entry) => entry.id === mode) } as CSSProperties}
-    className="relative flex items-center rounded-lg border border-border bg-muted p-1"
+    className="relative flex shrink-0 items-center rounded-lg border border-border bg-muted p-1"
   >
     {/* The moving part: one button-sized tile that slides to whichever mode is on. Every button is
         the same width, so where it goes is its index — nothing has to be measured. */}
