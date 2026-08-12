@@ -145,13 +145,13 @@
   }
 }
 
-/* The tile that slides between the view modes. Every button is exactly one `size-7` wide with no
+/* The tile that slides between the view modes. Every button is exactly one `size-6` wide with no
    gap, so the offset is the mode's index — `--mode-index` is set inline by the component.
 
    The property is `translate`, not `transform`: Tailwind v4's translate utilities set `translate`,
    and the timing lives here so the reduced-motion query below can still reach it. */
 .mode-indicator {
-  translate: calc(var(--mode-index, 0) * 1.75rem) 0;
+  translate: calc(var(--mode-index, 0) * 1.5rem) 0;
   transition: translate 180ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 

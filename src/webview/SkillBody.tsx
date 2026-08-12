@@ -50,12 +50,12 @@ export const SkillBody = ({
           `offsetRows={2}` the markdown gets, and the two have to agree. */}
       <div
         style={{ zIndex: 30 }}
-        className={`sticky top-0 -mx-5 flex ${STICKY_ROWS_CLASS} flex-col border-b border-border bg-background px-5`}
+        className={`sticky top-0 -mx-5 flex ${STICKY_ROWS_CLASS} flex-col justify-center gap-1 border-b border-border bg-background px-5`}
       >
-        <div className="flex h-9 items-center justify-end">
+        <div className="flex justify-end">
           <ViewModeToggle mode={mode} blockers={blockers} onChange={onChangeMode} />
         </div>
-        <h2 className="flex h-5 min-w-0 items-center truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <h2 className="flex h-4 min-w-0 items-center truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {heading({ mode, graph: shown })}
         </h2>
       </div>
@@ -71,8 +71,8 @@ export const SkillBody = ({
   );
 };
 
-// Two of the markdown's pinned rows, to the pixel: h-9 over h-5 is 3.5rem, and STICKY_ROW_CLASS is
-// h-7. Written as a constant next to the offset it has to match.
+// Two of the markdown's pinned rows, to the pixel: STICKY_ROW_CLASS is h-7, so the block is h-14.
+// The toggle and the heading are 50px together and centre in it — nothing inside may be taller.
 const STICKY_ROWS: number = 2;
 const STICKY_ROWS_CLASS: string = 'h-14';
 

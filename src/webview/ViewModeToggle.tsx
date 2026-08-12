@@ -19,11 +19,14 @@ export const ViewModeToggle = ({ mode, blockers, onChange }: ViewModeToggleProps
     role="group"
     aria-label="View as"
     style={{ '--mode-index': VIEW_MODES.findIndex((entry) => entry.id === mode) } as CSSProperties}
-    className="relative flex items-center rounded-lg border border-border bg-muted p-1"
+    className="relative flex items-center rounded-lg border border-border bg-muted p-0.5"
   >
     {/* The moving part: one button-sized tile that slides to whichever mode is on. Every button is
         the same width, so where it goes is its index — nothing has to be measured. */}
-    <span aria-hidden className="mode-indicator absolute left-1 top-1 size-7 rounded-md bg-background shadow-sm" />
+    <span
+      aria-hidden
+      className="mode-indicator absolute left-0.5 top-0.5 size-6 rounded-md bg-background shadow-sm"
+    />
     {VIEW_MODES.map((entry) => (
       <ModeButton
         key={entry.id}
@@ -67,7 +70,7 @@ const ModeButton = ({ entry, active, blocker, onChange }: ModeButtonProps) => {
         aria-pressed={active}
         aria-disabled={Boolean(blocker)}
         onClick={() => !blocker && onChange(entry.id)}
-        className={`relative flex size-7 items-center justify-center rounded-md transition-colors ${modeClass(
+        className={`relative flex size-6 items-center justify-center rounded-md transition-colors ${modeClass(
           { active, blocked: Boolean(blocker) }
         )}`}
       >
