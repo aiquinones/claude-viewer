@@ -3,7 +3,7 @@
 //
 // Webview-only, so it lives here rather than in model/types.ts — none of it crosses to the host.
 
-import { ConfigSnapshot, SkillEntry, SystemPromptFile } from '../model/types';
+import { AgentSession, ConfigSnapshot, SkillEntry, SystemPromptFile } from '../model/types';
 import { formatTokens, plural } from './format-size';
 import { alwaysLoads, totals } from './prompt-totals';
 import { listed } from '../model/shadowing';
@@ -36,6 +36,13 @@ export const SURFACES = [
     blurb: 'The CLAUDE.md files that load, in order, and what they cost per request.',
     accent: 'var(--vscode-charts-purple, #b180d7)',
     status: 'ready'
+  },
+  {
+    id: 'active-agents',
+    title: 'Active Agents',
+    blurb: 'Claude Code sessions running right now, and what each one is doing.',
+    accent: 'var(--vscode-charts-green, #89d185)',
+    status: 'soon'
   }
 ] as const satisfies readonly SurfaceShape[];
 
@@ -59,8 +66,15 @@ export const getDetailForSurface = ({ surface, snapshot }: DetailForSurfaceArgs)
       return skillsDetail(snapshot.skills);
     case 'system-prompt':
       return promptDetail(snapshot.systemPrompt);
+    case 'active-agents':
+      return agentsDetail(snapshot.agents);
   }
 };
+
+// Counted, not measured: an agent costs nothing per request, it's either there or it isn't. The
+// card is dimmed while the surface is `soon`, but the number is real and read from disk.
+const agentsDetail = (agents: AgentSession[]): string =>
+  agents.length === 0 ? 'None running' : `${plural(agents.length, 'session')} running`;
 
 // A surface's accent, for a view that wants to match the card it was opened from.
 export const surfaceAccent = (id: SurfaceId): string =>

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { allAgents } from '../agent-fixtures';
 import { allSkills, snapshot, userOnlyPromptFiles } from '../fixtures';
 import { LandingView } from './LandingView';
 
@@ -26,8 +27,10 @@ export default meta;
 
 type Story = StoryObj<typeof LandingView>;
 
+// Three cards, one of them dimmed: Active Agents counts real sessions while its surface is `soon`,
+// so the card says what's behind it before it opens.
 export const Default: Story = {
-  args: { snapshot: snapshot({ skills: allSkills }) }
+  args: { snapshot: snapshot({ skills: allSkills, agents: allAgents }) }
 };
 
 // No folder open. The heading drops the workspace line and says which scopes still resolve.
@@ -46,13 +49,13 @@ export const NoWorkspace: Story = {
 // Below `sm:` the cards stack. They keep the height they have two-across rather than growing with
 // the panel — the 4:3 ratio would make each card as tall as the panel is wide.
 export const NarrowPanel: Story = {
-  args: { snapshot: snapshot({ skills: allSkills }) },
+  args: { snapshot: snapshot({ skills: allSkills, agents: allAgents }) },
   globals: { viewport: { value: 'narrowPanel' } }
 };
 
-// Both cards with nothing behind them — the counts are the only thing that changes.
+// Every card with nothing behind it — the counts are the only thing that changes.
 export const NothingConfigured: Story = {
-  args: { snapshot: snapshot({ skills: [], systemPrompt: [] }) }
+  args: { snapshot: snapshot({ skills: [], systemPrompt: [], agents: [] }) }
 };
 
 // Deep paths are the common case, and the heading has to stay one line.

@@ -43,6 +43,12 @@
   --warn: var(--vscode-editorWarning-foreground, #cca700);
   --error: var(--vscode-editorError-foreground, #f14c4c);
 
+  /* What an agent is doing. Working is a state, not a problem, so it comes from the chart palette
+     rather than the diagnostic one; waiting borrows the warning color because it might be. */
+  --activity-running: var(--vscode-charts-green, #89d185);
+  --activity-blocked: var(--warn);
+  --activity-idle: var(--vscode-descriptionForeground, #8b929c);
+
   /* Spotlight: the characters a query matched, and the scrim behind the box. Mixing the scrim out
      of the editor background darkens a dark theme and lightens a light one on its own. */
   --match: var(--vscode-list-highlightForeground, var(--vscode-charts-blue, #3794ff));
@@ -72,6 +78,9 @@
   --color-link: var(--link);
   --color-warn: var(--warn);
   --color-error: var(--error);
+  --color-activity-running: var(--activity-running);
+  --color-activity-blocked: var(--activity-blocked);
+  --color-activity-idle: var(--activity-idle);
   --color-match: var(--match);
   --color-scrim: var(--scrim);
 
@@ -315,6 +324,17 @@
   82%, 100% { translate: 0 0; }
 }
 
+/* A working agent's dot. The only thing on the page that moves without being touched, which is the
+   point: everywhere else a row changes when the disk does, here it changes because time passed. */
+.activity-dot--running {
+  animation: activity-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes activity-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+
 /* The loading bar. Takes the accent of whichever surface is waiting, where one is set. */
 .progress-fill,
 .progress-sweep {
@@ -338,6 +358,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .robot-eye {
+    animation: none;
+  }
+
+  /* The dot keeps its color, which is what carried the state anyway. */
+  .activity-dot--running {
     animation: none;
   }
 

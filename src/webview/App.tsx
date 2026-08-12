@@ -9,6 +9,7 @@ import { useSpotlight } from './spotlight/useSpotlight';
 import { SurfaceId } from './surfaces';
 import { useSnapshot } from './useSnapshot';
 import { ViewSlider } from './ViewSlider';
+import { AgentsView } from './views/AgentsView';
 import { LandingView } from './views/LandingView';
 import { SkillView } from './views/SkillView';
 import { SystemPromptView } from './views/SystemPromptView';
@@ -148,6 +149,18 @@ const Detail = ({
       return (
         <SystemPromptView
           snapshot={snapshot}
+          onSearch={onSearch}
+          onRefresh={onRefresh}
+          onBack={onBack}
+        />
+      );
+    // Routed while its card is still `soon`, so the landing page never reaches it. Flipping that
+    // one field is the whole of turning the surface on.
+    case 'active-agents':
+      return (
+        <AgentsView
+          snapshot={snapshot}
+          onOpenFile={onOpenFile}
           onSearch={onSearch}
           onRefresh={onRefresh}
           onBack={onBack}

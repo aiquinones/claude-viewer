@@ -10,6 +10,7 @@ import {
   ViewerSettings
 } from '../model/settings/settings';
 import {
+  AgentSession,
   ConfigIssue,
   ConfigSnapshot,
   Reveal,
@@ -280,13 +281,22 @@ export const userOnlyPromptFiles: SystemPromptFile[] = inLoadOrder([userPrompt])
 interface SnapshotArgs {
   skills: SkillEntry[];
   systemPrompt?: SystemPromptFile[];
+  // Live sessions live in agent-fixtures.ts, and a story passes them in rather than this file
+  // importing them — that import would be a cycle, since those fixtures need WORKSPACE from here.
+  agents?: AgentSession[];
   workspaceRoot?: string;
 }
 
-export const snapshot = ({ skills, systemPrompt, workspaceRoot }: SnapshotArgs): ConfigSnapshot => ({
+export const snapshot = ({
+  skills,
+  systemPrompt,
+  agents,
+  workspaceRoot
+}: SnapshotArgs): ConfigSnapshot => ({
   workspaceRoot: workspaceRoot ?? WORKSPACE,
   skills,
   systemPrompt: systemPrompt ?? allPromptFiles,
+  agents: agents ?? [],
   loadedAt: Date.UTC(2026, 7, 1)
 });
 
