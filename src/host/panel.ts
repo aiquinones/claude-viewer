@@ -12,7 +12,7 @@ import {
 import { getWebviewHtml } from './shell-html';
 
 // Registered in package.json under contributes.commands — the two have to agree.
-export const OPEN_PANEL_COMMAND: string = 'claudeViewer.open';
+export const LAUNCH_COMMAND: string = 'claudeViewer.launch';
 
 // The panel's viewType, which VS Code keys serialization off, and the tab label.
 export const PANEL_VIEW_TYPE: string = 'claudeViewer';

@@ -2,6 +2,18 @@
 
 Notable changes to Claude Viewer, newest first.
 
+## Unreleased
+
+### Changed
+
+- **The palette commands are renamed.** **Claude Viewer: Open** is now **Claude Viewer: Launch
+  Viewer**, and **Open Skill…** is now **Find Skill…**. Both used to start with the word Claude
+  Code's own commands start with, so typing "open" returned a mixed list. Their ids moved with
+  them — `claudeViewer.launch` and `claudeViewer.findSkill` — so a keybinding on either of the old
+  ids needs updating.
+- Every contributed command now gets its "Claude Viewer" prefix from `category` instead of two of
+  the four spelling it into the title.
+
 ## 0.6.1 — 2026-08-10
 
 ### Changed
