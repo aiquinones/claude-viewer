@@ -70,3 +70,10 @@ export const TurnedOff: Story = {
   ],
   play: openCard
 };
+
+// The card is as wide as its two paragraphs, and its max-width is the panel less the skills list —
+// so a panel this narrow is where the clip is real rather than theoretical.
+export const NarrowPanel: Story = {
+  globals: { viewport: { value: 'narrowPanel' } },
+  play: openCard
+};
