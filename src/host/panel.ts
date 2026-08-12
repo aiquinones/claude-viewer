@@ -3,7 +3,8 @@ import { readTextFile } from '../config/read';
 import { ConfigError, Result } from '../config/result';
 import { ViewerSettings } from '../model/settings/settings';
 import { loadSkillBody } from '../model/skill-body';
-import { ConfigSnapshot, FileBody, SkillGraph, WebviewMessage } from '../model/types';
+import { AgentSession, ConfigSnapshot, FileBody, SkillGraph, WebviewMessage } from '../model/types';
+import { cachedAgents, currentAgents, onDidChangeAgents, refreshAgents } from './agents-store';
 import {
   cachedSnapshot,
   currentSnapshot,
@@ -24,6 +25,7 @@ export const PANEL_TITLE: string = 'Claude Viewer';
 let panel: vscode.WebviewPanel | undefined;
 let snapshotSubscription: vscode.Disposable | undefined;
 let settingsSubscription: vscode.Disposable | undefined;
+let agentsSubscription: vscode.Disposable | undefined;
 // The webview can't hear anything until it has booted and said so.
 let webviewReady: boolean = false;
 // A reveal that arrived before that, held until it can be delivered.
@@ -77,12 +79,16 @@ export const openPanel = ({ context, revealPath }: OpenPanelArgs): void => {
   snapshotSubscription = onDidChangeSnapshot((snapshot) => void _post(snapshot));
   // Its own channel: a budget changing shouldn't re-walk the disk for a snapshot nothing asked for.
   settingsSubscription = onDidChangeSettings((settings) => void _postSettings(settings));
+  // Same deal, the other way round: an agent starting shouldn't re-read every skill.
+  agentsSubscription = onDidChangeAgents((agents) => void _postAgents(agents));
 
   panel.onDidDispose(() => {
     snapshotSubscription?.dispose();
     snapshotSubscription = undefined;
     settingsSubscription?.dispose();
     settingsSubscription = undefined;
+    agentsSubscription?.dispose();
+    agentsSubscription = undefined;
     panel = undefined;
     webviewReady = false;
     pendingReveal = undefined;
@@ -91,8 +97,11 @@ export const openPanel = ({ context, revealPath }: OpenPanelArgs): void => {
 
 const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'ready') return _onReady();
-  // Through the store, so the tree redraws off the same read.
-  if (message.type === 'refresh') return void (await refreshSnapshot());
+  // Through the stores, so the tree redraws off the same read. One button, both channels: the
+  // reader pressing refresh means everything on screen, whichever surface they're looking at.
+  if (message.type === 'refresh') {
+    return void (await Promise.all([refreshSnapshot(), refreshAgents()]));
+  }
   if (message.type === 'openFile') return _openFile(message.path);
   if (message.type === 'requestBody') return _sendBody(message.path);
   if (message.type === 'requestGraph') return _sendGraph();
@@ -127,10 +136,11 @@ const _sendGraph = async (): Promise<void> => {
 const _isKnownSkill = (path: string): boolean =>
   cachedSnapshot()?.skills.some((skill) => skill.path === path) ?? false;
 
-// Anything the host itself put in the snapshot — a SKILL.md or a CLAUDE.md — is openable.
+// Anything the host itself read — a SKILL.md, a CLAUDE.md, a live agent's transcript — is openable.
 const _isKnownFile = (path: string): boolean =>
   _isKnownSkill(path) ||
-  (cachedSnapshot()?.systemPrompt.some((file) => file.path === path) ?? false);
+  (cachedSnapshot()?.systemPrompt.some((file) => file.path === path) ?? false) ||
+  cachedAgents().some((agent) => agent.transcriptPath === path);
 
 // Clicking a surface that has no view yet. A notification rather than a line in the panel, so the
 // landing page stays a grid of cards and the answer lands where VS Code's other answers do.
@@ -144,6 +154,7 @@ const _onReady = async (): Promise<void> => {
   webviewReady = true;
   await _postSettings(currentSettings());
   await _post(await currentSnapshot());
+  await _postAgents(await currentAgents());
 
   const waiting: string | undefined = pendingReveal;
   pendingReveal = undefined;
@@ -170,6 +181,11 @@ const _post = async (snapshot: ConfigSnapshot): Promise<void> => {
 const _postSettings = async (settings: ViewerSettings): Promise<void> => {
   if (!webviewReady) return;
   await panel?.webview.postMessage({ type: 'settings', settings });
+};
+
+const _postAgents = async (agents: AgentSession[]): Promise<void> => {
+  if (!webviewReady) return;
+  await panel?.webview.postMessage({ type: 'agents', agents });
 };
 
 // Opens a config file in the editor. Only paths the host itself put in the snapshot are honored,

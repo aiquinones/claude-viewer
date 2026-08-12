@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { allAgents } from '../agent-fixtures';
 import { allSkills, snapshot, userOnlyPromptFiles } from '../fixtures';
 import { LandingView } from './LandingView';
 
@@ -8,6 +9,7 @@ const meta: Meta<typeof LandingView> = {
   // onUnavailableSurface is a host round-trip in the real panel — a VS Code notification, which
   // Storybook has no way to show. Clicking the soon card here does nothing visible on purpose.
   args: {
+    agents: allAgents,
     onOpenSurface: () => undefined,
     onUnavailableSurface: () => undefined,
     onSearch: () => undefined,
@@ -26,6 +28,8 @@ export default meta;
 
 type Story = StoryObj<typeof LandingView>;
 
+// Three cards, one of them dimmed: Active Agents counts real sessions while its surface is `soon`,
+// so the card says what's behind it before it opens.
 export const Default: Story = {
   args: { snapshot: snapshot({ skills: allSkills }) }
 };
@@ -50,9 +54,9 @@ export const NarrowPanel: Story = {
   globals: { viewport: { value: 'narrowPanel' } }
 };
 
-// Both cards with nothing behind them — the counts are the only thing that changes.
+// Every card with nothing behind it — the counts are the only thing that changes.
 export const NothingConfigured: Story = {
-  args: { snapshot: snapshot({ skills: [], systemPrompt: [] }) }
+  args: { agents: [], snapshot: snapshot({ skills: [], systemPrompt: [] }) }
 };
 
 // Deep paths are the common case, and the heading has to stay one line.

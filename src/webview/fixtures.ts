@@ -283,6 +283,8 @@ interface SnapshotArgs {
   workspaceRoot?: string;
 }
 
+// Live agents aren't in here, the same way they aren't in the real snapshot — a story that wants
+// them passes them as their own prop, from agent-fixtures.ts.
 export const snapshot = ({ skills, systemPrompt, workspaceRoot }: SnapshotArgs): ConfigSnapshot => ({
   workspaceRoot: workspaceRoot ?? WORKSPACE,
   skills,

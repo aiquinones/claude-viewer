@@ -3,7 +3,7 @@
 //
 // Webview-only, so it lives here rather than in model/types.ts — none of it crosses to the host.
 
-import { ConfigSnapshot, SkillEntry, SystemPromptFile } from '../model/types';
+import { AgentSession, ConfigSnapshot, SkillEntry, SystemPromptFile } from '../model/types';
 import { formatTokens, plural } from './format-size';
 import { alwaysLoads, totals } from './prompt-totals';
 import { listed } from '../model/shadowing';
@@ -36,6 +36,13 @@ export const SURFACES = [
     blurb: 'The CLAUDE.md files that load, in order, and what they cost per request.',
     accent: 'var(--vscode-charts-purple, #b180d7)',
     status: 'ready'
+  },
+  {
+    id: 'active-agents',
+    title: 'Active Agents',
+    blurb: 'Claude Code sessions running right now, and what each one is doing.',
+    accent: 'var(--vscode-charts-green, #89d185)',
+    status: 'ready'
   }
 ] as const satisfies readonly SurfaceShape[];
 
@@ -49,18 +56,31 @@ export type SurfaceId = Surface['id'];
 interface DetailForSurfaceArgs {
   surface: Surface;
   snapshot: ConfigSnapshot;
+  // Not on the snapshot: live agents ride their own message. See host/agents-store.ts.
+  agents: AgentSession[];
 }
 
 // The line under a card's blurb: whatever that surface counts. Switching on the id means adding a
 // surface without a count here is a type error rather than a blank card.
-export const getDetailForSurface = ({ surface, snapshot }: DetailForSurfaceArgs): string => {
+export const getDetailForSurface = ({
+  surface,
+  snapshot,
+  agents
+}: DetailForSurfaceArgs): string => {
   switch (surface.id) {
     case 'skills':
       return skillsDetail(snapshot.skills);
     case 'system-prompt':
       return promptDetail(snapshot.systemPrompt);
+    case 'active-agents':
+      return agentsDetail(agents);
   }
 };
+
+// Counted, not measured: an agent costs nothing per request, it's either there or it isn't. The
+// card is dimmed while the surface is `soon`, but the number is real and read from disk.
+const agentsDetail = (agents: AgentSession[]): string =>
+  agents.length === 0 ? 'None running' : `${plural(agents.length, 'session')} running`;
 
 // A surface's accent, for a view that wants to match the card it was opened from.
 export const surfaceAccent = (id: SurfaceId): string =>

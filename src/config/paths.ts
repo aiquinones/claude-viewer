@@ -29,6 +29,21 @@ const NESTED_SCAN_DEPTH: number = 6;
 
 export const userClaudeDir = (): string => join(homedir(), '.claude');
 
+// One file per running Claude Code process, named by pid.
+export const sessionsDir = (): string => join(userClaudeDir(), 'sessions');
+
+interface TranscriptPathArgs {
+  cwd: string;
+  sessionId: string;
+}
+
+// A session's transcript. The directory is the working directory with every non-alphanumeric
+// character turned into a dash, which is lossy — `.claude` and `-claude` land on the same name —
+// so it's only ever computed in this direction. To label a directory, read the `cwd` a session
+// carries rather than decoding the name back.
+export const transcriptPath = ({ cwd, sessionId }: TranscriptPathArgs): string =>
+  join(userClaudeDir(), 'projects', cwd.replace(/[^a-zA-Z0-9]/g, '-'), `${sessionId}.jsonl`);
+
 // Every CLAUDE.md that can reach the system prompt, in load order. The first three always load;
 // the nested ones only load when Claude is working under their directory, which is why they carry
 // `conditionalOn` and sit at the end.

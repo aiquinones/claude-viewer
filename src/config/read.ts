@@ -1,4 +1,5 @@
-import { Dirent, promises as fs } from 'node:fs';
+import { Dirent, Stats, promises as fs } from 'node:fs';
+import { FileHandle } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Result, ConfigError, ok, err } from './result';
 
@@ -16,6 +17,92 @@ export const readTextFile = async (path: string): Promise<Result<string, ConfigE
       path,
       message: String((caught as Error).message ?? caught)
     });
+  }
+};
+
+export interface FileTail {
+  text: string;
+  // Milliseconds since the epoch. The reader shows an age, and computes it against its own clock
+  // rather than the one this was read on.
+  mtimeMs: number;
+  // The read started past byte zero, so the first line in `text` is half a line.
+  truncated: boolean;
+}
+
+interface ReadFileTailArgs {
+  path: string;
+  maxBytes: number;
+}
+
+// The end of a file, and when it was last written. Transcripts reach megabytes and everything a
+// session row needs is at the bottom of one, so nothing reads the whole thing.
+export const readFileTail = async ({
+  path,
+  maxBytes
+}: ReadFileTailArgs): Promise<Result<FileTail, ConfigError>> => {
+  let handle: FileHandle | undefined;
+  try {
+    handle = await fs.open(path, 'r');
+    const stats: Stats = await handle.stat();
+    const start: number = Math.max(0, stats.size - maxBytes);
+    const buffer: Buffer = Buffer.alloc(Math.min(stats.size, maxBytes));
+    await handle.read(buffer, 0, buffer.length, start);
+
+    return ok({ text: buffer.toString('utf8'), mtimeMs: stats.mtimeMs, truncated: start > 0 });
+  } catch (caught) {
+    const code: string | undefined = (caught as NodeJS.ErrnoException).code;
+    if (code === 'ENOENT') {
+      return err({ kind: 'not-found', path, message: 'file does not exist' });
+    }
+    return err({ kind: 'unreadable', path, message: String((caught as Error).message ?? caught) });
+  } finally {
+    await handle?.close();
+  }
+};
+
+export interface FileHead {
+  text: string;
+  // The whole file fit in the window, so the last line is a whole line.
+  atEnd: boolean;
+}
+
+interface ReadFileHeadArgs {
+  path: string;
+  maxBytes: number;
+}
+
+// The start of a file. The caller decides how much is enough and asks again with a bigger window,
+// which is cheaper than reading a megabyte to find something that's usually 20KB in.
+export const readFileHead = async ({
+  path,
+  maxBytes
+}: ReadFileHeadArgs): Promise<Result<FileHead, ConfigError>> => {
+  let handle: FileHandle | undefined;
+  try {
+    handle = await fs.open(path, 'r');
+    const buffer: Buffer = Buffer.alloc(maxBytes);
+    const { bytesRead } = await handle.read(buffer, 0, maxBytes, 0);
+
+    return ok({ text: buffer.toString('utf8', 0, bytesRead), atEnd: bytesRead < maxBytes });
+  } catch (caught) {
+    const code: string | undefined = (caught as NodeJS.ErrnoException).code;
+    if (code === 'ENOENT') {
+      return err({ kind: 'not-found', path, message: 'file does not exist' });
+    }
+    return err({ kind: 'unreadable', path, message: String((caught as Error).message ?? caught) });
+  } finally {
+    await handle?.close();
+  }
+};
+
+// Names of the files directly in `dir`, no recursion. Missing reads as empty, like the directory
+// listing below it.
+export const listFiles = async (dir: string): Promise<string[]> => {
+  try {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    return entries.filter((entry) => entry.isFile()).map((entry) => entry.name);
+  } catch {
+    return [];
   }
 };
 

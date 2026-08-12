@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { FIND_SKILL_COMMAND, findSkill } from './commands/find-skill/find-skill';
 import { handleUri } from './commands/handle-uri/handle-uri';
+import { startWatchingAgents, stopWatchingAgents } from './host/agents-store';
 import { startWatching, stopWatching } from './host/config-store';
 import { LAUNCH_COMMAND, openPanel } from './host/panel';
 import { startWatchingSettings } from './host/settings-store';
@@ -19,6 +20,11 @@ export const activate = (context: vscode.ExtensionContext): void => {
 
   // The tree is visible with nothing opened, so watching starts here, not with the panel.
   void startWatching();
+  // One file per running agent, watched separately from the config it never touches.
+  startWatchingAgents();
 };
 
-export const deactivate = (): void => stopWatching();
+export const deactivate = (): void => {
+  stopWatching();
+  stopWatchingAgents();
+};

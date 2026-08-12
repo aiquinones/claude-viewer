@@ -90,6 +90,57 @@ export interface SystemPromptFile {
   issues: ConfigIssue[];
 }
 
+// How a session's transcript ends. A finished turn always ends the same way — an assistant line
+// whose only block is text — so everything else is mid-turn.
+//
+// Deliberately not annotated: a type here would erase the literals the union derives from.
+export const TRANSCRIPT_TAILS = ['settled', 'working'] as const;
+
+export type TranscriptTail = (typeof TRANSCRIPT_TAILS)[number];
+
+// What an agent is doing, as far as the disk can say. Nothing writes this down — `sessions/activity`
+// derives it from how the transcript ends and how long ago that was.
+export const AGENT_ACTIVITIES = ['running', 'blocked', 'idle'] as const;
+
+export type AgentActivity = (typeof AGENT_ACTIVITIES)[number];
+
+// A pull request a session opened. Both fields or neither — a link with no number has nothing to
+// print, and a number with no link has nowhere to go.
+export interface AgentPullRequest {
+  number: number;
+  url: string;
+}
+
+// One Claude Code process that exists right now, joined to its transcript. Unlike every other entry
+// here this describes something live, so the time fields are absolute — the view ages them against
+// its own clock rather than trusting when the snapshot was built.
+export interface AgentSession {
+  // Unique per session. Doubles as the row key.
+  sessionId: string;
+  pid: number;
+  // Where the agent is working. A session inside a worktree reports the worktree, not the repo.
+  cwd: string;
+  transcriptPath: string;
+  // Claude Code's own generated title — the *first* one it wrote. It rewrites the title as the
+  // session goes on and the later ones chase the newest turn, so the first is the one that names
+  // the session. Absent until it has written one.
+  title?: string;
+  // The PR this session opened, if it opened one.
+  pullRequest?: AgentPullRequest;
+  // The last prompt, already truncated by Claude Code.
+  lastPrompt?: string;
+  tail: TranscriptTail;
+  // The tool the agent is waiting on, when the transcript ends on a tool call. The name only: the
+  // input is arbitrary text from the agent's own work, and this panel gets screenshotted.
+  pendingTool?: string;
+  // When the transcript was last written, and when the process started.
+  lastActivityAt: number;
+  startedAt: number;
+  version: string;
+  entrypoint: string;
+  issues: ConfigIssue[];
+}
+
 export interface ConfigSnapshot {
   workspaceRoot: string | undefined;
   skills: SkillEntry[];
@@ -209,6 +260,9 @@ export interface FileBody {
 export type HostMessage =
   | { type: 'snapshot'; snapshot: ConfigSnapshot }
   | { type: 'settings'; settings: ViewerSettings }
+  // Live processes, most recently active first. Empty is a normal answer. Its own message rather
+  // than a snapshot field: an agent starting shouldn't cost a re-read of every skill.
+  | { type: 'agents'; agents: AgentSession[] }
   | ({ type: 'reveal' } & Reveal)
   | ({ type: 'fileBody' } & FileBody)
   | { type: 'skillGraph'; graph: SkillGraph };

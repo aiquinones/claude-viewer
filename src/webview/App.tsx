@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { buildSearchIndex } from '../model/search/build-index';
-import { ConfigSnapshot, Reveal, SearchDoc } from '../model/types';
+import { AgentSession, ConfigSnapshot, Reveal, SearchDoc } from '../model/types';
 import { Loading } from './loading/Loading';
 import { SettingsProvider } from './settings/SettingsContext';
 import { Spotlight } from './spotlight/Spotlight';
@@ -9,6 +9,7 @@ import { useSpotlight } from './spotlight/useSpotlight';
 import { SurfaceId } from './surfaces';
 import { useSnapshot } from './useSnapshot';
 import { ViewSlider } from './ViewSlider';
+import { AgentsView } from './views/AgentsView';
 import { LandingView } from './views/LandingView';
 import { SkillView } from './views/SkillView';
 import { SystemPromptView } from './views/SystemPromptView';
@@ -20,7 +21,7 @@ const SNAPSHOT_EXPECTED_MS: number = 1500;
 // Holds the host bridge and owns navigation. The views know nothing about it, so the next surface
 // is a sibling under views/ plus an entry in SURFACES.
 export const App = () => {
-  const { snapshot, settings, reveal, refresh, openFile, reportUnavailable, openSettings } =
+  const { snapshot, agents, settings, reveal, refresh, openFile, reportUnavailable, openSettings } =
     useSnapshot();
   // Which surface the detail pane renders, and whether the slider is showing it. Separate signals
   // because the surface has to outlive the slide home — clearing it would blank the pane mid-exit.
@@ -76,6 +77,7 @@ export const App = () => {
         home={
           <LandingView
             snapshot={snapshot}
+            agents={agents}
             onOpenSurface={openSurface}
             onUnavailableSurface={reportUnavailable}
             onSearch={openSpotlight}
@@ -86,6 +88,7 @@ export const App = () => {
           <Detail
             surface={surface}
             snapshot={snapshot}
+            agents={agents}
             reveal={selected}
             onOpenFile={openFile}
             onSearch={openSpotlight}
@@ -112,6 +115,7 @@ export const App = () => {
 interface DetailProps {
   surface: SurfaceId | undefined;
   snapshot: ConfigSnapshot;
+  agents: AgentSession[];
   reveal?: Reveal;
   onOpenFile: (path: string) => void;
   onSearch: () => void;
@@ -124,6 +128,7 @@ interface DetailProps {
 const Detail = ({
   surface,
   snapshot,
+  agents,
   reveal,
   onOpenFile,
   onSearch,
@@ -148,6 +153,19 @@ const Detail = ({
       return (
         <SystemPromptView
           snapshot={snapshot}
+          onSearch={onSearch}
+          onRefresh={onRefresh}
+          onBack={onBack}
+        />
+      );
+    // Routed while its card is still `soon`, so the landing page never reaches it. Flipping that
+    // one field is the whole of turning the surface on.
+    case 'active-agents':
+      return (
+        <AgentsView
+          agents={agents}
+          snapshot={snapshot}
+          onOpenFile={onOpenFile}
           onSearch={onSearch}
           onRefresh={onRefresh}
           onBack={onBack}

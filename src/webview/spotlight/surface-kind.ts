@@ -5,7 +5,8 @@ import { SurfaceId } from '../surfaces';
 // `Record` over `SurfaceId`, so a new surface has to answer the question rather than skip it.
 const KIND_BY_SURFACE: Record<SurfaceId, SearchKind | undefined> = {
   skills: 'skill',
-  'system-prompt': undefined
+  'system-prompt': undefined,
+  'active-agents': undefined
 };
 
 // Opening the spotlight from inside a surface starts narrowed to it. From the landing page — no
