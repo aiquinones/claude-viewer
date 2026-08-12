@@ -1,6 +1,8 @@
 import { estimateTokens } from '../model/estimate-tokens';
 import { buildSearchIndex } from '../model/search/build-index';
 import { searchIndex } from '../model/search/search';
+import { listed } from '../model/shadowing';
+import { buildSkillGraph } from '../model/skill-graph/build-graph';
 import {
   BudgetValue,
   DEFAULT_SETTINGS,
@@ -14,6 +16,7 @@ import {
   SearchDoc,
   SearchHit,
   SkillEntry,
+  SkillGraph,
   SystemPromptFile
 } from '../model/types';
 
@@ -227,6 +230,26 @@ export const circularImport: SystemPromptFile = makePromptFile({
   importedBy: importedStyle.path,
   depth: 3,
   issues: [warning('circular import — already open further up this chain, so it stops here')]
+});
+
+// Synthetic SKILL.md bodies that name each other. The graph fixture is built from these by the
+// real scanner, so a story can't show edges the rule wouldn't actually draw.
+const GRAPH_BODIES: Record<string, string> = {
+  deploy: 'Check `write-tests` passed, then /commit the version bump. A bad deploy means /commit.',
+  commit: 'Stage and write the message. Ship it with /deploy once the branch is green.',
+  'write-tests': 'Cover the new branches, then /commit. Never /deploy on a red run.',
+  'writing-hookify-rules': 'A rule that fires on every /commit.'
+};
+
+export const skillGraph: SkillGraph = buildSkillGraph({
+  texts: listed(allSkills).map((skill) => ({ skill, body: GRAPH_BODIES[skill.name] ?? '' })),
+  loadedAt: Date.UTC(2026, 7, 1)
+});
+
+// Nobody names anybody — what an install of unrelated skills draws.
+export const emptyGraph: SkillGraph = buildSkillGraph({
+  texts: [],
+  loadedAt: Date.UTC(2026, 7, 1)
 });
 
 // Numbered the way the loader numbers them: the flattened walk, in order.

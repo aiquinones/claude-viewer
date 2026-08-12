@@ -145,6 +145,118 @@
   }
 }
 
+/* The skill graph. Colours are the editor's, and every state below is a class the React tree sets
+   once — the frame loop only ever writes positions. */
+.graph-box {
+  background: color-mix(in srgb, var(--foreground) 3%, var(--background));
+}
+
+/* Equidistant dots that belong to the graph's space — the loop writes background-size and
+   background-position, so they pan and zoom with it. The mask stays put, which is what makes the
+   light read as coming from the middle of the view rather than from a point in the graph. */
+.graph-dots {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--foreground) 40%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(circle closest-side at 50% 50%, #000, transparent);
+  mask-image: radial-gradient(circle closest-side at 50% 50%, #000, transparent);
+}
+
+/* The light itself: the surface accent, wide and faint, under the dots. */
+.graph-glow {
+  background: radial-gradient(
+    circle closest-side at 50% 50%,
+    color-mix(in srgb, var(--surface-accent, var(--foreground)) 14%, transparent),
+    transparent
+  );
+}
+
+.graph-edge {
+  stroke-width: 1;
+  stroke: color-mix(in srgb, var(--foreground) 28%, transparent);
+  transition: stroke 120ms ease-out;
+}
+
+.graph-edge-active {
+  stroke: var(--surface-accent, var(--foreground));
+  stroke-width: 1.5;
+}
+
+.graph-edge-faded {
+  stroke: color-mix(in srgb, var(--foreground) 10%, transparent);
+}
+
+.graph-dot {
+  fill: color-mix(in srgb, var(--foreground) 55%, var(--background));
+  stroke: var(--background);
+  stroke-width: 1.5;
+  transition: fill 120ms ease-out;
+}
+
+.graph-label {
+  fill: var(--muted-foreground);
+  font-size: 10px;
+  paint-order: stroke;
+  /* Drawn under the glyphs, so a label crossing an edge stays readable. */
+  stroke: var(--background);
+  stroke-width: 3px;
+  transition: fill 120ms ease-out;
+}
+
+.graph-node-open .graph-dot {
+  fill: var(--surface-accent, var(--foreground));
+}
+
+/* One hop from whatever is hovered: the accent, but clearly behind the node itself. */
+.graph-node-related .graph-dot {
+  fill: color-mix(in srgb, var(--surface-accent, var(--foreground)) 60%, var(--background));
+}
+
+.graph-node-related .graph-label {
+  fill: var(--foreground);
+}
+
+.graph-node-open .graph-label {
+  fill: var(--foreground);
+}
+
+.graph-node-faded .graph-dot {
+  fill: color-mix(in srgb, var(--foreground) 20%, var(--background));
+}
+
+.graph-node-faded .graph-label {
+  fill: color-mix(in srgb, var(--foreground) 25%, transparent);
+}
+
+/* The skill you're reading: a ring outside the circle, and the only label that's full strength no
+   matter what else is hovered. */
+.graph-node-viewed .graph-dot {
+  fill: var(--surface-accent, var(--foreground));
+}
+
+.graph-node-viewed .graph-label {
+  fill: var(--foreground);
+  font-weight: 600;
+}
+
+.graph-ring {
+  fill: none;
+  stroke: var(--surface-accent, var(--foreground));
+  stroke-width: 1.5;
+  opacity: 0.55;
+}
+
+.graph-node:focus-visible .graph-dot {
+  stroke: var(--ring);
+}
+
+.graph-node:active {
+  cursor: grabbing;
+}
+
 /* The loading robot's eyes. One gesture per tick, alternating: a tick passes and it blinks, a tick
    passes and it looks to the sides. That's two animations of two ticks each, the second started a
    tick late — one animation would have to fire both gestures in the same period.

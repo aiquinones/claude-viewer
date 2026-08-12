@@ -27,6 +27,12 @@ export const findSkillByName = ({
   return named.find((skill) => !skill.shadowedBy) ?? named[0];
 };
 
+// A shadowed skill never reaches the system prompt — the winner's line is the one Claude reads —
+// so it costs nothing, doesn't count, and has no relationships worth drawing. Same idea as
+// `alwaysLoads` on the prompt surface: what's shown should be what actually applies.
+export const listed = (skills: SkillEntry[]): SkillEntry[] =>
+  skills.filter((skill) => !skill.shadowedBy);
+
 // The order every list of skills uses: the ones that actually run first, then scope precedence,
 // then alphabetically. The panel, the palette and the search index all sort by this.
 export const bySalience = (left: SkillEntry, right: SkillEntry): number => {

@@ -98,6 +98,35 @@ export interface ConfigSnapshot {
   loadedAt: number;
 }
 
+// One skill in the mention graph — only what a node draws. Everything else about it is on the
+// entry the panel already has.
+export interface SkillGraphNode {
+  // The skill's SKILL.md path. What edges point at, and the row key.
+  path: string;
+  name: string;
+  description: string;
+  scope: SkillScope;
+  pluginName?: string;
+}
+
+// A directed mention: the text of `from` names the skill at `to`. `weight` is how many times, which
+// is what makes one line heavier than another.
+export interface SkillGraphEdge {
+  from: string;
+  to: string;
+  weight: number;
+}
+
+// Who references whom, across the listed skills. Positions aren't here — layout is the webview's.
+export interface SkillGraph {
+  // Connected skills only. A skill nothing mentions, that mentions nothing, isn't in the graph.
+  nodes: SkillGraphNode[];
+  edges: SkillGraphEdge[];
+  // The snapshot this was built from. Both sides use it as the cache key, so a refresh invalidates
+  // the graph without anyone having to remember to.
+  loadedAt: number;
+}
+
 // Mapped to a themed ThemeIcon host-side, so adapters stay free of vscode.
 export type TreeNodeIcon = 'shadowed' | 'warning' | 'error';
 
@@ -181,7 +210,8 @@ export type HostMessage =
   | { type: 'snapshot'; snapshot: ConfigSnapshot }
   | { type: 'settings'; settings: ViewerSettings }
   | ({ type: 'reveal' } & Reveal)
-  | ({ type: 'fileBody' } & FileBody);
+  | ({ type: 'fileBody' } & FileBody)
+  | { type: 'skillGraph'; graph: SkillGraph };
 
 // Webview → host. `surfaceUnavailable` carries only the surface's name: the host owns the
 // sentence, the same way it owns which paths `openFile` will accept. `openSettings` is the same
@@ -191,5 +221,7 @@ export type WebviewMessage =
   | { type: 'refresh' }
   | { type: 'openFile'; path: string }
   | { type: 'requestBody'; path: string }
+  // No path: the graph is over every listed skill, and the host caches it per snapshot.
+  | { type: 'requestGraph' }
   | { type: 'surfaceUnavailable'; title: string }
   | { type: 'openSettings' };

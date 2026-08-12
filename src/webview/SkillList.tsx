@@ -3,7 +3,8 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { SKILL_SCOPES, Reveal, SkillEntry, SkillScope } from '../model/types';
 import { SkillRow } from './SkillRow';
 import { formatTokens } from './format-size';
-import { listed, listingTotals } from './skill-totals';
+import { listed } from '../model/shadowing';
+import { listingTotals } from './skill-totals';
 
 interface SkillListProps {
   skills: SkillEntry[];

@@ -3,7 +3,7 @@ import { readTextFile } from '../config/read';
 import { ConfigError, Result } from '../config/result';
 import { ViewerSettings } from '../model/settings/settings';
 import { loadSkillBody } from '../model/skill-body';
-import { ConfigSnapshot, FileBody, WebviewMessage } from '../model/types';
+import { ConfigSnapshot, FileBody, SkillGraph, WebviewMessage } from '../model/types';
 import {
   cachedSnapshot,
   currentSnapshot,
@@ -11,6 +11,7 @@ import {
   refreshSnapshot
 } from './config-store';
 import { currentSettings, onDidChangeSettings, revealSettings } from './settings-store';
+import { currentSkillGraph } from './skill-graph-store';
 import { getWebviewHtml } from './shell-html';
 
 // Registered in package.json under contributes.commands — the two have to agree.
@@ -94,6 +95,7 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'refresh') return void (await refreshSnapshot());
   if (message.type === 'openFile') return _openFile(message.path);
   if (message.type === 'requestBody') return _sendBody(message.path);
+  if (message.type === 'requestGraph') return _sendGraph();
   if (message.type === 'surfaceUnavailable') return _surfaceUnavailable(message.title);
   if (message.type === 'openSettings') return revealSettings();
 };
@@ -113,6 +115,13 @@ const _sendBody = async (path: string): Promise<void> => {
     ? { path, body: read.value }
     : { path, body: '', error: read.error.message };
   await panel?.webview.postMessage({ type: 'fileBody', ...message });
+};
+
+// Who mentions whom, across every listed skill. Built once per snapshot by the store, so asking
+// twice costs one message.
+const _sendGraph = async (): Promise<void> => {
+  const graph: SkillGraph = await currentSkillGraph();
+  await panel?.webview.postMessage({ type: 'skillGraph', graph });
 };
 
 const _isKnownSkill = (path: string): boolean =>
