@@ -23,11 +23,10 @@ const toEntry = async (session: SessionFile): Promise<AgentSession> => {
   return {
     sessionId: session.sessionId,
     pid: session.pid,
-    // A session names itself; the fallback is only for a file written before it did.
-    name: session.name ?? `pid ${session.pid}`,
     cwd: session.cwd,
     transcriptPath: path,
     title: summary.title,
+    pullRequest: summary.pullRequest,
     lastPrompt: summary.lastPrompt,
     tail: summary.tail,
     pendingTool: summary.pendingTool,

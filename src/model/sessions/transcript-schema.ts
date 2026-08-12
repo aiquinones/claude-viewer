@@ -14,6 +14,9 @@ const transcriptLineSchema = z
     lastPrompt: z.string().optional(),
     // An assistant turn that ended in an API error. The turn is over either way.
     isApiErrorMessage: z.boolean().optional(),
+    // `pr-link` lines. Rewritten like the title is, and always the same PR within one session.
+    prNumber: z.number().optional(),
+    prUrl: z.string().optional(),
     // A bare string appears in place of the block array on a small number of user lines.
     message: z
       .object({ content: z.union([z.string(), z.array(blockSchema)]).optional() })

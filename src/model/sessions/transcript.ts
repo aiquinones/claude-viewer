@@ -1,11 +1,17 @@
-import { FileTail, readFileTail } from '../../config/read';
+import { FileHead, FileTail, readFileHead, readFileTail } from '../../config/read';
 import { ConfigError, Result } from '../../config/result';
-import { ConfigIssue, TranscriptTail } from '../types';
+import { AgentPullRequest, ConfigIssue, TranscriptTail } from '../types';
 import { ContentBlock, TranscriptLine, parseTranscriptLine } from './transcript-schema';
 
-// How much of the end of a transcript is read. They reach megabytes; the title, the last prompt and
-// the trailing turn all sit in the last few kilobytes of one.
+// How much of the end of a transcript is read. They reach megabytes; the last prompt, the PR link
+// and the trailing turn all sit in the last few kilobytes of one.
 const TAIL_BYTES: number = 64 * 1024;
+
+// The title is at the *other* end, and how far in varies more than you'd want to hardcode: usually
+// around 20KB, but 308KB in one session measured here — a session that opens with a long first turn
+// writes its title late. So the head is read in growing windows and stops at the first hit, which
+// costs one read in the ordinary case. Past the last window a session simply has no title.
+const TITLE_WINDOWS: readonly number[] = [32 * 1024, 128 * 1024, 512 * 1024];
 
 // The line types that are conversation. The other ten are session metadata interleaved into the
 // same stream — an `ai-title` rewrite lands after the final assistant line often enough that
@@ -15,6 +21,7 @@ const MESSAGE_TYPES: readonly string[] = ['user', 'assistant'];
 export interface TranscriptSummary {
   title?: string;
   lastPrompt?: string;
+  pullRequest?: AgentPullRequest;
   tail: TranscriptTail;
   pendingTool?: string;
   // File mtime, or 0 when the file couldn't be read.
@@ -22,7 +29,7 @@ export interface TranscriptSummary {
   issues: ConfigIssue[];
 }
 
-// What a session row needs, off the end of the file. Never throws: a missing or unreadable
+// What a session row needs, off both ends of the file. Never throws: a missing or unreadable
 // transcript still produces a summary, carrying the reason as an issue.
 export const readTranscript = async (path: string): Promise<TranscriptSummary> => {
   const read: Result<FileTail, ConfigError> = await readFileTail({ path, maxBytes: TAIL_BYTES });
@@ -35,25 +42,48 @@ export const readTranscript = async (path: string): Promise<TranscriptSummary> =
     return { tail: 'settled', lastActivityAt: 0, issues: [warning(message)] };
   }
 
-  const lines: TranscriptLine[] = parseLines(read.value);
+  const lines: TranscriptLine[] = parseLines(read.value.text, read.value.truncated);
 
   return {
     ...lastTurn(lines),
-    // Both are rewritten through the session, so the last one in the window is the current one.
-    title: lastValue(lines, 'ai-title', (line) => line.aiTitle),
+    title: await firstTitle(path),
+    // Rewritten through the session, so the last one in the window is the current one. Both stay
+    // near the end: a PR link is repeated every few thousand lines after it's opened.
     lastPrompt: lastValue(lines, 'last-prompt', (line) => line.lastPrompt),
+    pullRequest: lastPullRequest(lines),
     lastActivityAt: read.value.mtimeMs,
     issues: []
   };
 };
 
-// A torn line is expected here, not corruption: the read starts mid-file, and the file is being
-// appended to while it happens. Both ends drop out silently.
-const parseLines = (tail: FileTail): TranscriptLine[] => {
-  const raw: string[] = tail.text.split('\n');
-  const usable: string[] = tail.truncated ? raw.slice(1) : raw;
+// The first `ai-title` in the file. Claude Code rewrites the title as the session goes on and the
+// later ones chase whatever the newest turn was about — "Online implementation" for a session that
+// started as "Add context text to skill view cost section". The first one names the session, and
+// it's what the editor's own header shows.
+const firstTitle = async (path: string): Promise<string | undefined> => {
+  for (const window of TITLE_WINDOWS) {
+    const read: Result<FileHead, ConfigError> = await readFileHead({ path, maxBytes: window });
+    if (!read.ok) return undefined;
 
-  return usable
+    // The last line of a window is cut mid-line and fails to parse, which drops it — except when
+    // the whole file fit, where there's nothing to be cut off and nothing more to read either.
+    const found: string | undefined = firstValue(
+      parseLines(read.value.text, false),
+      'ai-title',
+      (line) => line.aiTitle
+    );
+    if (found || read.value.atEnd) return found;
+  }
+
+  return undefined;
+};
+
+// A torn line is expected here, not corruption: a window starts or ends mid-file, and the file is
+// being appended to while it's read. Both ends drop out silently.
+const parseLines = (text: string, dropFirst: boolean): TranscriptLine[] => {
+  const raw: string[] = text.split('\n');
+
+  return (dropFirst ? raw.slice(1) : raw)
     .map(parseTranscriptLine)
     .filter((line): line is TranscriptLine => line !== undefined);
 };
@@ -67,6 +97,33 @@ const lastValue = (
     if (lines[i].type !== type) continue;
     const value: string | undefined = read(lines[i]);
     if (value) return value;
+  }
+  return undefined;
+};
+
+const firstValue = (
+  lines: TranscriptLine[],
+  type: string,
+  read: (line: TranscriptLine) => string | undefined
+): string | undefined => {
+  for (const line of lines) {
+    if (line.type !== type) continue;
+    const value: string | undefined = read(line);
+    if (value) return value;
+  }
+  return undefined;
+};
+
+// The PR this session opened. Every session measured here opened at most one, and the line is
+// repeated after it's opened — so the last copy is both the current one and the one nearest the end.
+const lastPullRequest = (lines: TranscriptLine[]): AgentPullRequest | undefined => {
+  for (let i = lines.length - 1; i >= 0; i -= 1) {
+    const line: TranscriptLine = lines[i];
+    if (line.type !== 'pr-link') continue;
+    // Both fields or neither: a number with no link has nowhere to go.
+    if (line.prNumber !== undefined && line.prUrl) {
+      return { number: line.prNumber, url: line.prUrl };
+    }
   }
   return undefined;
 };

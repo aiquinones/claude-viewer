@@ -60,6 +60,41 @@ export const readFileTail = async ({
   }
 };
 
+export interface FileHead {
+  text: string;
+  // The whole file fit in the window, so the last line is a whole line.
+  atEnd: boolean;
+}
+
+interface ReadFileHeadArgs {
+  path: string;
+  maxBytes: number;
+}
+
+// The start of a file. The caller decides how much is enough and asks again with a bigger window,
+// which is cheaper than reading a megabyte to find something that's usually 20KB in.
+export const readFileHead = async ({
+  path,
+  maxBytes
+}: ReadFileHeadArgs): Promise<Result<FileHead, ConfigError>> => {
+  let handle: FileHandle | undefined;
+  try {
+    handle = await fs.open(path, 'r');
+    const buffer: Buffer = Buffer.alloc(maxBytes);
+    const { bytesRead } = await handle.read(buffer, 0, maxBytes, 0);
+
+    return ok({ text: buffer.toString('utf8', 0, bytesRead), atEnd: bytesRead < maxBytes });
+  } catch (caught) {
+    const code: string | undefined = (caught as NodeJS.ErrnoException).code;
+    if (code === 'ENOENT') {
+      return err({ kind: 'not-found', path, message: 'file does not exist' });
+    }
+    return err({ kind: 'unreadable', path, message: String((caught as Error).message ?? caught) });
+  } finally {
+    await handle?.close();
+  }
+};
+
 // Names of the files directly in `dir`, no recursion. Missing reads as empty, like the directory
 // listing below it.
 export const listFiles = async (dir: string): Promise<string[]> => {

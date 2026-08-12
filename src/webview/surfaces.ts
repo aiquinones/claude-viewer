@@ -56,18 +56,24 @@ export type SurfaceId = Surface['id'];
 interface DetailForSurfaceArgs {
   surface: Surface;
   snapshot: ConfigSnapshot;
+  // Not on the snapshot: live agents ride their own message. See host/agents-store.ts.
+  agents: AgentSession[];
 }
 
 // The line under a card's blurb: whatever that surface counts. Switching on the id means adding a
 // surface without a count here is a type error rather than a blank card.
-export const getDetailForSurface = ({ surface, snapshot }: DetailForSurfaceArgs): string => {
+export const getDetailForSurface = ({
+  surface,
+  snapshot,
+  agents
+}: DetailForSurfaceArgs): string => {
   switch (surface.id) {
     case 'skills':
       return skillsDetail(snapshot.skills);
     case 'system-prompt':
       return promptDetail(snapshot.systemPrompt);
     case 'active-agents':
-      return agentsDetail(snapshot.agents);
+      return agentsDetail(agents);
   }
 };
 

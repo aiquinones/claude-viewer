@@ -35,32 +35,30 @@ export default meta;
 type Story = StoryObj<typeof AgentsView>;
 
 export const Default: Story = {
-  args: { snapshot: snapshot({ skills: allSkills, agents: allAgents }) }
+  args: { agents: allAgents, snapshot: snapshot({ skills: allSkills }) }
 };
 
 // Nothing running is an answer, not a failure — and the only state that has no rows to show.
 export const NoSessions: Story = {
-  args: { snapshot: snapshot({ skills: allSkills, agents: [] }) }
+  args: { agents: [], snapshot: snapshot({ skills: allSkills }) }
 };
 
 // One agent, in this folder, mid-turn. The dot is the only thing on the surface that moves.
 export const OneWorking: Story = {
-  args: { snapshot: snapshot({ skills: allSkills, agents: [workingAgent] }) }
+  args: { agents: [workingAgent], snapshot: snapshot({ skills: allSkills }) }
 };
 
 // No folder open: nothing can be "this workspace", so the grouping heading goes away rather than
 // leaving every row under "Elsewhere".
 export const NoWorkspace: Story = {
   args: {
-    snapshot: {
-      ...snapshot({ skills: allSkills, agents: remoteAgents }),
-      workspaceRoot: undefined
-    }
+    agents: remoteAgents,
+    snapshot: { ...snapshot({ skills: allSkills }), workspaceRoot: undefined }
   }
 };
 
 // A live process whose transcript isn't on disk yet. The row still renders, carrying the reason —
 // and with no title to show, it falls back to the folder it's working in.
 export const NoTranscript: Story = {
-  args: { snapshot: snapshot({ skills: allSkills, agents: [noTranscriptAgent, idleAgent] }) }
+  args: { agents: [noTranscriptAgent, idleAgent], snapshot: snapshot({ skills: allSkills }) }
 };

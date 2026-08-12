@@ -15,6 +15,9 @@ import { useNow } from '../useNow';
 const TICK_MS: number = 1000;
 
 interface AgentsViewProps {
+  // The live processes, on their own message. The snapshot is here only for the workspace root,
+  // which is what "this workspace" is measured against.
+  agents: AgentSession[];
   snapshot: ConfigSnapshot;
   onOpenFile: (path: string) => void;
   onSearch: () => void;
@@ -25,6 +28,7 @@ interface AgentsViewProps {
 // Every Claude Code session running right now, grouped by where it's working. The only surface
 // whose rows change without the disk changing — hence the clock.
 export const AgentsView = ({
+  agents,
   snapshot,
   onOpenFile,
   onSearch,
@@ -32,7 +36,6 @@ export const AgentsView = ({
   onBack
 }: AgentsViewProps) => {
   const now: number = useNow(TICK_MS);
-  const agents: AgentSession[] = snapshot.agents;
   const { here, elsewhere }: AgentGroups = groupByWorkspace({
     agents,
     workspaceRoot: snapshot.workspaceRoot

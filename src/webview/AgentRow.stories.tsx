@@ -29,11 +29,12 @@ export default meta;
 
 type Story = StoryObj<typeof AgentRow>;
 
-// Mid-turn, written seconds ago.
+// Mid-turn, written seconds ago, and no PR — that footer is absent rather than empty.
 export const Working: Story = { args: { agent: workingAgent } };
 
 // The same tail shape, seven minutes cold. Nothing on disk says whether it's a permission prompt or
-// a long command — the tool name and the age are what let you tell.
+// a long command — the tool name and the age are what let you tell. Also the PR case: a session
+// that opened one keeps the link on its row, under the button because an <a> can't sit inside one.
 export const Waiting: Story = { args: { agent: waitingAgent } };
 
 // The last turn ended in text. Dimmed, because this one is waiting on you.

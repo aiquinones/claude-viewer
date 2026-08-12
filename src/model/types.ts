@@ -104,6 +104,13 @@ export const AGENT_ACTIVITIES = ['running', 'blocked', 'idle'] as const;
 
 export type AgentActivity = (typeof AGENT_ACTIVITIES)[number];
 
+// A pull request a session opened. Both fields or neither — a link with no number has nothing to
+// print, and a number with no link has nowhere to go.
+export interface AgentPullRequest {
+  number: number;
+  url: string;
+}
+
 // One Claude Code process that exists right now, joined to its transcript. Unlike every other entry
 // here this describes something live, so the time fields are absolute — the view ages them against
 // its own clock rather than trusting when the snapshot was built.
@@ -111,13 +118,15 @@ export interface AgentSession {
   // Unique per session. Doubles as the row key.
   sessionId: string;
   pid: number;
-  // The handle `ListAgents` prints and `SendMessage` addresses, e.g. `claude-viewer-0f`.
-  name: string;
   // Where the agent is working. A session inside a worktree reports the worktree, not the repo.
   cwd: string;
   transcriptPath: string;
-  // Claude Code's own generated title, rewritten as the session goes on. Absent until it writes one.
+  // Claude Code's own generated title — the *first* one it wrote. It rewrites the title as the
+  // session goes on and the later ones chase the newest turn, so the first is the one that names
+  // the session. Absent until it has written one.
   title?: string;
+  // The PR this session opened, if it opened one.
+  pullRequest?: AgentPullRequest;
   // The last prompt, already truncated by Claude Code.
   lastPrompt?: string;
   tail: TranscriptTail;
@@ -137,8 +146,6 @@ export interface ConfigSnapshot {
   skills: SkillEntry[];
   // Flat and already in load order. `depth` is all the view needs to draw the import tree.
   systemPrompt: SystemPromptFile[];
-  // Live processes, most recently active first. Empty is a normal answer.
-  agents: AgentSession[];
   loadedAt: number;
 }
 
@@ -253,6 +260,9 @@ export interface FileBody {
 export type HostMessage =
   | { type: 'snapshot'; snapshot: ConfigSnapshot }
   | { type: 'settings'; settings: ViewerSettings }
+  // Live processes, most recently active first. Empty is a normal answer. Its own message rather
+  // than a snapshot field: an agent starting shouldn't cost a re-read of every skill.
+  | { type: 'agents'; agents: AgentSession[] }
   | ({ type: 'reveal' } & Reveal)
   | ({ type: 'fileBody' } & FileBody)
   | { type: 'skillGraph'; graph: SkillGraph };
