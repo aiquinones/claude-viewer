@@ -5,9 +5,9 @@ import { ConfigSnapshot, SkillEntry } from '../../model/types';
 import { pickSkill } from './quick-pick';
 
 // Registered in package.json under contributes.commands — the two have to agree.
-export const OPEN_SKILL_COMMAND: string = 'claudeViewer.openSkill';
+export const FIND_SKILL_COMMAND: string = 'claudeViewer.findSkill';
 
-interface OpenSkillArgs {
+interface FindSkillArgs {
   context: vscode.ExtensionContext;
   // Prefills the picker — used when a deep link named a skill that doesn't resolve.
   initialQuery?: string;
@@ -15,7 +15,7 @@ interface OpenSkillArgs {
 
 // The palette command, and the fallback the URI handler drops into. Reads the shared store, so it
 // works with no panel open and sees exactly what the tree sees.
-export const openSkill = async ({ context, initialQuery }: OpenSkillArgs): Promise<void> => {
+export const findSkill = async ({ context, initialQuery }: FindSkillArgs): Promise<void> => {
   const snapshot: ConfigSnapshot = await currentSnapshot();
 
   if (snapshot.skills.length === 0) {

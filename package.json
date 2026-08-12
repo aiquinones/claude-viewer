@@ -52,12 +52,14 @@
     },
     "commands": [
       {
-        "command": "claudeViewer.open",
-        "title": "Claude Viewer: Open"
+        "command": "claudeViewer.launch",
+        "title": "Launch Viewer",
+        "category": "Claude Viewer"
       },
       {
-        "command": "claudeViewer.openSkill",
-        "title": "Claude Viewer: Open Skill…"
+        "command": "claudeViewer.findSkill",
+        "title": "Find Skill…",
+        "category": "Claude Viewer"
       },
       {
         "command": "claudeViewer.refresh",
@@ -79,7 +81,7 @@
           "group": "navigation"
         },
         {
-          "command": "claudeViewer.open",
+          "command": "claudeViewer.launch",
           "when": "view == claudeViewer.tree",
           "group": "1_panel@1"
         }

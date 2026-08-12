@@ -33,7 +33,7 @@ Search for **Claude Viewer** in the Extensions view, or:
 code --install-extension canoq.claude-viewer
 ```
 
-Then open the Command Palette and run **Claude Viewer: Open**.
+Then open the Command Palette and run **Claude Viewer: Launch Viewer**.
 
 
 ## Unofficial
