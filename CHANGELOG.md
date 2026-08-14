@@ -2,7 +2,28 @@
 
 Notable changes to Claude Viewer, newest first.
 
-## 0.8.0 — 2026-08-12
+## 0.10.0 — 2026-08-14
+
+### Added
+
+- **Copilot CLI sessions on the Active Agents surface**, as rows beside the Claude ones rather than
+  a surface of their own — the question the surface answers, what's running and where, spans both
+  CLIs. A row says which CLI it belongs to and shows its branch, and the list stays sorted by
+  activity across the two.
+- **Waiting is read rather than guessed for Copilot rows.** Copilot writes permission requests and
+  their answers to disk, so an unanswered one means that agent is at a prompt right now. A Claude
+  row with the same age still says Working and takes a minute of silence to change its mind — the
+  badge is the same badge, and the tooltip is where a state that was read differs from one that was
+  inferred.
+
+### Changed
+
+- **Agent rows keep up with the agents.** The surface had two refresh signals and neither watched
+  what changes most: session files are written once at startup, so their watchers fire only when an
+  agent starts or exits. Transcripts are now re-read every 2 seconds while Active Agents is open,
+  every 30 seconds while another surface is, and not at all while the panel is hidden or closed. A
+  row no longer counts up to 40m beside an agent that's mid-turn, and one that went quiet and
+  started again comes back.
 
 ### Added
 
