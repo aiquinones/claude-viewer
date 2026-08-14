@@ -40,7 +40,7 @@ export const SURFACES = [
   {
     id: 'active-agents',
     title: 'Active Agents',
-    blurb: 'Claude Code sessions running right now, and what each one is doing.',
+    blurb: 'Claude Code and Copilot CLI sessions running right now, and what each is doing.',
     accent: 'var(--vscode-charts-green, #89d185)',
     status: 'ready'
   }

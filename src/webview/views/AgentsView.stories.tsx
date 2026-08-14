@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
   allAgents,
+  copilotAgents,
   idleAgent,
   noTranscriptAgent,
   remoteAgents,
@@ -34,8 +35,17 @@ export default meta;
 
 type Story = StoryObj<typeof AgentsView>;
 
+// Both CLIs in one list, sorted by when each last wrote rather than by which tool it is. This is
+// the story to read for whether the tag does its job: the rows have to stay scannable when they
+// don't all come from the same place.
 export const Default: Story = {
   args: { agents: allAgents, snapshot: snapshot({ skills: allSkills }) }
+};
+
+// Copilot only, which is what the surface looks like for someone who doesn't run Claude Code — and
+// the check that the tag doesn't only work by contrast with the rows next to it.
+export const CopilotOnly: Story = {
+  args: { agents: copilotAgents, snapshot: snapshot({ skills: allSkills }) }
 };
 
 // Nothing running is an answer, not a failure — and the only state that has no rows to show.

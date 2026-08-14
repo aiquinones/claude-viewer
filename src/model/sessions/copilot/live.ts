@@ -1,0 +1,68 @@
+import { join } from 'node:path';
+import {
+  copilotSessionStateDir,
+  copilotWorkspacePath,
+  lockedPid
+} from '../../../config/paths';
+import { listDirectories, listFiles, readTextFile } from '../../../config/read';
+import { ConfigError, Result } from '../../../config/result';
+import { isRunning } from '../is-running';
+import { CopilotWorkspace, parseWorkspaceFile } from './workspace-schema';
+
+export interface LiveCopilotSession {
+  sessionId: string;
+  pid: number;
+  dir: string;
+  workspace: CopilotWorkspace;
+}
+
+// The Copilot CLI processes that exist right now. A process takes a session by writing
+// `inuse.<pid>.lock` into its directory and removes the file when it exits cleanly — one signal more
+// than Claude gives — but a crash removes nothing, so every pid still goes through the process
+// table before it counts.
+export const liveCopilotSessions = async (): Promise<LiveCopilotSession[]> => {
+  const root: string = copilotSessionStateDir();
+  const ids: string[] = await listDirectories(root);
+
+  const read: (LiveCopilotSession | undefined)[] = await Promise.all(
+    ids.map((id) => readSession({ root, sessionId: id }))
+  );
+
+  return read.filter((session): session is LiveCopilotSession => session !== undefined);
+};
+
+interface ReadSessionArgs {
+  root: string;
+  sessionId: string;
+}
+
+const readSession = async ({
+  root,
+  sessionId
+}: ReadSessionArgs): Promise<LiveCopilotSession | undefined> => {
+  const dir: string = join(root, sessionId);
+
+  const pid: number | undefined = await holdingPid(dir);
+  if (pid === undefined) return undefined;
+
+  const read: Result<string, ConfigError> = await readTextFile(copilotWorkspacePath(dir));
+  if (!read.ok) return undefined;
+
+  const workspace: CopilotWorkspace | undefined = parseWorkspaceFile(read.value);
+  if (!workspace) return undefined;
+
+  return { sessionId, pid, dir, workspace };
+};
+
+// The pid holding this session, if one still is. A directory can carry more than one lock — a
+// resumed session is a second process — so the first live one wins and the stale files are ignored.
+const holdingPid = async (dir: string): Promise<number | undefined> => {
+  const names: string[] = await listFiles(dir);
+
+  for (const name of names) {
+    const pid: number | undefined = lockedPid(name);
+    if (pid !== undefined && isRunning(pid)) return pid;
+  }
+
+  return undefined;
+};

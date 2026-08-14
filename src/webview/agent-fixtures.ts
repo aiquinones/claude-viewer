@@ -11,6 +11,7 @@ const ago = (ms: number): number => Date.now() - ms;
 const makeAgent = (
   overrides: Partial<AgentSession> & Pick<AgentSession, 'sessionId' | 'cwd'>
 ): AgentSession => ({
+  tool: 'claude',
   pid: 10700,
   transcriptPath: `/Users/dev/.claude/projects/-Users-dev-repos-example-app/${overrides.sessionId}.jsonl`,
   tail: 'settled',
@@ -21,6 +22,21 @@ const makeAgent = (
   issues: [],
   ...overrides
 });
+
+// The Copilot defaults on top of those: its own directory layout, its own version line, and the
+// repository and branch Claude's session files don't carry.
+const makeCopilotAgent = (
+  overrides: Partial<AgentSession> & Pick<AgentSession, 'sessionId' | 'cwd'>
+): AgentSession =>
+  makeAgent({
+    tool: 'copilot',
+    transcriptPath: `/Users/dev/.copilot/session-state/${overrides.sessionId}/events.jsonl`,
+    version: '1.0.80',
+    entrypoint: 'github/cli',
+    repository: 'example/example-app',
+    branch: 'main',
+    ...overrides
+  });
 
 // Mid-turn and writing — the pulsing dot.
 export const workingAgent: AgentSession = makeAgent({
@@ -98,10 +114,55 @@ export const longTitleAgent: AgentSession = makeAgent({
   lastActivityAt: ago(9_000)
 });
 
-// Most recently active first, the way the loader sorts them.
+// A Copilot session mid-turn, in the same folder as the Claude ones. Four agents in one repo is
+// normal; four agents from two different CLIs is the case this surface now has to read cleanly.
+export const copilotWorkingAgent: AgentSession = makeCopilotAgent({
+  sessionId: '430d333d-6c86-49be-8e91-7d23ea5a9b95',
+  pid: 99699,
+  cwd: WORKSPACE,
+  title: 'Trace the flaky upload test',
+  lastPrompt: 'the upload test fails about one run in five on CI',
+  tail: 'working',
+  pendingTool: 'bash',
+  lastActivityAt: ago(2_000)
+});
+
+// The state only Copilot can state. `tail: 'blocked'` is an unanswered `permission.requested` in
+// the log, so the row says Waiting immediately — no 60-second threshold, and the age below it is
+// deliberately short to prove the clock isn't what decided.
+export const copilotBlockedAgent: AgentSession = makeCopilotAgent({
+  sessionId: 'f7be248b-6390-4eb8-b419-91dffdee9bd7',
+  pid: 98987,
+  cwd: `${WORKSPACE}/services/api`,
+  title: 'Roll the staging database forward',
+  branch: 'feat/schema-v4',
+  tail: 'blocked',
+  pendingTool: 'bash',
+  lastActivityAt: ago(6_000)
+});
+
+// An MCP tool, which prints server-qualified so a remote `create_pull_request` doesn't read like a
+// local one. Also the no-branch case: a session started outside a git repo has none.
+export const copilotMcpAgent: AgentSession = makeCopilotAgent({
+  sessionId: 'c1f0a8d2-4b6e-4a71-9d3c-5e8f7a2b0c14',
+  pid: 10412,
+  cwd: '/Users/dev/repos/notes-site',
+  title: 'Open the release PR',
+  repository: 'example/notes-site',
+  branch: undefined,
+  tail: 'working',
+  pendingTool: 'github:create_pull_request',
+  lastActivityAt: ago(15_000)
+});
+
+// Most recently active first, the way the loader sorts them — across both CLIs, so the list reads
+// as one thing rather than two lists stacked.
 export const allAgents: AgentSession[] = [
+  copilotWorkingAgent,
   workingAgent,
+  copilotBlockedAgent,
   longTitleAgent,
+  copilotMcpAgent,
   noTranscriptAgent,
   elsewhereAgent,
   waitingAgent,
@@ -109,4 +170,11 @@ export const allAgents: AgentSession[] = [
 ];
 
 // Nothing in this workspace — every agent is somewhere else.
-export const remoteAgents: AgentSession[] = [elsewhereAgent, noTranscriptAgent];
+export const remoteAgents: AgentSession[] = [elsewhereAgent, noTranscriptAgent, copilotMcpAgent];
+
+// One CLI at a time, for the stories that check a row reads right without the other to compare to.
+export const copilotAgents: AgentSession[] = [
+  copilotWorkingAgent,
+  copilotBlockedAgent,
+  copilotMcpAgent
+];

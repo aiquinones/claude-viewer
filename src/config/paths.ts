@@ -44,6 +44,29 @@ interface TranscriptPathArgs {
 export const transcriptPath = ({ cwd, sessionId }: TranscriptPathArgs): string =>
   join(userClaudeDir(), 'projects', cwd.replace(/[^a-zA-Z0-9]/g, '-'), `${sessionId}.jsonl`);
 
+const copilotDir = (): string => join(homedir(), '.copilot');
+
+// One directory per Copilot CLI session, named by session id. Everything a row needs is inside it,
+// so unlike Claude there's no second directory to find and no path encoding to compute.
+export const copilotSessionStateDir = (): string => join(copilotDir(), 'session-state');
+
+// The session's metadata: cwd, repository, branch and title, as flat YAML scalars.
+export const copilotWorkspacePath = (sessionDir: string): string =>
+  join(sessionDir, 'workspace.yaml');
+
+// The session's append-only event log — the conversation and its lifecycle in one stream.
+export const copilotEventsPath = (sessionDir: string): string => join(sessionDir, 'events.jsonl');
+
+// A process holds a session by writing `inuse.<pid>.lock` into its directory, and removes the file
+// on a clean exit. The pid is read from the name rather than the contents: both carry it and they
+// agree, but the name is there after one readdir and the contents cost an open.
+const IN_USE_LOCK = /^inuse\.(\d+)\.lock$/;
+
+export const lockedPid = (fileName: string): number | undefined => {
+  const match: RegExpExecArray | null = IN_USE_LOCK.exec(fileName);
+  return match ? Number(match[1]) : undefined;
+};
+
 // Every CLAUDE.md that can reach the system prompt, in load order. The first three always load;
 // the nested ones only load when Claude is working under their directory, which is why they carry
 // `conditionalOn` and sit at the end.

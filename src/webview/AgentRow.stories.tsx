@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { AgentRow } from './AgentRow';
 import {
+  copilotBlockedAgent,
+  copilotMcpAgent,
+  copilotWorkingAgent,
   elsewhereAgent,
   idleAgent,
   longTitleAgent,
@@ -49,3 +52,16 @@ export const NoTranscript: Story = { args: { agent: noTranscriptAgent } };
 
 // Working in another repo, so the path prints absolute with the home folded to `~`.
 export const OtherWorkspace: Story = { args: { agent: elsewhereAgent } };
+
+// A Copilot row next to the Claude ones above: same shape, different tag, plus the branch that
+// only this CLI records.
+export const CopilotWorking: Story = { args: { agent: copilotWorkingAgent } };
+
+// The state Claude can't express. This row says Waiting six seconds in, because the log carries an
+// unanswered permission request — a Claude row with the same age would still say Working, and would
+// take a minute of silence to change its mind.
+export const CopilotBlocked: Story = { args: { agent: copilotBlockedAgent } };
+
+// An MCP tool prints server-qualified, so a remote call doesn't read like a local one. Also the
+// no-branch case, which is what a session outside a git repo looks like.
+export const CopilotMcpTool: Story = { args: { agent: copilotMcpAgent } };

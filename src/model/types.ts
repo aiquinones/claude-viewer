@@ -90,19 +90,36 @@ export interface SystemPromptFile {
   issues: ConfigIssue[];
 }
 
-// How a session's transcript ends. A finished turn always ends the same way — an assistant line
-// whose only block is text — so everything else is mid-turn.
+// How a session's log ends. A finished turn always ends the same way — for Claude an assistant line
+// whose only block is text, for Copilot an `assistant.turn_end` — so everything else is mid-turn.
+//
+// `blocked` is the one the disk states outright. Copilot writes `permission.requested` and answers
+// it with `permission.completed`, so an unanswered one means a prompt is open right now. Claude's
+// transcript has no such line and never produces this — its waiting is inferred from the clock.
 //
 // Deliberately not annotated: a type here would erase the literals the union derives from.
-export const TRANSCRIPT_TAILS = ['settled', 'working'] as const;
+export const TRANSCRIPT_TAILS = ['settled', 'working', 'blocked'] as const;
 
 export type TranscriptTail = (typeof TRANSCRIPT_TAILS)[number];
 
-// What an agent is doing, as far as the disk can say. Nothing writes this down — `sessions/activity`
-// derives it from how the transcript ends and how long ago that was.
+// What an agent is doing. Mostly nothing writes this down — `sessions/activity` derives it from how
+// the log ends and how long ago that was.
 export const AGENT_ACTIVITIES = ['running', 'blocked', 'idle'] as const;
 
 export type AgentActivity = (typeof AGENT_ACTIVITIES)[number];
+
+// Which CLI a session belongs to. Both write a directory of live processes and an append-only log of
+// the conversation, which is enough shared shape for one row type and one list.
+export const AGENT_TOOLS = ['claude', 'copilot'] as const;
+
+export type AgentTool = (typeof AGENT_TOOLS)[number];
+
+// How each one prints. The row says which CLI it is, because "what is running in this repo" is a
+// question about all of them at once.
+export const AGENT_TOOL_LABEL: Record<AgentTool, string> = {
+  claude: 'Claude Code',
+  copilot: 'Copilot CLI'
+};
 
 // A pull request a session opened. Both fields or neither — a link with no number has nothing to
 // print, and a number with no link has nowhere to go.
@@ -111,29 +128,40 @@ export interface AgentPullRequest {
   url: string;
 }
 
-// One Claude Code process that exists right now, joined to its transcript. Unlike every other entry
+// One agent process that exists right now, joined to the log it's writing. Unlike every other entry
 // here this describes something live, so the time fields are absolute — the view ages them against
 // its own clock rather than trusting when the snapshot was built.
+//
+// Both CLIs land in this one shape. A field only one of them writes is optional, which is what the
+// optional fields already were: Claude may not have written a title or opened a PR yet either.
 export interface AgentSession {
-  // Unique per session. Doubles as the row key.
+  // Unique per session. Doubles as the row key — a Claude session id and a Copilot one are both
+  // UUIDs and can't collide.
   sessionId: string;
+  tool: AgentTool;
   pid: number;
   // Where the agent is working. A session inside a worktree reports the worktree, not the repo.
   cwd: string;
+  // The log this session is appending to: a `.jsonl` transcript for Claude, `events.jsonl` for
+  // Copilot. Clicking the row opens it.
   transcriptPath: string;
-  // Claude Code's own generated title — the *first* one it wrote. It rewrites the title as the
-  // session goes on and the later ones chase the newest turn, so the first is the one that names
-  // the session. Absent until it has written one.
+  // The session's own generated title. Claude rewrites it as the session goes on, so this is the
+  // *first* one it wrote — the later ones chase the newest turn. Copilot keeps the current one in
+  // `workspace.yaml`, so there's nothing to choose. Absent until one has been written.
   title?: string;
-  // The PR this session opened, if it opened one.
+  // `owner/repo`, and the branch the agent is on. Copilot records both; Claude records neither.
+  repository?: string;
+  branch?: string;
+  // The PR this session opened, if it opened one. Claude only — Copilot logs no equivalent.
   pullRequest?: AgentPullRequest;
-  // The last prompt, already truncated by Claude Code.
+  // The last prompt, already truncated by the CLI that wrote it.
   lastPrompt?: string;
   tail: TranscriptTail;
-  // The tool the agent is waiting on, when the transcript ends on a tool call. The name only: the
-  // input is arbitrary text from the agent's own work, and this panel gets screenshotted.
+  // The tool the agent is waiting on, when the log ends on a tool call or a permission request. The
+  // name only: the input is arbitrary text from the agent's own work, and this panel gets
+  // screenshotted.
   pendingTool?: string;
-  // When the transcript was last written, and when the process started.
+  // When the log was last written, and when the process started.
   lastActivityAt: number;
   startedAt: number;
   version: string;
