@@ -35,6 +35,11 @@ export const useSnapshot = () => {
 
   const openFile = (path: string): void => vscode.postMessage({ type: 'openFile', path });
 
+  // Says which surface is on screen. The host polls the agent transcripts faster while theirs is
+  // up, and it has no other way to know — a webview reports nothing about its own navigation.
+  const reportSurface = (surface: string | undefined): void =>
+    vscode.postMessage({ type: 'surfaceChanged', surface });
+
   // Asks the host to say a surface isn't built. The host writes the sentence and shows it.
   const reportUnavailable = (title: string): void =>
     vscode.postMessage({ type: 'surfaceUnavailable', title });
@@ -49,6 +54,7 @@ export const useSnapshot = () => {
     reveal,
     refresh,
     openFile,
+    reportSurface,
     reportUnavailable,
     openSettings
   };

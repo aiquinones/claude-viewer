@@ -12,6 +12,11 @@ import { useNow } from '../useNow';
 
 // How often the rows re-age. Everything under a minute is printed in seconds, so anything slower
 // than this would visibly stall.
+//
+// This is not the refresh. Nothing is re-read on this tick — `now` changes and every value on
+// screen is recomputed from agent data already in memory, which only a poll in the host can
+// replace. The two rates are independent and answer different questions: this one keeps the age
+// honest about time passing, AGENT_POLL_MS keeps it honest about the agent.
 const TICK_MS: number = 1000;
 
 interface AgentsViewProps {

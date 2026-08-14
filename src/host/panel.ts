@@ -4,7 +4,13 @@ import { ConfigError, Result } from '../config/result';
 import { ViewerSettings } from '../model/settings/settings';
 import { loadSkillBody } from '../model/skill-body';
 import { AgentSession, ConfigSnapshot, FileBody, SkillGraph, WebviewMessage } from '../model/types';
-import { cachedAgents, currentAgents, onDidChangeAgents, refreshAgents } from './agents-store';
+import {
+  cachedAgents,
+  currentAgents,
+  onDidChangeAgents,
+  refreshAgents,
+  setAgentPollMode
+} from './agents-store';
 import {
   cachedSnapshot,
   currentSnapshot,
@@ -22,6 +28,10 @@ export const LAUNCH_COMMAND: string = 'claudeViewer.launch';
 export const PANEL_VIEW_TYPE: string = 'claudeViewer';
 export const PANEL_TITLE: string = 'Claude Viewer';
 
+// The one surface whose rows go stale on their own, so the one that asks for the fast poll. Has to
+// match the `id` of its SURFACES entry — same agreement as a command id and package.json.
+const AGENTS_SURFACE: string = 'active-agents';
+
 let panel: vscode.WebviewPanel | undefined;
 let snapshotSubscription: vscode.Disposable | undefined;
 let settingsSubscription: vscode.Disposable | undefined;
@@ -31,6 +41,9 @@ let webviewReady: boolean = false;
 // A reveal that arrived before that, held until it can be delivered.
 let pendingReveal: string | undefined;
 let revealNonce: number = 0;
+// Which surface the webview is showing, `undefined` for the landing page. Only the agents poll
+// reads it, but the webview reports every surface — the next one that goes stale gets it free.
+let visibleSurface: string | undefined;
 
 interface OpenPanelArgs {
   context: vscode.ExtensionContext;
@@ -82,7 +95,15 @@ export const openPanel = ({ context, revealPath }: OpenPanelArgs): void => {
   // Same deal, the other way round: an agent starting shouldn't re-read every skill.
   agentsSubscription = onDidChangeAgents((agents) => void _postAgents(agents));
 
+  // A hidden tab still holds its webview — retainContextWhenHidden — so nothing tells the poll to
+  // stop except this. Reading the disk every two seconds for a panel nobody is looking at is the
+  // whole cost of leaving it out.
+  panel.onDidChangeViewState(_updatePollMode);
+  _updatePollMode();
+
   panel.onDidDispose(() => {
+    setAgentPollMode('off');
+    visibleSurface = undefined;
     snapshotSubscription?.dispose();
     snapshotSubscription = undefined;
     settingsSubscription?.dispose();
@@ -106,7 +127,20 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'requestBody') return _sendBody(message.path);
   if (message.type === 'requestGraph') return _sendGraph();
   if (message.type === 'surfaceUnavailable') return _surfaceUnavailable(message.title);
+  if (message.type === 'surfaceChanged') return _onSurfaceChanged(message.surface);
   if (message.type === 'openSettings') return revealSettings();
+};
+
+const _onSurfaceChanged = (surface: string | undefined): void => {
+  visibleSurface = surface;
+  _updatePollMode();
+};
+
+// How fresh the agent rows have to be, which is a question about what's on screen — so it's the
+// panel that answers it and the store that acts on it.
+const _updatePollMode = (): void => {
+  if (!panel?.visible) return setAgentPollMode('off');
+  setAgentPollMode(visibleSurface === AGENTS_SURFACE ? 'live' : 'background');
 };
 
 // The selected file's text, read on demand rather than shipped with every snapshot. Same path

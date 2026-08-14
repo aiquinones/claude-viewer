@@ -306,4 +306,8 @@ export type WebviewMessage =
   // No path: the graph is over every listed skill, and the host caches it per snapshot.
   | { type: 'requestGraph' }
   | { type: 'surfaceUnavailable'; title: string }
+  // Which surface is on screen, `undefined` for the landing page. The id is a plain string here:
+  // SurfaceId is derived from SURFACES, which is webview-only, so the host matches it against its
+  // own constant the way it already matches command ids against package.json.
+  | { type: 'surfaceChanged'; surface: string | undefined }
   | { type: 'openSettings' };

@@ -21,8 +21,17 @@ const SNAPSHOT_EXPECTED_MS: number = 1500;
 // Holds the host bridge and owns navigation. The views know nothing about it, so the next surface
 // is a sibling under views/ plus an entry in SURFACES.
 export const App = () => {
-  const { snapshot, agents, settings, reveal, refresh, openFile, reportUnavailable, openSettings } =
-    useSnapshot();
+  const {
+    snapshot,
+    agents,
+    settings,
+    reveal,
+    refresh,
+    openFile,
+    reportSurface,
+    reportUnavailable,
+    openSettings
+  } = useSnapshot();
   // Which surface the detail pane renders, and whether the slider is showing it. Separate signals
   // because the surface has to outlive the slide home — clearing it would blank the pane mid-exit.
   const [surface, setSurface] = useState<SurfaceId | undefined>(undefined);
@@ -43,6 +52,13 @@ export const App = () => {
     setSelected(reveal);
     openSurface('skills');
   }, [reveal]);
+
+  // The host reads some surfaces off disk faster while they're being looked at, so it needs to know
+  // which one that is. Sent on the way home as well — `undefined` is the landing page, and a
+  // surface nobody is on is the case worth reporting.
+  useEffect(() => {
+    reportSurface(showDetail ? surface : undefined);
+  }, [showDetail, surface]);
 
   // Everything the spotlight can find. Rebuilt only when the host pushes a new snapshot.
   const searchIndex: SearchDoc[] = useMemo(
