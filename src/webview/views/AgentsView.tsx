@@ -25,8 +25,9 @@ interface AgentsViewProps {
   onBack: () => void;
 }
 
-// Every Claude Code session running right now, grouped by where it's working. The only surface
-// whose rows change without the disk changing — hence the clock.
+// Every agent session running right now — Claude Code and Copilot CLI both — grouped by where it's
+// working rather than by which tool it is. The only surface whose rows change without the disk
+// changing, hence the clock.
 export const AgentsView = ({
   agents,
   snapshot,
@@ -92,7 +93,7 @@ export const AgentsView = ({
 
 const Empty = () => (
   <div className="flex flex-1 items-center justify-center p-5 text-center text-sm text-muted-foreground">
-    No Claude Code sessions running. One appears here as soon as you start it — anywhere on this
-    machine, not only in this folder.
+    No agent sessions running. A Claude Code or Copilot CLI session appears here as soon as you start
+    it — anywhere on this machine, not only in this folder.
   </div>
 );

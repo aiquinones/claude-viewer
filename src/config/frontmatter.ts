@@ -19,7 +19,7 @@ const INDENTED = /^\s+\S/;
 export const parseFrontmatter = (raw: string): Result<Frontmatter, string> => {
   const match: RegExpExecArray | null = BLOCK.exec(raw);
   if (!match) return err('no frontmatter block');
-  return ok({ fields: parseFields(match[1]), body: raw.slice(match[0].length) });
+  return ok({ fields: parseFlatFields(match[1]), body: raw.slice(match[0].length) });
 };
 
 // A long description is usually wrapped across several indented lines. YAML joins those with a
@@ -40,7 +40,11 @@ const foldContinuations = (block: string): string[] => {
   return lines;
 };
 
-const parseFields = (block: string): Record<string, string | string[]> => {
+// The same reader, over a whole file rather than a `---` block. Copilot's `workspace.yaml` is
+// exactly the shape this handles — flat keys, scalar values, wrapped continuation lines — so it
+// reuses this instead of adding a YAML dependency for eleven keys. The caveat at the top of this
+// file still holds: anything nested degrades to literal text rather than disappearing.
+export const parseFlatFields = (block: string): Record<string, string | string[]> => {
   const fields: Record<string, string | string[]> = {};
   let currentKey: string | undefined;
 

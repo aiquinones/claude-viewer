@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { sessionsDir } from '../config/paths';
+import { copilotSessionStateDir, sessionsDir } from '../config/paths';
 import { loadAgentSessions } from '../model/sessions/load';
 import { AgentSession } from '../model/types';
 
@@ -16,7 +16,7 @@ import { AgentSession } from '../model/types';
 const REFRESH_DEBOUNCE_MS: number = 150;
 
 let agents: AgentSession[] | undefined;
-let watcher: vscode.FileSystemWatcher | undefined;
+let watchers: vscode.FileSystemWatcher[] = [];
 let refreshTimer: NodeJS.Timeout | undefined;
 
 const changeEmitter: vscode.EventEmitter<AgentSession[]> = new vscode.EventEmitter();
@@ -35,23 +35,33 @@ export const refreshAgents = async (): Promise<AgentSession[]> => {
   return next;
 };
 
-// One watcher, on the directory that holds one file per running process.
+// One watcher per CLI, each on the file that marks a process as alive: Claude writes one JSON file
+// per pid in a flat directory, Copilot writes a lock into the session's own directory. Both fire on
+// exactly the event this store cares about — an agent starting or exiting.
+//
+// Neither log file is watched. They change on every tool call, and a refresh here re-reads every
+// session; wiring those together is a redraw storm.
 export const startWatchingAgents = (): void => {
-  const pattern: vscode.RelativePattern = new vscode.RelativePattern(
-    vscode.Uri.file(sessionsDir()),
-    '*.json'
-  );
-  watcher = vscode.workspace.createFileSystemWatcher(pattern);
+  watchers = [
+    watch(sessionsDir(), '*.json'),
+    watch(copilotSessionStateDir(), '**/inuse.*.lock')
+  ];
+};
+
+const watch = (dir: string, glob: string): vscode.FileSystemWatcher => {
+  const pattern: vscode.RelativePattern = new vscode.RelativePattern(vscode.Uri.file(dir), glob);
+  const watcher: vscode.FileSystemWatcher = vscode.workspace.createFileSystemWatcher(pattern);
   watcher.onDidCreate(scheduleRefresh);
   watcher.onDidDelete(scheduleRefresh);
   watcher.onDidChange(scheduleRefresh);
+  return watcher;
 };
 
 export const stopWatchingAgents = (): void => {
   if (refreshTimer) clearTimeout(refreshTimer);
   refreshTimer = undefined;
-  watcher?.dispose();
-  watcher = undefined;
+  for (const watcher of watchers) watcher.dispose();
+  watchers = [];
 };
 
 const scheduleRefresh = (): void => {

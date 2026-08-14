@@ -14,7 +14,12 @@ interface AgentActivityArgs {
 
 // The one rule, kept pure and away from the disk so the webview can run it on a clock. That's what
 // lets a row cross from running to blocked on its own, without a refresh or a second read.
+//
+// A `blocked` tail skips the clock entirely: it means the log carries an unanswered permission
+// request, which is the state itself rather than evidence for it. Only Copilot writes that down —
+// for a Claude session the threshold below is still the best its transcript supports.
 export const agentActivity = ({ tail, lastActivityAt, now }: AgentActivityArgs): AgentActivity => {
+  if (tail === 'blocked') return 'blocked';
   if (tail === 'settled') return 'idle';
   return now - lastActivityAt < STALE_AFTER_MS ? 'running' : 'blocked';
 };
