@@ -8,16 +8,35 @@ import { AgentSession } from '../model/types';
 // re-read 38 SKILL.md files, and saving a skill shouldn't re-read every transcript.
 //
 // It matters more here than it did there. A session file is written at startup and never touched
-// again, so this watcher only fires when an agent starts or exits — the thing that will eventually
-// keep the list current is a poll, and a poll on the snapshot would re-walk the whole config every
-// couple of seconds, forever, while the panel is open.
+// again, so the watchers only fire when an agent starts or exits — everything that happens *during*
+// a session comes from the poll below, and a poll on the snapshot would re-walk the whole config
+// every couple of seconds for as long as the panel stayed open.
 
 // A process appearing and its socket appearing are two events for one change.
 const REFRESH_DEBOUNCE_MS: number = 150;
 
+// How often the transcripts are re-read, by what the panel is showing. The watchers below only
+// fire when an agent starts or exits, so without this a running agent's row is a photograph: the
+// view's one-second clock re-ages it but can never learn that the agent did something.
+//
+// Deliberately not annotated — a type here would widen the keys AgentPollMode derives from.
+export const AGENT_POLL_MS = {
+  // The Active Agents surface is up. Every row is a claim about what an agent is doing right now.
+  live: 2_000,
+  // Some other surface. The only thing reading agents is the landing card's count, which changes
+  // when a process starts or exits — already watched, so this is just the crash case.
+  background: 30_000,
+  // Nothing on screen shows agents. Not a rate: the entry exists so `off` is a mode like any other.
+  off: 0
+} as const;
+
+export type AgentPollMode = keyof typeof AGENT_POLL_MS;
+
 let agents: AgentSession[] | undefined;
 let watchers: vscode.FileSystemWatcher[] = [];
 let refreshTimer: NodeJS.Timeout | undefined;
+let pollMode: AgentPollMode = 'off';
+let pollTimer: NodeJS.Timeout | undefined;
 
 const changeEmitter: vscode.EventEmitter<AgentSession[]> = new vscode.EventEmitter();
 
@@ -30,9 +49,45 @@ export const cachedAgents = (): AgentSession[] => agents ?? [];
 
 export const refreshAgents = async (): Promise<AgentSession[]> => {
   const next: AgentSession[] = await loadAgentSessions();
+  const changed: boolean = signature(next) !== signature(agents);
   agents = next;
-  changeEmitter.fire(next);
+  // Most poll passes find exactly what the last one did, and firing anyway would re-render the
+  // whole surface every couple of seconds for nothing.
+  if (changed) changeEmitter.fire(next);
   return next;
+};
+
+// The whole array rather than the fields that happen to render today: a new field on AgentSession
+// would otherwise quietly stop reaching the view. Sessions are a handful of small objects.
+const signature = (sessions: AgentSession[] | undefined): string | undefined =>
+  JSON.stringify(sessions);
+
+// What the panel is showing, which is the only thing that says how fresh these rows have to be.
+// Set by panel.ts — nothing else knows whether the surface is on screen.
+export const setAgentPollMode = (mode: AgentPollMode): void => {
+  if (mode === pollMode) return;
+  pollMode = mode;
+  schedulePoll();
+};
+
+// Chained off the end of each pass rather than an interval. One pass re-reads a tail per live
+// session — 64KB each for Claude, 256KB for Copilot — and a slow disk must not be able to stack
+// passes up behind each other.
+const schedulePoll = (): void => {
+  if (pollTimer) clearTimeout(pollTimer);
+  pollTimer = undefined;
+
+  const interval: number = AGENT_POLL_MS[pollMode];
+  if (interval === 0) return;
+
+  pollTimer = setTimeout(() => void poll(), interval);
+};
+
+// Re-arms from the current mode, so a mode set mid-read takes effect on the next pass rather than
+// racing this one.
+const poll = async (): Promise<void> => {
+  await refreshAgents();
+  schedulePoll();
 };
 
 // One watcher per CLI, each on the file that marks a process as alive: Claude writes one JSON file
@@ -60,6 +115,7 @@ const watch = (dir: string, glob: string): vscode.FileSystemWatcher => {
 export const stopWatchingAgents = (): void => {
   if (refreshTimer) clearTimeout(refreshTimer);
   refreshTimer = undefined;
+  setAgentPollMode('off');
   for (const watcher of watchers) watcher.dispose();
   watchers = [];
 };
