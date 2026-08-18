@@ -1,6 +1,7 @@
 import { Crown } from 'lucide-react';
 import { SkillEntry } from '../model/types';
 import { SkillLink } from './SkillLink';
+import { OVER_STICKY_CLASS } from './z-layers';
 
 interface WinnerCrownProps {
   // The same-named skills the selected one wins over.
@@ -30,12 +31,13 @@ export const WinnerCrown = ({ shadowed, onSelectSkill }: WinnerCrownProps) => {
       </span>
 
       {/* `pt-1.5` rather than a margin, so the gap under the crown is still inside the group and
-          the card survives the mouse crossing it. `z-20` clears the body's sticky headings, which
-          are positioned and come later in the DOM. The width backs off in a narrow panel: the pane
-          is the viewport less the list and the padding, and `overflow-x-clip` would cut the rest. */}
+          the card survives the mouse crossing it. It hangs off a row above the pinned stack and
+          drops across it, so it wears the class that clears that whole scale. The width backs off
+          in a narrow panel: the pane is the viewport less the list and the padding, and
+          `overflow-x-clip` would cut the rest. */}
       <div
         id={CARD_ID}
-        className="invisible absolute left-0 top-full z-20 w-[min(24rem,calc(100vw-22rem))] pt-1.5 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+        className={`invisible absolute left-0 top-full ${OVER_STICKY_CLASS} w-[min(24rem,calc(100vw-22rem))] pt-1.5 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100`}
       >
         <div className="flex flex-col items-start gap-1 rounded-md border border-border bg-popover p-3 text-xs shadow-lg">
           <span>

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { STICKY_TOP_Z } from '../z-layers';
 import { Blocks } from './Blocks';
 import { Inline } from './Inline';
 import { Section, toSections } from './sections';
@@ -21,7 +22,7 @@ const HEADING_CLASS: Record<number, string> = {
 interface MarkdownProps {
   raw: string;
   // Rows already pinned above this markdown, if the caller stacks its own bar on top. Each one
-  // pushes every heading down a slot; the caller has to stay above `30 - MAX_DEPTH` in z-index.
+  // pushes every heading down a slot; the caller's own bar sits at STICKY_TOP_Z, above all of them.
   offsetRows?: number;
 }
 
@@ -68,7 +69,7 @@ const StickyHeading = ({ section, offsetRows }: SectionViewProps) => {
   return (
     <Tag
       title={heading.text}
-      style={{ top: `${(depth - 1 + offsetRows) * ROW_REM}rem`, zIndex: 30 - depth }}
+      style={{ top: `${(depth - 1 + offsetRows) * ROW_REM}rem`, zIndex: STICKY_TOP_Z - depth }}
       className={`sticky -mx-5 flex ${STICKY_ROW_CLASS} items-center border-b border-border bg-background px-5 ${HEADING_CLASS[depth]}`}
     >
       {/* The span, not the heading, does the truncating: a flex item needs min-w-0 before it

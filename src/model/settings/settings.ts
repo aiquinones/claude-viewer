@@ -40,8 +40,11 @@ export interface ViewerSettings {
   budgets: Budgets;
 }
 
-// Measured against real skills: listings run ~50 est. tokens median and ~80 at the top, bodies
-// ~500 and ~1300. A skill at the default is comfortable; one at twice it is saying something.
+// Measured against real skills. Anthropic's 17 official ones run ~55 to ~235 est. tokens per
+// listing (~80 median) and ~275 to ~8,000 per body (~2,000 median); 52 skills on one real machine
+// come out at 61 and ~1,000 median. So the content default is the published median, and the
+// description default is a little above it. A skill at the default is comfortable; one at twice it
+// is saying something.
 export const DEFAULT_DESCRIPTION_BUDGET: number = 100;
 export const DEFAULT_CONTENT_BUDGET: number = 2000;
 
