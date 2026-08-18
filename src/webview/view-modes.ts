@@ -17,7 +17,7 @@ interface ViewModeShape {
 export const VIEW_MODES = [
   { id: 'text', label: 'Text', icon: FileText, status: 'ready' },
   { id: 'graph', label: 'Graph', icon: Waypoints, status: 'ready' },
-  { id: 'flow', label: 'Flow', icon: Workflow, status: 'soon' }
+  { id: 'flow', label: 'Flow', icon: Workflow, status: 'ready' }
 ] as const satisfies readonly ViewModeShape[];
 
 // `status` is widened back out of its literal, the way `Surface` does it: pinned to the values that
