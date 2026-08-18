@@ -8,7 +8,7 @@ import { PanelActions } from '../PanelActions';
 import { SkillBody } from '../SkillBody';
 import { SkillDetail } from '../SkillDetail';
 import { SkillNav } from '../SkillNav';
-import { ModeBlockers } from '../ViewModeToggle';
+import { ModeBlockers } from '../view-mode';
 import { SkillFlow, toSkillFlow } from '../flow/steps';
 import { formatTokens } from '../format-size';
 import { useSkillGraph } from '../graph/useSkillGraph';
@@ -163,18 +163,29 @@ interface ModeBlockersArgs {
 // Each mode is blocked by a lookup into the thing it would render, rather than a second rule that
 // could drift from the first: a skill has references exactly when it's a node in the graph, and it
 // has steps exactly when `toSkillFlow` found some.
-const modeBlockers = ({ graph, path, flow, loading }: ModeBlockersArgs): ModeBlockers => ({
+const modeBlockers = ({
+  graph,
+  path,
+  flow,
+  loading
+}: ModeBlockersArgs): ModeBlockers<SkillViewMode> => ({
   ...graphBlocker({ graph, path }),
   ...flowBlocker({ flow, loading })
 });
 
-const graphBlocker = ({ graph, path }: Omit<ModeBlockersArgs, 'flow' | 'loading'>): ModeBlockers => {
+const graphBlocker = ({
+  graph,
+  path
+}: Omit<ModeBlockersArgs, 'flow' | 'loading'>): ModeBlockers<SkillViewMode> => {
   if (!graph) return { graph: 'Building the graph…' };
   if (graph.nodes.some((node) => node.path === path)) return {};
   return { graph: 'This skill names no other, and none names it' };
 };
 
-const flowBlocker = ({ flow, loading }: Omit<ModeBlockersArgs, 'graph' | 'path'>): ModeBlockers => {
+const flowBlocker = ({
+  flow,
+  loading
+}: Omit<ModeBlockersArgs, 'graph' | 'path'>): ModeBlockers<SkillViewMode> => {
   if (loading) return { flow: 'Reading SKILL.md…' };
   if (flow) return {};
   return { flow: "This skill isn't written as a sequence of steps" };

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { buildSearchIndex } from '../model/search/build-index';
 import { AgentSession, ConfigSnapshot, Reveal, SearchDoc } from '../model/types';
+import { AgentColorProvider } from './agent-color/AgentColorContext';
 import { Loading } from './loading/Loading';
 import { SettingsProvider } from './settings/SettingsContext';
 import { Spotlight } from './spotlight/Spotlight';
@@ -25,6 +26,8 @@ export const App = () => {
     snapshot,
     agents,
     settings,
+    agentColors,
+    setAgentColor,
     reveal,
     refresh,
     openFile,
@@ -88,42 +91,44 @@ export const App = () => {
 
   return (
     <SettingsProvider settings={settings} openSettings={openSettings}>
-      <ViewSlider
-        showDetail={showDetail}
-        home={
-          <LandingView
-            snapshot={snapshot}
-            agents={agents}
-            onOpenSurface={openSurface}
-            onUnavailableSurface={reportUnavailable}
-            onSearch={openSpotlight}
-            onRefresh={refresh}
-          />
-        }
-        detail={
-          <Detail
-            surface={surface}
-            snapshot={snapshot}
-            agents={agents}
-            reveal={selected}
-            onOpenFile={openFile}
-            onSearch={openSpotlight}
-            onRefresh={refresh}
-            onBack={() => setShowDetail(false)}
-          />
-        }
-      />
-
-      {/* Keyed on the open, so hitting the chord again gives an empty box back. */}
-      {spotlightOpenedAt !== undefined && (
-        <Spotlight
-          key={spotlightOpenedAt}
-          index={searchIndex}
-          initialFilters={kindForSurface(showDetail ? surface : undefined)}
-          onChoose={chooseResult}
-          onDismiss={dismissSpotlight}
+      <AgentColorProvider colors={agentColors} setColor={setAgentColor}>
+        <ViewSlider
+          showDetail={showDetail}
+          home={
+            <LandingView
+              snapshot={snapshot}
+              agents={agents}
+              onOpenSurface={openSurface}
+              onUnavailableSurface={reportUnavailable}
+              onSearch={openSpotlight}
+              onRefresh={refresh}
+            />
+          }
+          detail={
+            <Detail
+              surface={surface}
+              snapshot={snapshot}
+              agents={agents}
+              reveal={selected}
+              onOpenFile={openFile}
+              onSearch={openSpotlight}
+              onRefresh={refresh}
+              onBack={() => setShowDetail(false)}
+            />
+          }
         />
-      )}
+
+        {/* Keyed on the open, so hitting the chord again gives an empty box back. */}
+        {spotlightOpenedAt !== undefined && (
+          <Spotlight
+            key={spotlightOpenedAt}
+            index={searchIndex}
+            initialFilters={kindForSurface(showDetail ? surface : undefined)}
+            onChoose={chooseResult}
+            onDismiss={dismissSpotlight}
+          />
+        )}
+      </AgentColorProvider>
     </SettingsProvider>
   );
 };

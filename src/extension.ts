@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { FIND_SKILL_COMMAND, findSkill } from './commands/find-skill/find-skill';
 import { handleUri } from './commands/handle-uri/handle-uri';
+import { initAgentColors } from './host/agent-colors-store';
 import { startWatchingAgents, stopWatchingAgents } from './host/agents-store';
 import { startWatching, stopWatching } from './host/config-store';
 import { LAUNCH_COMMAND, openPanel } from './host/panel';
@@ -10,6 +11,10 @@ import { registerTree } from './host/tree/register-tree';
 // Wiring only. Every entry point's body lives under commands/ or host/, so what a user can invoke
 // is readable from this one screen.
 export const activate = (context: vscode.ExtensionContext): void => {
+  // The row colours live in this extension's own storage, so the store needs it before any panel
+  // opens.
+  initAgentColors(context.globalState);
+
   context.subscriptions.push(
     vscode.commands.registerCommand(LAUNCH_COMMAND, () => openPanel({ context })),
     vscode.commands.registerCommand(FIND_SKILL_COMMAND, () => void findSkill({ context })),

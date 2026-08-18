@@ -1,5 +1,7 @@
 import { AgentSession } from '../model/types';
+import { AgentRobotRow } from './AgentRobotRow';
 import { AgentRow } from './AgentRow';
+import { AgentViewMode } from './agent-view-modes';
 import { plural } from './format-size';
 
 interface AgentListProps {
@@ -7,6 +9,7 @@ interface AgentListProps {
   // "Elsewhere" heading would be answering a question nobody asked.
   title?: string;
   agents: AgentSession[];
+  mode: AgentViewMode;
   now: number;
   workspaceRoot: string | undefined;
   onOpen: (agent: AgentSession) => void;
@@ -14,8 +17,20 @@ interface AgentListProps {
 
 // One group of agents under its heading. No folding: the whole surface is usually four rows, and
 // there's nothing here to fold away from.
-export const AgentList = ({ title, agents, now, workspaceRoot, onOpen }: AgentListProps) => {
+//
+// The mode picks a row component and changes nothing else — both draw the same sessions, in the
+// same order, under the same headings.
+export const AgentList = ({
+  title,
+  agents,
+  mode,
+  now,
+  workspaceRoot,
+  onOpen
+}: AgentListProps) => {
   if (agents.length === 0) return null;
+
+  const Row = mode === 'robots' ? AgentRobotRow : AgentRow;
 
   return (
     <section className="flex flex-col gap-1">
@@ -26,7 +41,7 @@ export const AgentList = ({ title, agents, now, workspaceRoot, onOpen }: AgentLi
       )}
 
       {agents.map((agent) => (
-        <AgentRow
+        <Row
           key={agent.sessionId}
           agent={agent}
           now={now}

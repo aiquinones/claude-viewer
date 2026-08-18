@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { DEFAULT_SETTINGS, ViewerSettings } from '../model/settings/settings';
-import { AgentSession, ConfigSnapshot, Reveal } from '../model/types';
+import { AgentColor, AgentColors, AgentSession, ConfigSnapshot, Reveal } from '../model/types';
 import { vscode } from './vscodeApi';
 
 // The single bridge to the extension host. The host owns the filesystem and pushes a whole
@@ -13,6 +13,8 @@ export const useSnapshot = () => {
   // The defaults until the host says otherwise, which is one message and arrives before the
   // snapshot — so nothing renders a budget from them in practice.
   const [settings, setSettings] = useState<ViewerSettings>(DEFAULT_SETTINGS);
+  // Rows nobody has coloured, until the host says which ones have been.
+  const [agentColors, setAgentColors] = useState<AgentColors>({});
   const [reveal, setReveal] = useState<Reveal | undefined>(undefined);
 
   useEffect(() => {
@@ -23,6 +25,7 @@ export const useSnapshot = () => {
       // about, and neither read should cost the other one.
       if (message?.type === 'agents') setAgents(message.agents as AgentSession[]);
       if (message?.type === 'settings') setSettings(message.settings as ViewerSettings);
+      if (message?.type === 'agentColors') setAgentColors(message.colors as AgentColors);
       // A fresh object every time, so an effect keyed on it re-runs for a repeated reveal.
       if (message?.type === 'reveal') setReveal({ path: message.path, nonce: message.nonce });
     };
@@ -47,10 +50,17 @@ export const useSnapshot = () => {
   // Asks for the Settings UI. The host owns which keys it opens on.
   const openSettings = (): void => vscode.postMessage({ type: 'openSettings' });
 
+  // One row's colour. The host stores it and posts the whole map back, so nothing here guesses at
+  // what it wrote.
+  const setAgentColor = (args: { sessionId: string; color?: AgentColor }): void =>
+    vscode.postMessage({ type: 'setAgentColor', ...args });
+
   return {
     snapshot,
     agents,
     settings,
+    agentColors,
+    setAgentColor,
     reveal,
     refresh,
     openFile,

@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
   allAgents,
   copilotAgents,
+  everyMoodAgents,
   idleAgent,
   noTranscriptAgent,
   remoteAgents,
@@ -71,4 +72,34 @@ export const NoWorkspace: Story = {
 // and with no title to show, it falls back to the folder it's working in.
 export const NoTranscript: Story = {
   args: { agents: [noTranscriptAgent, idleAgent], snapshot: snapshot({ skills: allSkills }) }
+};
+
+// The other list. Same sessions, same groups, same order — the robot carries the state, so the
+// badge and the tool tag come off the row.
+export const Robots: Story = {
+  args: {
+    agents: allAgents,
+    snapshot: snapshot({ skills: allSkills }),
+    initialMode: 'robots'
+  }
+};
+
+// Four rows, one per pose, which is the arrangement that shows whether they read against each
+// other rather than one at a time. The colour picker works here — hover a row and pick one.
+export const RobotsEveryMood: Story = {
+  args: {
+    agents: everyMoodAgents,
+    snapshot: snapshot({ skills: allSkills }),
+    initialMode: 'robots'
+  }
+};
+
+// Copilot only, in Robots mode: its blocked state is read off the disk rather than inferred, and it
+// still draws the waiting robot — a permission prompt on `bash` is waiting on a machine.
+export const RobotsCopilotOnly: Story = {
+  args: {
+    agents: copilotAgents,
+    snapshot: snapshot({ skills: allSkills }),
+    initialMode: 'robots'
+  }
 };

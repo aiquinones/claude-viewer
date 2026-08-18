@@ -1,30 +1,34 @@
 import { CSSProperties } from 'react';
 import { Tooltip } from './Tooltip';
-import { SkillViewMode, VIEW_MODES, ViewMode } from './view-modes';
+import { ModeBlockers, ViewModeEntry } from './view-mode';
 
-// Why a mode can't be picked, keyed by mode. A mode with no entry here is available; the string is
-// what its tooltip says instead of the label.
-export type ModeBlockers = Partial<Record<SkillViewMode, string>>;
-
-interface ViewModeToggleProps {
-  mode: SkillViewMode;
-  blockers?: ModeBlockers;
-  onChange: (mode: SkillViewMode) => void;
+interface ViewModeToggleProps<Id extends string> {
+  // The modes to draw, in the order they sit in the control. Passed in rather than imported, so one
+  // toggle serves the skill Content section and the Active Agents surface.
+  modes: readonly ViewModeEntry<Id>[];
+  mode: Id;
+  blockers?: ModeBlockers<Id>;
+  onChange: (mode: Id) => void;
 }
 
-// The segmented control at the end of the Content heading's row. A map over VIEW_MODES rather than
-// three written-out buttons, so a fourth mode is one entry there and nothing here.
-export const ViewModeToggle = ({ mode, blockers, onChange }: ViewModeToggleProps) => (
+// A segmented control over whatever modes it's handed. A map rather than written-out buttons, so
+// another mode is one entry in the caller's list and nothing here.
+export const ViewModeToggle = <Id extends string>({
+  modes,
+  mode,
+  blockers,
+  onChange
+}: ViewModeToggleProps<Id>) => (
   <div
     role="group"
     aria-label="View as"
-    style={{ '--mode-index': VIEW_MODES.findIndex((entry) => entry.id === mode) } as CSSProperties}
+    style={{ '--mode-index': modes.findIndex((entry) => entry.id === mode) } as CSSProperties}
     className="relative flex shrink-0 items-center rounded-lg border border-border bg-muted p-1"
   >
     {/* The moving part: one button-sized tile that slides to whichever mode is on. Every button is
         the same width, so where it goes is its index — nothing has to be measured. */}
     <span aria-hidden className="mode-indicator absolute left-1 top-1 size-7 rounded-md bg-background shadow-sm" />
-    {VIEW_MODES.map((entry) => (
+    {modes.map((entry) => (
       <ModeButton
         key={entry.id}
         entry={entry}
@@ -36,27 +40,35 @@ export const ViewModeToggle = ({ mode, blockers, onChange }: ViewModeToggleProps
   </div>
 );
 
-interface BlockerForArgs {
-  entry: ViewMode;
-  blockers: ModeBlockers | undefined;
+interface BlockerForArgs<Id extends string> {
+  entry: ViewModeEntry<Id>;
+  blockers: ModeBlockers<Id> | undefined;
 }
 
 // A `soon` mode carries its own reason — the caller shouldn't have to know which ones aren't built.
-const blockerFor = ({ entry, blockers }: BlockerForArgs): string | undefined =>
+const blockerFor = <Id extends string>({
+  entry,
+  blockers
+}: BlockerForArgs<Id>): string | undefined =>
   entry.status === 'soon' ? `${entry.label} view is coming` : blockers?.[entry.id];
 
-interface ModeButtonProps {
-  entry: ViewMode;
+interface ModeButtonProps<Id extends string> {
+  entry: ViewModeEntry<Id>;
   active: boolean;
   blocker: string | undefined;
-  onChange: (mode: SkillViewMode) => void;
+  onChange: (mode: Id) => void;
 }
 
 // Blocked buttons keep their hover so the tooltip can explain them — which is the whole point of
 // dimming rather than hiding. `disabled` would kill the pointer events and the explanation with it.
 //
 // `relative` on every button puts it over the tile sliding underneath.
-const ModeButton = ({ entry, active, blocker, onChange }: ModeButtonProps) => {
+const ModeButton = <Id extends string>({
+  entry,
+  active,
+  blocker,
+  onChange
+}: ModeButtonProps<Id>) => {
   const Icon = entry.icon;
 
   return (

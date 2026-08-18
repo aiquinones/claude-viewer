@@ -1,9 +1,11 @@
-import { CSSProperties } from 'react';
+import { CSSProperties, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { AgentSession, ConfigSnapshot } from '../../model/types';
 import { Button } from '@/components/ui/button';
 import { AgentList } from '../AgentList';
+import { AGENT_VIEW_MODES, AgentViewMode, DEFAULT_AGENT_VIEW_MODE } from '../agent-view-modes';
 import { PanelActions } from '../PanelActions';
+import { ViewModeToggle } from '../ViewModeToggle';
 import { activityOf } from '../agent-activity';
 import { AgentGroups, groupByWorkspace } from '../agent-groups';
 import { plural } from '../format-size';
@@ -24,6 +26,9 @@ interface AgentsViewProps {
   // which is what "this workspace" is measured against.
   agents: AgentSession[];
   snapshot: ConfigSnapshot;
+  // Which list the toggle opens on. The panel never passes it — it's here so a story can open on
+  // either one, since the mode is state and nothing outside can reach in and set it.
+  initialMode?: AgentViewMode;
   onOpenFile: (path: string) => void;
   onSearch: () => void;
   onRefresh: () => void;
@@ -36,12 +41,16 @@ interface AgentsViewProps {
 export const AgentsView = ({
   agents,
   snapshot,
+  initialMode = DEFAULT_AGENT_VIEW_MODE,
   onOpenFile,
   onSearch,
   onRefresh,
   onBack
 }: AgentsViewProps) => {
   const now: number = useNow(TICK_MS);
+  // Which of the two lists is up. React state, like the skills toggle: it survives a round trip to
+  // the landing page and nothing more.
+  const [mode, setMode] = useState<AgentViewMode>(initialMode);
   const { here, elsewhere }: AgentGroups = groupByWorkspace({
     agents,
     workspaceRoot: snapshot.workspaceRoot
@@ -67,6 +76,7 @@ export const AgentsView = ({
               : `${plural(agents.length, 'session')} · ${busy} working`}
           </span>
         </div>
+        <ViewModeToggle modes={AGENT_VIEW_MODES} mode={mode} onChange={setMode} />
         <PanelActions onSearch={onSearch} onRefresh={onRefresh} />
       </header>
 
@@ -78,6 +88,7 @@ export const AgentsView = ({
             <AgentList
               title="This workspace"
               agents={here}
+              mode={mode}
               now={now}
               workspaceRoot={snapshot.workspaceRoot}
               onOpen={(agent) => onOpenFile(agent.transcriptPath)}
@@ -85,6 +96,7 @@ export const AgentsView = ({
             <AgentList
               title={snapshot.workspaceRoot ? 'Elsewhere' : undefined}
               agents={elsewhere}
+              mode={mode}
               now={now}
               workspaceRoot={snapshot.workspaceRoot}
               onOpen={(agent) => onOpenFile(agent.transcriptPath)}

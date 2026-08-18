@@ -102,6 +102,21 @@ export const noTranscriptAgent: AgentSession = makeAgent({
   ]
 });
 
+// Blocked, but on you rather than on a machine: `AskUserQuestion` is the tool an agent stops at
+// when the answer it needs is yours. Same badge as `waitingAgent`, different robot — this pair is
+// what the Robots mode says that the Details row can't.
+export const askingAgent: AgentSession = makeAgent({
+  sessionId: 'd2c9f4a1-5b83-4e17-9f60-8a3e1c7d4b52',
+  pid: 9012,
+  cwd: `${WORKSPACE}/services/api`,
+  title: 'Pick a migration strategy for the sessions table',
+  lastPrompt: 'we need to move sessions off the primary — work out how',
+  tail: 'working',
+  pendingTool: 'AskUserQuestion',
+  // Past the stale threshold, which is what makes a `working` tail read as blocked.
+  lastActivityAt: ago(150_000)
+});
+
 // A title long enough to prove the row truncates rather than wraps, and a prompt behind it.
 export const longTitleAgent: AgentSession = makeAgent({
   sessionId: 'b745818d-e9c4-4467-a065-c7fb5ca8ba2b',
@@ -165,12 +180,22 @@ export const allAgents: AgentSession[] = [
   copilotMcpAgent,
   noTranscriptAgent,
   elsewhereAgent,
+  askingAgent,
   waitingAgent,
   idleAgent
 ];
 
 // Nothing in this workspace — every agent is somewhere else.
 export const remoteAgents: AgentSession[] = [elsewhereAgent, noTranscriptAgent, copilotMcpAgent];
+
+// One of each robot, in the order the moods are declared. The story that has to show four poses
+// side by side wants exactly this and nothing else.
+export const everyMoodAgents: AgentSession[] = [
+  workingAgent,
+  waitingAgent,
+  askingAgent,
+  idleAgent
+];
 
 // One CLI at a time, for the stories that check a row reads right without the other to compare to.
 export const copilotAgents: AgentSession[] = [

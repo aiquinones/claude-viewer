@@ -121,6 +121,21 @@ export const AGENT_TOOL_LABEL: Record<AgentTool, string> = {
   copilot: 'Copilot CLI'
 };
 
+// The colours a row can be given by hand, so two agents in one repo can be told apart at a glance.
+// Six, because that's how many colours the editor's chart palette names — the CSS values live in
+// webview/agent-color/, since nothing on the host side has an opinion about them.
+//
+// Unset is the seventh state and the default: a row nobody has coloured paints as it always did.
+//
+// Deliberately not annotated: a type here would erase the literals `AgentColor` derives from.
+export const AGENT_COLORS = ['blue', 'green', 'purple', 'orange', 'red', 'yellow'] as const;
+
+export type AgentColor = (typeof AGENT_COLORS)[number];
+
+// Chosen colours, keyed by session id. A session id lives as long as the process, which is exactly
+// as long as the choice is worth keeping — the host prunes the map to what's still running.
+export type AgentColors = Record<string, AgentColor>;
+
 // A pull request a session opened. Both fields or neither — a link with no number has nothing to
 // print, and a number with no link has nowhere to go.
 export interface AgentPullRequest {
@@ -293,7 +308,10 @@ export type HostMessage =
   | { type: 'agents'; agents: AgentSession[] }
   | ({ type: 'reveal' } & Reveal)
   | ({ type: 'fileBody' } & FileBody)
-  | { type: 'skillGraph'; graph: SkillGraph };
+  | { type: 'skillGraph'; graph: SkillGraph }
+  // The whole map every time — it's a handful of entries, and a delta would be a protocol for
+  // something that fits in one message.
+  | { type: 'agentColors'; colors: AgentColors };
 
 // Webview → host. `surfaceUnavailable` carries only the surface's name: the host owns the
 // sentence, the same way it owns which paths `openFile` will accept. `openSettings` is the same
@@ -310,4 +328,6 @@ export type WebviewMessage =
   // SurfaceId is derived from SURFACES, which is webview-only, so the host matches it against its
   // own constant the way it already matches command ids against package.json.
   | { type: 'surfaceChanged'; surface: string | undefined }
-  | { type: 'openSettings' };
+  | { type: 'openSettings' }
+  // One row's colour. No `color` clears it — the row goes back to painting like every other one.
+  | { type: 'setAgentColor'; sessionId: string; color?: AgentColor };
