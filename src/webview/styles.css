@@ -25,6 +25,11 @@
   --muted: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
   --muted-foreground: var(--vscode-descriptionForeground, color-mix(in srgb, var(--vscode-foreground) 60%, transparent));
 
+  /* The same weight, opaque. descriptionForeground carries alpha in most themes, so an SVG whose
+     strokes overlap composites twice at every seam and the joints read brighter than the lines.
+     Mixing into the background instead lands near what that variable resolves to in either theme. */
+  --muted-foreground-solid: color-mix(in srgb, var(--vscode-foreground) 75%, var(--vscode-editor-background));
+
   --accent: var(--vscode-list-hoverBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
   --accent-foreground: var(--vscode-foreground);
 
@@ -287,6 +292,13 @@
 
 .graph-node:active {
   cursor: grabbing;
+}
+
+/* The robot paints its own color rather than inheriting the muted foreground around it: its
+   antenna and both ears overlap the body's outline, and a stroke with alpha stacks at those seams.
+   Storybook can't show that — its theme values are opaque. */
+.robot {
+  color: var(--muted-foreground-solid);
 }
 
 /* The loading robot's eyes. One gesture per tick, alternating: a tick passes and it blinks, a tick

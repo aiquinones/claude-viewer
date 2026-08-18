@@ -22,7 +22,7 @@ export const Robot = ({ tickMs = DEFAULT_TICK_MS, className = 'size-12' }: Robot
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden
-    className={className}
+    className={`robot ${className}`}
     style={{ '--robot-tick': `${tickMs}ms` } as CSSProperties}
   >
     <path d="M12 8V4H8" />
