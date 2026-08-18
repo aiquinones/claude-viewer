@@ -1,26 +1,16 @@
-import { OpenEyes, ShutEyes } from './Eyes';
+import { OpenEyes } from './Eyes';
 import { RobotHead } from './RobotHead';
 
-// A tool call is out, and the wait is long enough that the robot nods off in it. It shuts its eyes,
-// breathes twice — up, down, up, down — and on the way down the second time it hits the bottom,
-// catches itself, snaps its eyes open and shakes it off. Then it does it again, because the tool
-// still hasn't come back.
+// A tool call is out. The robot is the icon doing what the icon does — blinking, glancing to the
+// sides, one gesture a tick — and the three dots beside it are the whole of what makes it waiting.
 //
-// Both pairs of eyes are drawn and cross-faded rather than morphed: a pill is a line and a shut eye
-// is a cubic, and no amount of `d` interpolation turns one into the other. The shut pair starts at
-// `opacity: 0` in the stylesheet, so with animations off this is just the icon's face.
+// It carries no pose of its own on purpose. Waiting is the state you should be able to skim past,
+// and a robot acting one out draws the eye that asking needs.
 export const WaitingRobot = () => (
   <RobotHead
-    face={
-      <>
-        <OpenEyes className="bot-eye-awake" />
-        <ShutEyes className="bot-eye-dozing" />
-      </>
-    }
+    face={<OpenEyes />}
     aside={
       <>
-        {/* Three bare dots rather than a bubble. The ? next door doesn't have one either, and at
-            row size the ellipse was most of what you saw. */}
         <Dot className="bot-dot" cx={25.6} />
         <Dot className="bot-dot bot-dot--2" cx={28} />
         <Dot className="bot-dot bot-dot--3" cx={30.4} />

@@ -423,7 +423,6 @@
   color: var(--row-color, var(--activity-blocked));
 }
 
-.bot-shell,
 .bot-head,
 .bot-eye,
 .bot-ask,
@@ -436,6 +435,12 @@
 .bot-head {
   transform-origin: 16px 24px;
 }
+
+/* A blink is a scale about an eye's own middle, and a glance is a translate, so each eye needs its
+   own origin — under `transform-box: view-box` these are positions in the picture, not in the eye.
+   Waiting and asking both blink, so they live out here rather than in either block. */
+.bot-eye-left  { transform-origin: 13px 18px; }
+.bot-eye-right { transform-origin: 19px 18px; }
 
 /* Working: a head bob at typing speed and eyes scanning the line they're writing. Nothing else
    moves, because nothing else is the icon. */
@@ -459,34 +464,20 @@
   88%, 100% { translate: 0 0; }
 }
 
-/* Waiting: the wait is long enough that the robot nods off in it. Eyes shut, two slow breaths — up,
-   down, up, down — and on the second way down it hits the bottom, catches itself, snaps its eyes
-   open and shakes it off. Then round again, because the tool still hasn't come back.
+/* Waiting: no pose of its own. The head is the icon doing exactly what the icon does — one gesture
+   a tick, a blink and then a glance to the sides — and the three dots beside it are the whole of
+   what makes it waiting.
 
-   Four animations on one period so the beats can't drift: the eyes swap on `opacity`, the head
-   breathes and jolts on `translate`, and the shake is `translate` on `.bot-shell` — a different
-   element, or it would take the property off the nodding. The dots keep their own faster cycle,
-   which is the one thing here that isn't part of the story. */
-.agent-robot--waiting .bot-eye-awake {
-  animation: robot-doze-open calc(var(--robot-tick, 1s) * 6) steps(1, end) infinite;
-}
-
-.agent-robot--waiting .bot-eye-dozing {
-  animation: robot-doze-shut calc(var(--robot-tick, 1s) * 6) steps(1, end) infinite;
-}
-
-.agent-robot--waiting .bot-head {
-  animation: robot-nod calc(var(--robot-tick, 1s) * 6) ease-in-out infinite;
-}
-
-.agent-robot--waiting .bot-shell {
-  animation: robot-shake calc(var(--robot-tick, 1s) * 6) ease-in-out infinite;
-}
-
-/* The shut pair is hidden until the doze, which is also what makes the awake face the one a stopped
-   animation falls back to. */
-.bot-eye-dozing {
-  opacity: 0;
+   Same two keyframes the loading robot uses, and they carry over unchanged because both robots have
+   the same 16-unit head with its eyes 6 apart. They compose rather than collide because they drive
+   different properties: `scale` and `translate` are separate, and the browser applies both. Written
+   as two `transform` animations the later would win the property outright and the blink would never
+   show. */
+.agent-robot--waiting .bot-eye {
+  animation:
+    robot-blink calc(var(--robot-tick, 1s) * 2) ease-in-out infinite,
+    robot-glance calc(var(--robot-tick, 1s) * 2) ease-in-out infinite;
+  animation-delay: 0s, var(--robot-tick, 1s);
 }
 
 .bot-dot {
@@ -495,42 +486,6 @@
 
 .bot-dot--2 { animation-delay: calc(var(--robot-tick, 1s) * 0.25); }
 .bot-dot--3 { animation-delay: calc(var(--robot-tick, 1s) * 0.5); }
-
-/* `steps(1, end)` on both: an eye is open or it's shut, and interpolating the two opacities draws
-   all four eyes at half strength through the middle of every swap. */
-@keyframes robot-doze-open {
-  0%, 13%    { opacity: 1; }
-  13.01%     { opacity: 0; }
-  58%, 100%  { opacity: 1; }
-}
-
-@keyframes robot-doze-shut {
-  0%, 13%    { opacity: 0; }
-  13.01%     { opacity: 1; }
-  58%, 100%  { opacity: 0; }
-}
-
-/* Two breaths and then the catch. 56% is the bottom of the second one and 61% is the jolt — the
-   beat where it notices — with the eyes opening at 58%, between the two. */
-@keyframes robot-nod {
-  0%, 13%   { translate: 0 0; }
-  24%       { translate: 0 -1.1px; }
-  36%       { translate: 0 0.9px; }
-  46%       { translate: 0 -1.1px; }
-  56%       { translate: 0 1.7px; }
-  61%       { translate: 0 -1.7px; }
-  67%, 100% { translate: 0 0; }
-}
-
-/* Starts as the head finishes its jolt, and dies out over four decreasing swings. */
-@keyframes robot-shake {
-  0%, 65%   { translate: 0 0; }
-  69%       { translate: -1px 0; }
-  73%       { translate: 0.9px 0; }
-  77%       { translate: -0.6px 0; }
-  81%       { translate: 0.35px 0; }
-  85%, 100% { translate: 0 0; }
-}
 
 @keyframes robot-dot-pulse {
   0%, 100% { opacity: 0.25; }
@@ -555,11 +510,6 @@
 .bot-ask {
   animation: robot-ask-drop calc(var(--robot-tick, 1s) * 5) ease-in-out infinite;
 }
-
-/* A blink is a scale about the eye's own middle, so each eye needs its own origin — under
-   `transform-box: view-box` these are positions in the picture, not in the eye. */
-.bot-eye-left  { transform-origin: 13px 18px; }
-.bot-eye-right { transform-origin: 19px 18px; }
 
 @keyframes robot-eye-blink {
   0%, 12%   { scale: 1 1; }
@@ -627,9 +577,8 @@
      robots you can tell apart: shut eyes and Zs, a slanted pair, and two level pairs under a ? and
      under three dots. The Zs and the ? sit at full opacity and in place here — their keyframes
      start them hidden and above the box, and the base style is what a stopped animation falls back
-     to, which is also why waiting's dozing eyes are hidden in the stylesheet rather than only by a
-     keyframe. Asking loses its tilt with the rest of the motion, so the ? against the dots is all
-     that separates it from waiting; the two are one agent state anyway. */
+     to. Asking loses its tilt with the rest of the motion, so the ? against the dots is all that
+     separates it from waiting; the two are one agent state anyway. */
   .agent-robot [class^='bot-'] {
     animation: none;
   }

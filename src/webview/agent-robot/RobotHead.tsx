@@ -15,14 +15,13 @@ interface RobotHeadProps {
 // There is no body. The icon is a head, and a row full of these has to be recognisable as the icon
 // from across the screen; arms and a torso are a different character wearing its face.
 //
-// Two groups, because two things move independently: `bot-head` is what tilts and nods, `bot-shell`
-// is everything including whatever is beside it, which is what a mood shakes when it wants to shake
-// the whole robot rather than just its head.
+// The head is its own group because the moods that move it move only it — the ? and the Zs beside
+// it stay where they are while it tilts.
 //
 // Coordinates are shared with the keyframes in styles.css — the transform origins there are these
 // numbers, so moving a part here means moving the origin that turns it.
 export const RobotHead = ({ face, aside }: RobotHeadProps) => (
-  <g className="bot-shell">
+  <>
     <g className="bot-head">
       <path d="M16 12V8H12" />
       <rect x={8} y={12} width={16} height={12} rx={2} />
@@ -32,5 +31,5 @@ export const RobotHead = ({ face, aside }: RobotHeadProps) => (
       {face}
     </g>
     {aside}
-  </g>
+  </>
 );
