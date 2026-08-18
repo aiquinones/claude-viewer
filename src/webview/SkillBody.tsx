@@ -11,6 +11,7 @@ import { neighborhood } from './graph/neighborhood';
 import { Loading } from './loading/Loading';
 import { Markdown, STICKY_ROW_CLASS } from './markdown/Markdown';
 import { SkillViewMode, VIEW_MODES } from './view-modes';
+import { STICKY_TOP_Z } from './z-layers';
 
 interface SkillBodyProps {
   mode: SkillViewMode;
@@ -56,7 +57,7 @@ export const SkillBody = ({
           exact multiple of the pinned row, or every heading offset below it lands wrong: that's the
           `offsetRows={2}` the markdown gets, and the two have to agree. */}
       <div
-        style={{ zIndex: 30 }}
+        style={{ zIndex: STICKY_TOP_Z }}
         className={`sticky top-0 -mx-5 flex ${STICKY_ROWS_CLASS} items-center justify-between gap-3 border-b border-border bg-background px-5`}
       >
         <h2 className="min-w-0 truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
