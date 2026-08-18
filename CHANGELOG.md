@@ -2,6 +2,19 @@
 
 Notable changes to Claude Viewer, newest first.
 
+## 0.12.0 - 2026-08-17
+
+### Added
+
+- **Flow Mode in Skill View**: You can view a skill as a flow
+
+### Changed
+
+- **Visual bug on the robot svg**, related to transparecy
+
+- **Visual: refrehs button spins while running**
+
+
 ## 0.10.0 — 2026-08-14
 
 ### Added
