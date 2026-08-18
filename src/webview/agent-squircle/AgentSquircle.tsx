@@ -23,8 +23,8 @@ export const AgentSquircle = ({ icon: Icon, label, href, title }: AgentSquircleP
     target="_blank"
     rel="noreferrer"
     onClick={(event) => event.stopPropagation()}
-    className="flat-focus flex size-9 shrink-0 items-center justify-center rounded-[30%] border border-border bg-card text-muted-foreground transition-colors hover:border-link hover:text-link"
+    className="flat-focus flex size-12 shrink-0 items-center justify-center rounded-[30%] border border-border bg-card text-muted-foreground transition-colors hover:border-link hover:text-link"
   >
-    <Icon className="size-4" />
+    <Icon className="size-5" />
   </a>
 );

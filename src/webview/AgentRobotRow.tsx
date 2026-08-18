@@ -65,7 +65,7 @@ export const AgentRobotRow = ({ agent, now, onOpen }: AgentRobotRowProps) => {
 
       {/* Both of these sit outside the button: a `<button>` can hold neither an `<a>` nor the
           picker's popup. Their clicks still stop bubbling, so neither opens the transcript. */}
-      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+      <div className="absolute right-6 top-1/2 -translate-y-1/2">
         <AgentSquircles agent={agent} />
       </div>
 
