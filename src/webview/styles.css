@@ -387,25 +387,29 @@
 
 /* ── The agent robots ──────────────────────────────────────────────────────────────────────────
    One robot per row on the Active Agents surface, four moods. Every number below is a view-box
-   coordinate out of agent-robot/RobotChassis.tsx — move a part there and the origin that turns it
-   has to move here.
+   coordinate out of agent-robot/RobotHead.tsx — move a part there and the origin that turns it has
+   to move here.
+
+   The robot is the extension's icon and nothing else: the same head in every mood, the eyes swapped
+   under it, and at most one thing floating beside it. So every animation below moves the whole head
+   or moves the eyes, and none of them redraws the silhouette.
 
    The parts are `bot-*` rather than `robot-*`: the loading robot owns `.robot-eye` unscoped, and
    these eyes would otherwise inherit its blink around origins that aren't in this box.
 
    `transform-box: view-box` on everything that moves. An SVG child's default box is its own
-   bounding box, so an origin like `21px 24px` would mean 21px into the head rather than into the
+   bounding box, so an origin like `16px 24px` would mean 16px into the head rather than into the
    picture.
 
    One animation per property. `rotate`, `scale` and `translate` are separate properties the browser
-   composes, which is what lets the sleeper's head hang on `rotate` while it breathes on `scale`.
+   composes, which is what lets the sleeper's head hang on `rotate` while it dozes on `translate`.
    Written as two `transform` animations the later one takes the property outright and the first
    never renders at all. */
 
 /* A row that's been given a colour wins; failing that the mood picks one. All four are opaque: this
-   robot's ears meet its head, its antenna meets its cap and its arms meet its torso, and a stroke
-   colour carrying alpha composites twice at every one of those seams. `--activity-idle` is exactly
-   such a colour on Dark+, which is why sleeping doesn't reach for it. */
+   robot's ears meet its head and its antenna meets its crown, and a stroke colour carrying alpha
+   composites twice at every one of those seams. `--activity-idle` is exactly such a colour on
+   Dark+, which is why sleeping doesn't reach for it. */
 .agent-robot {
   color: var(--row-color, var(--muted-foreground-solid));
 }
@@ -420,136 +424,222 @@
 }
 
 .bot-head,
-.bot-torso,
 .bot-eye,
-.bot-arm-left,
-.bot-arm-right,
+.bot-page,
 .bot-ask,
 .bot-z,
 .bot-dot {
   transform-box: view-box;
 }
 
-/* Working: a head bob at typing speed, arms tapping half a beat apart, eyes scanning the line
-   they're writing, and the antenna blipping once a tick. */
+/* The head pivots at the neck — the bottom edge, centred — for both moods that turn it. */
+.bot-head {
+  transform-origin: 16px 24px;
+}
+
+/* A blink is a scale about an eye's own middle, and a glance is a translate, so each eye needs its
+   own origin — under `transform-box: view-box` these are positions in the picture, not in the eye.
+   Waiting and asking both blink, so they live out here rather than in either block. */
+.bot-eye-left  { transform-origin: 13px 18px; }
+.bot-eye-right { transform-origin: 19px 18px; }
+
+/* Working: the head bobs at typing speed and blinks, and the page beside it fills up. Three lines
+   of scribble draw on one after another; once the third is down the sheet slides away and a blank
+   one drops in from the stack, and it goes round again.
+
+   One period for all of it, so the sheet can't leave mid-sentence. The page moves on `translate`
+   and `opacity`, its lines draw on `stroke-dashoffset`, and the head and eyes are separate elements
+   again — nothing here shares a property with anything else.
+
+   Working has to look busier than waiting, and the first pass had it the other way round: waiting's
+   dots chased each other without stopping while this one's page sat still between lines. So there
+   are three speeds here — a bob every half tick, eyes tracking the pen every 1.2, a sheet every 4 —
+   against waiting's one gesture a tick and a slow breath on its dots. */
 .agent-robot--working .bot-head {
-  transform-origin: 21px 24px;
   animation: robot-bob calc(var(--robot-tick, 1s) * 0.5) ease-in-out infinite alternate;
 }
 
-.agent-robot--working .bot-arm-left,
-.agent-robot--working .bot-arm-right {
-  animation: robot-tap calc(var(--robot-tick, 1s) * 0.5) ease-in-out infinite alternate;
-}
-
-.agent-robot--working .bot-arm-left {
-  transform-origin: 13px 29.5px;
-}
-
-.agent-robot--working .bot-arm-right {
-  transform-origin: 29px 29.5px;
-  animation-delay: calc(var(--robot-tick, 1s) * 0.25);
-}
-
 .agent-robot--working .bot-eye {
-  animation: robot-scan calc(var(--robot-tick, 1s) * 2.5) ease-in-out infinite;
+  animation:
+    robot-blink calc(var(--robot-tick, 1s) * 2.5) ease-in-out infinite,
+    robot-scan calc(var(--robot-tick, 1s) * 1.2) ease-in-out infinite;
 }
 
-.agent-robot--working .bot-antenna {
-  fill: currentColor;
-  animation: robot-blip var(--robot-tick, 1s) ease-in-out infinite;
+/* Working's eyes are dropped a unit, and a blink is a scale about an eye's own middle — so both
+   origins move down with them. Left at 18 the eye would scale towards a point above itself and
+   climb as it shut. */
+.agent-robot--working .bot-eye-left  { transform-origin: 13px 19px; }
+.agent-robot--working .bot-eye-right { transform-origin: 19px 19px; }
+
+.bot-page {
+  animation: robot-page calc(var(--robot-tick, 1s) * 4) ease-in-out infinite;
+}
+
+/* The next sheet. It is a whole rectangle and it is behind an outline with nothing inside, so for
+   as long as there is a page in front of it, its left and bottom edges would run straight through
+   the writing. It is therefore invisible for exactly that long, and fades up as the page lifts —
+   one sheet on screen at any moment, and a whole one the instant there is nothing in front.
+
+   It also sits exactly where the page starts its cycle. So the jump from 0.45 back to 0 at the loop
+   point happens under a page arriving at full strength on the same outline, and reads as the next
+   sheet becoming the live one rather than as anything appearing or going out. */
+.bot-stack {
+  opacity: 0;
+}
+
+.agent-robot--working .bot-stack {
+  animation: robot-stack calc(var(--robot-tick, 1s) * 4) ease-in-out infinite;
+}
+
+@keyframes robot-stack {
+  0%, 82%   { opacity: 0; }
+  96%, 100% { opacity: 0.45; }
+}
+
+/* Normalised by `pathLength={1}` on the path, so one dash length covers any of the three. */
+.bot-scribble {
+  stroke-dasharray: 1;
+}
+
+.bot-scribble--1 {
+  animation: robot-scribble-1 calc(var(--robot-tick, 1s) * 4) ease-out infinite;
+}
+
+.bot-scribble--2 {
+  animation: robot-scribble-2 calc(var(--robot-tick, 1s) * 4) ease-out infinite;
+}
+
+.bot-scribble--3 {
+  animation: robot-scribble-3 calc(var(--robot-tick, 1s) * 4) ease-out infinite;
 }
 
 @keyframes robot-bob {
   from { translate: 0 0; }
-  to   { translate: 0 0.7px; }
+  to   { translate: 0 0.9px; }
 }
 
-@keyframes robot-tap {
-  from { rotate: 0deg; }
-  to   { rotate: -7deg; }
-}
-
+/* Across the line and back to the margin, which is why it isn't symmetrical: the sweep takes most
+   of the period and the carriage return takes the rest. */
 @keyframes robot-scan {
-  0%, 28%   { translate: 0 0; }
-  38%, 52%  { translate: -1.3px 0; }
-  62%, 78%  { translate: 1.3px 0; }
-  88%, 100% { translate: 0 0; }
+  0%        { translate: -0.9px 0; }
+  70%       { translate: 0.9px 0; }
+  85%, 100% { translate: -0.9px 0; }
 }
 
-@keyframes robot-blip {
-  0%, 68%, 100% { opacity: 0.3; }
-  80%           { opacity: 1; }
+/* It appears sitting on the stack — same offset, same place, and at the stack's own 0.45 — and only
+   then slides down into the writing position, coming up to full as it goes. Starting at 0.45 is
+   what stops the loop point blinking: the last frame of a cycle is a 0.45 outline drawn by the
+   stack, the first frame of the next is the same 0.45 outline in the same place drawn by the page,
+   and nothing about the picture changes across the join. Handing over at full strength was a jump
+   from 0.45 to 1 on every lap.
+
+   It never fades out, though. A sheet fading away is translucent for the whole exit, and with no
+   fill of its own the blank one behind shows through its writing. It goes straight up and out of
+   the view box instead — clipped is gone, where faded is see-through — and upwards because that is
+   the way past the stack in one unit of travel. Right crosses it end to end, left crosses the head.
+
+   100% is off the top and 0% is back on the pad, so the loop's jump in position happens where there
+   is nothing to see. */
+@keyframes robot-page {
+  0%, 8%    { translate: 0.7px -0.7px; opacity: 0.45; }
+  16%, 76%  { translate: 0 0; opacity: 1; }
+  94%, 100% { translate: 0 -18px; opacity: 1; }
 }
 
-/* Waiting: nothing to do but drum a hand, roll its eyes up, and watch the dots go round. */
-.agent-robot--waiting .bot-arm-right {
-  transform-origin: 29px 29.5px;
-  animation: robot-drum calc(var(--robot-tick, 1s) * 0.45) ease-in-out infinite alternate;
+/* Three keyframes rather than one with three delays. A delay shifts a line's reset along with its
+   draw, and the third line's reset would land after the blank page had already dropped in — so a
+   fresh sheet would arrive with its last line already written on it. Written out, every line clears
+   at 0%, which is where the page is invisible. */
+@keyframes robot-scribble-1 {
+  0%, 18%   { stroke-dashoffset: 1; }
+  32%, 100% { stroke-dashoffset: 0; }
 }
 
+@keyframes robot-scribble-2 {
+  0%, 36%   { stroke-dashoffset: 1; }
+  50%, 100% { stroke-dashoffset: 0; }
+}
+
+@keyframes robot-scribble-3 {
+  0%, 54%   { stroke-dashoffset: 1; }
+  68%, 100% { stroke-dashoffset: 0; }
+}
+
+/* Waiting: no pose of its own. The head is the icon doing exactly what the icon does — one gesture
+   a tick, a blink and then a glance to the sides — and the three dots beside it are the whole of
+   what makes it waiting.
+
+   Same two keyframes the loading robot uses, and they carry over unchanged because both robots have
+   the same 16-unit head with its eyes 6 apart. They compose rather than collide because they drive
+   different properties: `scale` and `translate` are separate, and the browser applies both. Written
+   as two `transform` animations the later would win the property outright and the blink would never
+   show. */
 .agent-robot--waiting .bot-eye {
-  animation: robot-look-up calc(var(--robot-tick, 1s) * 4) ease-in-out infinite;
+  animation:
+    robot-blink calc(var(--robot-tick, 1s) * 2) ease-in-out infinite,
+    robot-glance calc(var(--robot-tick, 1s) * 2) ease-in-out infinite;
+  animation-delay: 0s, var(--robot-tick, 1s);
 }
 
+/* Slow, and barely dimming. Dots that chase each other make waiting the busiest thing on screen,
+   which is backwards — this is the row you're meant to skim past. */
 .bot-dot {
-  animation: robot-dot-pulse calc(var(--robot-tick, 1s) * 1.6) ease-in-out infinite;
+  animation: robot-dot-pulse calc(var(--robot-tick, 1s) * 3) ease-in-out infinite;
 }
 
-.bot-dot--2 { animation-delay: calc(var(--robot-tick, 1s) * 0.25); }
-.bot-dot--3 { animation-delay: calc(var(--robot-tick, 1s) * 0.5); }
-
-@keyframes robot-drum {
-  from { rotate: 0deg; }
-  to   { rotate: 6deg; }
-}
-
-@keyframes robot-look-up {
-  0%, 55%, 100% { translate: 0 0; }
-  65%, 85%      { translate: 0 -1px; }
-}
+.bot-dot--2 { animation-delay: calc(var(--robot-tick, 1s) * 0.4); }
+.bot-dot--3 { animation-delay: calc(var(--robot-tick, 1s) * 0.8); }
 
 @keyframes robot-dot-pulse {
-  0%, 100% { opacity: 0.25; }
+  0%, 100% { opacity: 0.45; }
   40%      { opacity: 1; }
 }
 
-/* Asking: the head goes over and stays there for as long as the question mark is up, then comes
-   back. One period for both, so the pose and the punctuation are the same gesture. */
+/* Asking: one gesture in four beats, on a single period so the parts can't drift apart. It sits
+   level and blinks; then, where the icon would glance to the sides, it tilts; only once it's over
+   does the ? drop in from above; then the ? leaves and the head straightens at the same moment.
+
+   The percentages below are that order, and they are the whole design — a ? that is simply always
+   up says the row is blocked, and one that arrives after the head has gone over says the robot
+   thought about it first. Move one number and check the other two still come after it. */
 .agent-robot--asking .bot-head {
-  transform-origin: 21px 24px;
-  animation: robot-cock calc(var(--robot-tick, 1s) * 3) ease-in-out infinite;
+  animation: robot-tilt calc(var(--robot-tick, 1s) * 5) ease-in-out infinite;
+}
+
+.agent-robot--asking .bot-eye {
+  animation: robot-eye-blink calc(var(--robot-tick, 1s) * 5) ease-in-out infinite;
 }
 
 .bot-ask {
-  transform-origin: 38px 11px;
-  animation: robot-ask-pop calc(var(--robot-tick, 1s) * 3) ease-in-out infinite;
+  animation: robot-ask-drop calc(var(--robot-tick, 1s) * 5) ease-in-out infinite;
 }
 
-@keyframes robot-cock {
-  0%, 8%    { rotate: 0deg; }
-  22%, 74%  { rotate: -13deg; }
+@keyframes robot-eye-blink {
+  0%, 12%   { scale: 1 1; }
+  16%       { scale: 1 0.1; }
+  20%, 100% { scale: 1 1; }
+}
+
+@keyframes robot-tilt {
+  0%, 24%   { rotate: 0deg; }
+  36%, 76%  { rotate: -13deg; }
   88%, 100% { rotate: 0deg; }
 }
 
-@keyframes robot-ask-pop {
-  0%, 10%   { opacity: 0; scale: 0.4; }
-  26%       { opacity: 1; scale: 1.15; }
-  34%, 72%  { opacity: 1; scale: 1; }
-  86%, 100% { opacity: 0; scale: 0.85; }
+/* In from above and back out the same way. Opacity and translate share every percentage, so it
+   fades as it travels rather than sliding in already visible — and the exit is timed to the head's:
+   both start moving at 76% and both are done at 88%. */
+@keyframes robot-ask-drop {
+  0%, 38%   { opacity: 0; translate: 0 -6px; }
+  50%, 76%  { opacity: 1; translate: 0 0; }
+  88%, 100% { opacity: 0; translate: 0 -6px; }
 }
 
-/* Sleeping: the tilt is static and the breath is an animation, on two properties, so both apply.
-   The Zs leave one at a time, a tick apart, over the same period as the breathing. */
+/* Sleeping: the head stays level and only breathes. The shut eyes and the Zs already say asleep,
+   and a tilt on top of them bent the one silhouette every mood is meant to share. The Zs leave one
+   at a time, a tick apart, over the same period. */
 .agent-robot--sleeping .bot-head {
-  transform-origin: 21px 24px;
-  rotate: 7deg;
   animation: robot-doze calc(var(--robot-tick, 1s) * 3) ease-in-out infinite;
-}
-
-.agent-robot--sleeping .bot-torso {
-  transform-origin: 21px 37px;
-  animation: robot-breathe calc(var(--robot-tick, 1s) * 3) ease-in-out infinite;
 }
 
 .bot-z {
@@ -564,15 +654,10 @@
   50%      { translate: 0 -0.4px; }
 }
 
-@keyframes robot-breathe {
-  0%, 100% { scale: 1 1; }
-  50%      { scale: 1.04 1.05; }
-}
-
 @keyframes robot-z-rise {
-  0%   { opacity: 0; translate: 0 2px; }
+  0%   { opacity: 0; translate: 0 1.5px; }
   30%  { opacity: 1; }
-  100% { opacity: 0; translate: 0 -5px; }
+  100% { opacity: 0; translate: 0 -2.5px; }
 }
 
 /* A row someone gave a colour to. Two rules rather than one on `.agent-row`, so an uncoloured row
@@ -591,10 +676,12 @@
     animation: none;
   }
 
-  /* Every pose is markup and only the motion is animated, so stopping all of it still leaves four
-     robots you can tell apart: closed eyes and Zs, a cocked head and a ?, dots, a desk. The Zs and
-     the ? sit at full opacity here — their keyframes start them invisible, and the base style is
-     what a stopped animation falls back to. */
+  /* Every mood is markup and only the motion is animated, so stopping all of it still leaves four
+     robots you can tell apart: shut eyes and Zs, a slanted pair, and two level pairs under a ? and
+     under three dots. The Zs and the ? sit at full opacity and in place here — their keyframes
+     start them hidden and above the box, and the base style is what a stopped animation falls back
+     to. Asking loses its tilt with the rest of the motion, so the ? against the dots is all that
+     separates it from waiting; the two are one agent state anyway. */
   .agent-robot [class^='bot-'] {
     animation: none;
   }

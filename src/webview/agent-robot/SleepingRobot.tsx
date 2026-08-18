@@ -1,32 +1,26 @@
-import { RobotChassis } from './RobotChassis';
+import { ShutEyes } from './Eyes';
+import { RobotHead } from './RobotHead';
 
-// Out cold: head hanging to one side, eyes shut, torso breathing, and three Zs drifting off. The
-// head's tilt is a static `rotate` in styles.css and the breathing is a `scale` animation — two
-// properties, so they compose instead of one winning the element outright.
+// Out cold: eyes shut into two deep Us and three Zs drifting off. The head stays level — a tilt on
+// top of the closed eyes and the Zs was a third way of saying asleep, and it cost the silhouette.
+//
+// The eyes are `ShutEyes`, shared with the waiting robot's dozing half — waiting nods off into this
+// exact face, so the two can't be allowed to drift apart.
 export const SleepingRobot = () => (
-  <>
-    <RobotChassis
-      face={
-        <>
-          <path d="M14.8 15.6q1.7 1.9 3.4 0" />
-          <path d="M23.8 15.6q1.7 1.9 3.4 0" />
-          <path d="M19.5 21h3" />
-        </>
-      }
-      arms={
-        <>
-          <path d="M13 30 10 35" />
-          <path d="M29 30 32 35" />
-        </>
-      }
-    />
-
-    {/* Each Z runs the same rise on its own delay, so they leave one at a time. Smaller and lower
-        is newer — the big one at the top is on its way out. */}
-    <Zzz className="bot-z" x={34} y={23} size={5.5} />
-    <Zzz className="bot-z bot-z--2" x={37} y={17.5} size={7} />
-    <Zzz className="bot-z bot-z--3" x={39.8} y={11.5} size={8.5} />
-  </>
+  <RobotHead
+    face={<ShutEyes />}
+    aside={
+      <>
+        {/* Each Z runs the same rise on its own delay, so they leave one at a time. Smaller and
+            lower is newer — the big one at the top is on its way out. The trail has to finish
+            inside the box: the top Z rises 2.5 more units than it is drawn at, and a `text` is
+            measured from its baseline, so its cap is what decides how much headroom is left. */}
+        <Zzz className="bot-z" x={26} y={13} size={4} />
+        <Zzz className="bot-z bot-z--2" x={28} y={9} size={5.2} />
+        <Zzz className="bot-z bot-z--3" x={29.3} y={5.4} size={6} />
+      </>
+    }
+  />
 );
 
 interface ZzzProps {

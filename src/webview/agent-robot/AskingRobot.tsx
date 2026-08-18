@@ -1,39 +1,32 @@
-import { RobotChassis } from './RobotChassis';
+import { OpenEyes } from './Eyes';
+import { RobotHead } from './RobotHead';
 
-// The head cocked to one side and a hand up — the pose a dog makes at a word it half knows. This is
-// the row you're holding up, so it's the one robot looking straight at you.
+// The icon's own face, doing the one thing the icon doesn't. It sits level and blinks like any
+// other robot; then, where the icon would glance to the sides, this one tilts its head — and only
+// once it's over does the question mark arrive, dropping in from above as it fades up. The ? leaves
+// as the head comes back level, so the two of them are one gesture with a beginning and an end.
+//
+// The order is the point. A ? that is simply always up says the row is blocked. A ? that arrives
+// after the head has gone over says the robot thought about it first.
+//
+// No bubble around it. Nothing beside any of these heads has one — at row size the ellipse was most
+// of what you saw.
 export const AskingRobot = () => (
-  <>
-    <RobotChassis
-      face={
-        <>
-          <circle className="bot-eye" cx={16.5} cy={16} r={1.45} fill="currentColor" />
-          <circle className="bot-eye" cx={25.5} cy={16} r={1.45} fill="currentColor" />
-          {/* A small open mouth. Mid-question, not mid-sentence. */}
-          <circle cx={21} cy={20.6} r={1.2} />
-        </>
-      }
-      arms={
-        <>
-          <path d="M13 29.5 9.5 35" />
-          {/* Raised markup rather than a rotated arm: a pose that never moves is better drawn than
-              animated, and this one has to survive prefers-reduced-motion anyway. */}
-          <path d="M29 29.5 33.5 25" />
-        </>
-      }
-    />
-
-    <text
-      className="bot-ask"
-      x={38}
-      y={15}
-      fontSize={14}
-      fontWeight={700}
-      textAnchor="middle"
-      fill="currentColor"
-      stroke="none"
-    >
-      ?
-    </text>
-  </>
+  <RobotHead
+    face={<OpenEyes />}
+    aside={
+      <text
+        className="bot-ask"
+        x={28}
+        y={12}
+        fontSize={11}
+        fontWeight={700}
+        textAnchor="middle"
+        fill="currentColor"
+        stroke="none"
+      >
+        ?
+      </text>
+    }
+  />
 );

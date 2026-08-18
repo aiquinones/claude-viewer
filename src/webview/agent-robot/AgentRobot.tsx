@@ -17,16 +17,21 @@ interface AgentRobotProps {
 // that sets it.
 const DEFAULT_TICK_MS: number = 900;
 
-const BODIES: Record<RobotMood, FunctionComponent> = {
+const ROBOTS: Record<RobotMood, FunctionComponent> = {
   working: WorkingRobot,
   waiting: WaitingRobot,
   asking: AskingRobot,
   sleeping: SleepingRobot
 };
 
-// One agent, drawn. Not the loading robot: that one is the extension's icon inline and belongs to
-// `loading/`. These have a torso, arms and somewhere to be, because a row is big enough to hold a
-// pose and a pose is what says what the agent is up to.
+// One agent, drawn. The same head as the extension's icon — `RobotHead` carries those four strokes
+// at 1:1 — with the eyes swapped per mood and at most one thing floating beside it. A card of these
+// has to be recognisable as the icon from across the room, which rules out giving it a body.
+//
+// The box starts at -2 rather than 0. The head is centred on x=16 and the working robot's page
+// needed more than the six units left of the right edge — extending symmetrically buys eight on
+// each side while leaving 16 the middle of the box, so not one head, eye or transform origin
+// moves.
 //
 // Every animation is CSS, keyed off the mood class. The surface re-renders every second to re-age
 // its rows and none of this should ride that.
@@ -35,21 +40,21 @@ export const AgentRobot = ({
   tickMs = DEFAULT_TICK_MS,
   className = 'size-11'
 }: AgentRobotProps) => {
-  const Body = BODIES[mood];
+  const Robot = ROBOTS[mood];
 
   return (
     <svg
-      viewBox="0 0 44 44"
+      viewBox="-2 0 36 32"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.8}
+      strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden
       className={`agent-robot agent-robot--${mood} ${className}`}
       style={{ '--robot-tick': `${tickMs}ms` } as CSSProperties}
     >
-      <Body />
+      <Robot />
     </svg>
   );
 };
