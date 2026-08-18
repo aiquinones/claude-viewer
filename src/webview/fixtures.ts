@@ -447,6 +447,77 @@ export const stepFlow: SkillFlow = flowFor(stepMarkdown);
 // Nothing numbered: the steps are the sections one level under the single `#` title.
 export const sectionFlow: SkillFlow = flowFor(skillMarkdown);
 
+// Twelve steps, which is taller than the panel — the case the box's height is read against. Real
+// skills reach this: /dev-feature is nine and the sequence is what you scroll.
+export const longStepMarkdown: string = `# Long Release Flow
+
+The same release, written out the way a real skill writes it.
+
+## 1. Read the state
+
+\`git status\` first — a dirty tree makes every later step lie.
+
+## 2. Fetch the remote
+
+Fetch, don't pull. Compare against \`origin/main\` before deciding anything.
+
+## 3. Pick the version
+
+Patch unless the API moved. The changelog is what decides it, not the diff size.
+
+## 4. Write the tests
+
+Anything shipping without a test is a thing you'll debug in production. [[write-tests]] covers it.
+
+### What to cover
+
+The empty case and the error case — the two real config won't reliably show you.
+
+## 5. Run the suite
+
+Green locally before anything is pushed.
+
+## 6. Commit
+
+Stage in pieces and let /commit write the message — one commit per idea, not one per file.
+
+### What not to stage
+
+\`\`\`bash
+git add -p          # never git add -A
+\`\`\`
+
+## 7. Open the PR
+
+Body says why, not what. Link the issue it closes.
+
+## 8. Review it
+
+Read your own diff first. Half the comments you'd get are ones you'd have caught.
+
+## 9. Ship it
+
+Run \`deploy\` once the checks are green. It is **not** idempotent.
+
+### If it fails
+
+Freeze first, then roll back. Never roll forward through a failed deploy.
+
+## 10. Watch the logs
+
+Ten minutes of error rate. Leaving early is how a bad release stays out.
+
+## 11. Report back
+
+Post the version and the diff URL where the team reads it.
+
+## 12. Close the loop
+
+If step 9 failed, go back to step 1 rather than patching over it.
+`;
+
+export const longFlow: SkillFlow = flowFor(longStepMarkdown);
+
 // No headings at all — everything lands in the section that has no sticky bar.
 export const headinglessMarkdown: string = `Just a paragraph and a list, with no headings anywhere.
 

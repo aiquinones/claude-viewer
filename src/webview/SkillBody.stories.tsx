@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
   emptyGraph,
+  longFlow,
+  longStepMarkdown,
   projectDeploy,
   skillGraph,
   skillMarkdown,
@@ -65,6 +67,12 @@ export const GraphBlocked: Story = {
 // The third mode, in the section it actually lives in — the heading counts the steps and the
 // toggle stays pinned above the canvas.
 export const Flow: Story = { args: { mode: 'flow', body: stepMarkdown } };
+
+// A flow taller than the panel: one scrollbar, and it belongs to the pane. This is where the
+// sticky Content block earns its keep — the toggle and the step count stay reachable at step 12.
+export const LongFlow: Story = {
+  args: { mode: 'flow', body: longStepMarkdown, flow: longFlow }
+};
 
 // A skill whose SKILL.md is prose rather than a sequence. The toggle says so, and the section
 // says so too for anyone who got here by staying in flow mode across a selection.
