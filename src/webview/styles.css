@@ -449,17 +449,24 @@
 
    One period for all of it, so the sheet can't leave mid-sentence. The page moves on `translate`
    and `opacity`, its lines draw on `stroke-dashoffset`, and the head and eyes are separate elements
-   again — nothing here shares a property with anything else. */
+   again — nothing here shares a property with anything else.
+
+   Working has to look busier than waiting, and the first pass had it the other way round: waiting's
+   dots chased each other without stopping while this one's page sat still between lines. So there
+   are three speeds here — a bob every half tick, eyes tracking the pen every 1.2, a sheet every 4 —
+   against waiting's one gesture a tick and a slow breath on its dots. */
 .agent-robot--working .bot-head {
   animation: robot-bob calc(var(--robot-tick, 1s) * 0.5) ease-in-out infinite alternate;
 }
 
 .agent-robot--working .bot-eye {
-  animation: robot-blink calc(var(--robot-tick, 1s) * 2.5) ease-in-out infinite;
+  animation:
+    robot-blink calc(var(--robot-tick, 1s) * 2.5) ease-in-out infinite,
+    robot-scan calc(var(--robot-tick, 1s) * 1.2) ease-in-out infinite;
 }
 
 .bot-page {
-  animation: robot-page calc(var(--robot-tick, 1s) * 6) ease-in-out infinite;
+  animation: robot-page calc(var(--robot-tick, 1s) * 4) ease-in-out infinite;
 }
 
 /* The stack behind is quieter than the sheet in front, which is the whole of what puts it behind —
@@ -474,20 +481,28 @@
 }
 
 .bot-scribble--1 {
-  animation: robot-scribble-1 calc(var(--robot-tick, 1s) * 6) ease-out infinite;
+  animation: robot-scribble-1 calc(var(--robot-tick, 1s) * 4) ease-out infinite;
 }
 
 .bot-scribble--2 {
-  animation: robot-scribble-2 calc(var(--robot-tick, 1s) * 6) ease-out infinite;
+  animation: robot-scribble-2 calc(var(--robot-tick, 1s) * 4) ease-out infinite;
 }
 
 .bot-scribble--3 {
-  animation: robot-scribble-3 calc(var(--robot-tick, 1s) * 6) ease-out infinite;
+  animation: robot-scribble-3 calc(var(--robot-tick, 1s) * 4) ease-out infinite;
 }
 
 @keyframes robot-bob {
   from { translate: 0 0; }
-  to   { translate: 0 0.5px; }
+  to   { translate: 0 0.9px; }
+}
+
+/* Across the line and back to the margin, which is why it isn't symmetrical: the sweep takes most
+   of the period and the carriage return takes the rest. */
+@keyframes robot-scan {
+  0%        { translate: -0.9px 0; }
+  70%       { translate: 0.9px 0; }
+  85%, 100% { translate: -0.9px 0; }
 }
 
 /* In from the stack, held while it's written on, then away downwards once it's full. Both ends are
@@ -534,15 +549,17 @@
   animation-delay: 0s, var(--robot-tick, 1s);
 }
 
+/* Slow, and barely dimming. Dots that chase each other make waiting the busiest thing on screen,
+   which is backwards — this is the row you're meant to skim past. */
 .bot-dot {
-  animation: robot-dot-pulse calc(var(--robot-tick, 1s) * 1.6) ease-in-out infinite;
+  animation: robot-dot-pulse calc(var(--robot-tick, 1s) * 3) ease-in-out infinite;
 }
 
-.bot-dot--2 { animation-delay: calc(var(--robot-tick, 1s) * 0.25); }
-.bot-dot--3 { animation-delay: calc(var(--robot-tick, 1s) * 0.5); }
+.bot-dot--2 { animation-delay: calc(var(--robot-tick, 1s) * 0.4); }
+.bot-dot--3 { animation-delay: calc(var(--robot-tick, 1s) * 0.8); }
 
 @keyframes robot-dot-pulse {
-  0%, 100% { opacity: 0.25; }
+  0%, 100% { opacity: 0.45; }
   40%      { opacity: 1; }
 }
 
