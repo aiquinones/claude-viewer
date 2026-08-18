@@ -9,7 +9,7 @@ import { ViewModeShape } from './view-mode';
 export const VIEW_MODES = [
   { id: 'text', label: 'Text', icon: FileText, status: 'ready' },
   { id: 'graph', label: 'Graph', icon: Waypoints, status: 'ready' },
-  { id: 'flow', label: 'Flow', icon: Workflow, status: 'soon' }
+  { id: 'flow', label: 'Flow', icon: Workflow, status: 'ready' }
 ] as const satisfies readonly ViewModeShape[];
 
 export type SkillViewMode = (typeof VIEW_MODES)[number]['id'];
