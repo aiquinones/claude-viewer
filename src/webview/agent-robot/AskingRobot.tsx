@@ -1,3 +1,4 @@
+import { OpenEyes } from './Eyes';
 import { RobotHead } from './RobotHead';
 
 // The icon's own face, doing the one thing the icon doesn't. It sits level and blinks like any
@@ -8,16 +9,11 @@ import { RobotHead } from './RobotHead';
 // The order is the point. A ? that is simply always up says the row is blocked. A ? that arrives
 // after the head has gone over says the robot thought about it first.
 //
-// No bubble around it, unlike waiting's dots: three dots need something to sit in to read as
-// thinking, and a ? on its own is already punctuation.
+// No bubble around it. Nothing beside any of these heads has one — at row size the ellipse was most
+// of what you saw.
 export const AskingRobot = () => (
   <RobotHead
-    face={
-      <>
-        <path className="bot-eye bot-eye-left" d="M13 17v2" />
-        <path className="bot-eye bot-eye-right" d="M19 17v2" />
-      </>
-    }
+    face={<OpenEyes />}
     aside={
       <text
         className="bot-ask"

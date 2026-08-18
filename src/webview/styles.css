@@ -423,9 +423,9 @@
   color: var(--row-color, var(--activity-blocked));
 }
 
+.bot-shell,
 .bot-head,
 .bot-eye,
-.bot-bubble,
 .bot-ask,
 .bot-z,
 .bot-dot {
@@ -459,9 +459,34 @@
   88%, 100% { translate: 0 0; }
 }
 
-/* Waiting: the open eye drifts up and back — the only thing it can do — while the dots go round. */
-.agent-robot--waiting .bot-eye {
-  animation: robot-look-up calc(var(--robot-tick, 1s) * 4) ease-in-out infinite;
+/* Waiting: the wait is long enough that the robot nods off in it. Eyes shut, two slow breaths — up,
+   down, up, down — and on the second way down it hits the bottom, catches itself, snaps its eyes
+   open and shakes it off. Then round again, because the tool still hasn't come back.
+
+   Four animations on one period so the beats can't drift: the eyes swap on `opacity`, the head
+   breathes and jolts on `translate`, and the shake is `translate` on `.bot-shell` — a different
+   element, or it would take the property off the nodding. The dots keep their own faster cycle,
+   which is the one thing here that isn't part of the story. */
+.agent-robot--waiting .bot-eye-awake {
+  animation: robot-doze-open calc(var(--robot-tick, 1s) * 6) steps(1, end) infinite;
+}
+
+.agent-robot--waiting .bot-eye-dozing {
+  animation: robot-doze-shut calc(var(--robot-tick, 1s) * 6) steps(1, end) infinite;
+}
+
+.agent-robot--waiting .bot-head {
+  animation: robot-nod calc(var(--robot-tick, 1s) * 6) ease-in-out infinite;
+}
+
+.agent-robot--waiting .bot-shell {
+  animation: robot-shake calc(var(--robot-tick, 1s) * 6) ease-in-out infinite;
+}
+
+/* The shut pair is hidden until the doze, which is also what makes the awake face the one a stopped
+   animation falls back to. */
+.bot-eye-dozing {
+  opacity: 0;
 }
 
 .bot-dot {
@@ -471,9 +496,40 @@
 .bot-dot--2 { animation-delay: calc(var(--robot-tick, 1s) * 0.25); }
 .bot-dot--3 { animation-delay: calc(var(--robot-tick, 1s) * 0.5); }
 
-@keyframes robot-look-up {
-  0%, 55%, 100% { translate: 0 0; }
-  65%, 85%      { translate: 0 -0.9px; }
+/* `steps(1, end)` on both: an eye is open or it's shut, and interpolating the two opacities draws
+   all four eyes at half strength through the middle of every swap. */
+@keyframes robot-doze-open {
+  0%, 13%    { opacity: 1; }
+  13.01%     { opacity: 0; }
+  58%, 100%  { opacity: 1; }
+}
+
+@keyframes robot-doze-shut {
+  0%, 13%    { opacity: 0; }
+  13.01%     { opacity: 1; }
+  58%, 100%  { opacity: 0; }
+}
+
+/* Two breaths and then the catch. 56% is the bottom of the second one and 61% is the jolt — the
+   beat where it notices — with the eyes opening at 58%, between the two. */
+@keyframes robot-nod {
+  0%, 13%   { translate: 0 0; }
+  24%       { translate: 0 -1.1px; }
+  36%       { translate: 0 0.9px; }
+  46%       { translate: 0 -1.1px; }
+  56%       { translate: 0 1.7px; }
+  61%       { translate: 0 -1.7px; }
+  67%, 100% { translate: 0 0; }
+}
+
+/* Starts as the head finishes its jolt, and dies out over four decreasing swings. */
+@keyframes robot-shake {
+  0%, 65%   { translate: 0 0; }
+  69%       { translate: -1px 0; }
+  73%       { translate: 0.9px 0; }
+  77%       { translate: -0.6px 0; }
+  81%       { translate: 0.35px 0; }
+  85%, 100% { translate: 0 0; }
 }
 
 @keyframes robot-dot-pulse {
@@ -571,8 +627,9 @@
      robots you can tell apart: shut eyes and Zs, a slanted pair, and two level pairs under a ? and
      under three dots. The Zs and the ? sit at full opacity and in place here — their keyframes
      start them hidden and above the box, and the base style is what a stopped animation falls back
-     to. Asking loses its tilt with the rest of the motion, so the bubble is all that separates it
-     from waiting; the two are one agent state anyway. */
+     to, which is also why waiting's dozing eyes are hidden in the stylesheet rather than only by a
+     keyframe. Asking loses its tilt with the rest of the motion, so the ? against the dots is all
+     that separates it from waiting; the two are one agent state anyway. */
   .agent-robot [class^='bot-'] {
     animation: none;
   }
