@@ -48,6 +48,23 @@ const ALIASES: string[] = Object.keys(RATES).sort((left, right) => right.length 
 export const ratesFor = (model: string): ModelRates | undefined =>
   RATES[model] ?? RATES[ALIASES.find((alias) => model.startsWith(alias)) ?? ''];
 
+// What the dollars are made of. Worth carrying separately because the composition is the surprising
+// part: a week that produced 1.4M output tokens priced at $249 here, and $147 of that was *cache
+// reads* — 294M of them, since every turn re-reads the context it's working in. A single total
+// invites the reader to check it against the output figure, where it looks like an error.
+export interface UsdParts {
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheWrite: number;
+}
+
+export const EMPTY_USD_PARTS: UsdParts = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+
+export const USD_PART_KEYS = ['output', 'cacheRead', 'cacheWrite', 'input'] as const;
+
+export type UsdPart = (typeof USD_PART_KEYS)[number];
+
 interface UsdForArgs {
   model: string;
   tokens: UsageTokens;
@@ -55,15 +72,30 @@ interface UsdForArgs {
 
 // Undefined for a model with no rates, so the caller can name it rather than adding zero to a
 // figure the reader would take as complete.
-export const usdFor = ({ model, tokens }: UsdForArgs): number | undefined => {
+export const usdPartsFor = ({ model, tokens }: UsdForArgs): UsdParts | undefined => {
   const rates: ModelRates | undefined = ratesFor(model);
   if (!rates) return undefined;
 
-  const input: number =
-    tokens.input +
-    tokens.cacheWrite5m * CACHE_WRITE_5M +
-    tokens.cacheWrite1h * CACHE_WRITE_1H +
-    tokens.cacheRead * CACHE_READ;
+  const perInputToken: number = rates.inputPerMTok / PER_MTOK;
 
-  return (input * rates.inputPerMTok + tokens.output * rates.outputPerMTok) / PER_MTOK;
+  return {
+    input: tokens.input * perInputToken,
+    output: (tokens.output * rates.outputPerMTok) / PER_MTOK,
+    cacheRead: tokens.cacheRead * CACHE_READ * perInputToken,
+    cacheWrite:
+      (tokens.cacheWrite5m * CACHE_WRITE_5M + tokens.cacheWrite1h * CACHE_WRITE_1H) * perInputToken
+  };
 };
+
+export const usdFor = (args: UsdForArgs): number | undefined => {
+  const parts: UsdParts | undefined = usdPartsFor(args);
+  return parts && parts.input + parts.output + parts.cacheRead + parts.cacheWrite;
+};
+
+// The multipliers, for the card that explains a figure. Cache tokens are priced off the model's
+// input rate, so these are what a reader needs on top of the two numbers in the table.
+export const CACHE_MULTIPLIERS = {
+  read: CACHE_READ,
+  write5m: CACHE_WRITE_5M,
+  write1h: CACHE_WRITE_1H
+} as const;

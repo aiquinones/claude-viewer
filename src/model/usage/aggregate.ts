@@ -4,10 +4,11 @@
 
 import { AgentTool } from '../types';
 import { cutoff } from './window';
-import { ratesFor, usdFor } from './pricing';
+import { EMPTY_USD_PARTS, ratesFor, usdFor, usdPartsFor, UsdParts } from './pricing';
 import {
   EMPTY_TOTALS,
   UsageBreakdown,
+  UsageModelUse,
   UsageScope,
   UsageSlice,
   UsageSource,
@@ -77,8 +78,54 @@ export const aggregateUsage = ({
       claude: sum(inWindow.filter((turn) => turn.tool === 'claude')),
       copilot: sum(inWindow.filter((turn) => turn.tool === 'copilot'))
     },
-    unpricedModels: unpricedIn(inWindow)
+    unpricedModels: unpricedIn(inWindow),
+    costParts: costPartsOf(inWindow),
+    models: modelsIn(inWindow)
   };
+};
+
+// The dollar figure, split by what was billed. Claude only, like the total it adds up to.
+const costPartsOf = (turns: UsageTurn[]): UsdParts =>
+  turns.reduce((parts: UsdParts, turn: UsageTurn) => {
+    if (turn.tool !== 'claude') return parts;
+
+    const next: UsdParts | undefined = usdPartsFor({ model: turn.model, tokens: turn.tokens });
+    if (!next) return parts;
+
+    return {
+      input: parts.input + next.input,
+      output: parts.output + next.output,
+      cacheRead: parts.cacheRead + next.cacheRead,
+      cacheWrite: parts.cacheWrite + next.cacheWrite
+    };
+  }, EMPTY_USD_PARTS);
+
+// Which models produced the window, largest first. Spans both CLIs — Copilot runs Claude models
+// too, so this is the one place the two are counted together on something other than tokens.
+const modelsIn = (turns: UsageTurn[]): UsageModelUse[] => {
+  const output: number = turns.reduce((sum, turn) => sum + turn.tokens.output, 0);
+  const byModel: Map<string, UsageTurn[]> = new Map();
+
+  for (const turn of turns) {
+    const bucket: UsageTurn[] | undefined = byModel.get(turn.model);
+    if (bucket) bucket.push(turn);
+    else byModel.set(turn.model, [turn]);
+  }
+
+  return [...byModel.entries()]
+    .map(([model, group]) => {
+      const totals: UsageTotals = sum(group);
+      return {
+        model,
+        outputTokens: totals.outputTokens,
+        turns: totals.turns,
+        usd: totals.usd,
+        fraction: output === 0 ? 0 : totals.outputTokens / output,
+        // Only Claude's rows are priced at all, so an unrated model is only worth flagging there.
+        unpriced: group.some((turn) => turn.tool === 'claude') && !ratesFor(model)
+      };
+    })
+    .sort((left, right) => right.outputTokens - left.outputTokens);
 };
 
 const sum = (turns: UsageTurn[]): UsageTotals =>

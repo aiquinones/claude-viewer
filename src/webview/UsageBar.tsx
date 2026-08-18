@@ -23,8 +23,8 @@ export const UsageBar = ({ slice, metric, scale, skill, onOpenSkill }: UsageBarP
   const inferred: boolean = slice.sources.includes('inferred');
 
   return (
-    <div className="flex flex-col gap-1 px-3 py-2">
-      <div className="flex items-baseline gap-2">
+    <div className="flex flex-col gap-2 px-4 py-3">
+      <div className="flex items-baseline gap-2.5">
         <Label slice={slice} attributed={attributed} skill={skill} onOpenSkill={onOpenSkill} />
         {inferred && (
           <span
@@ -33,20 +33,20 @@ export const UsageBar = ({ slice, metric, scale, skill, onOpenSkill }: UsageBarP
                 ? 'Part of this is inferred — Copilot announces a skill and never closes it, so it claims every turn until the next one.'
                 : 'Inferred — Copilot announces a skill and never closes it, so it claims every turn until the next one.'
             }
-            className="shrink-0 rounded border border-dashed border-border px-1 text-[10px] text-muted-foreground"
+            className="shrink-0 rounded border border-dashed border-border px-1.5 py-0.5 text-[10px] text-muted-foreground"
           >
             inferred
           </span>
         )}
-        <span className="ml-auto shrink-0 text-xs tabular-nums">
+        <span className="ml-auto shrink-0 text-sm tabular-nums">
           {formatSliceValue(slice, metric)}
         </span>
-        <span className="w-9 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+        <span className="w-11 shrink-0 text-right text-sm tabular-nums text-muted-foreground">
           {formatShare(slice.fraction)}
         </span>
       </div>
 
-      <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
         <div
           className={`h-full rounded-full ${attributed ? 'usage-fill' : 'bg-muted-foreground/40'}`}
           style={{
@@ -73,7 +73,7 @@ const Label = ({ slice, attributed, skill, onOpenSkill }: LabelProps) => {
   const weight: string = attributed ? 'font-medium' : 'text-muted-foreground italic';
 
   if (!skill || !onOpenSkill) {
-    return <span className={`truncate text-xs ${weight}`}>{text}</span>;
+    return <span className={`truncate text-sm ${weight}`}>{text}</span>;
   }
 
   // `min-w-0` on the wrapper is what keeps the name truncating: the hover card's span is a flex
@@ -83,7 +83,7 @@ const Label = ({ slice, attributed, skill, onOpenSkill }: LabelProps) => {
       <button
         type="button"
         onClick={() => onOpenSkill(skill.path)}
-        className={`cursor-pointer truncate text-xs transition-colors hover:text-[var(--surface-accent,var(--foreground))] hover:underline ${weight}`}
+        className={`cursor-pointer truncate text-sm transition-colors hover:text-[var(--surface-accent,var(--foreground))] hover:underline ${weight}`}
       >
         {text}
       </button>

@@ -2,6 +2,7 @@
 // tokens; only Claude stamps every turn with its skill, which is what `source` is for.
 
 import { AgentTool } from '../types';
+import { UsdParts } from './pricing';
 
 // Which number the surface reads. `output-tokens` is measured on both sides and is what Claude
 // Code's own /usage reports, so it's the default and the only metric with one cross-CLI total.
@@ -99,6 +100,19 @@ export const EMPTY_TOTALS: UsageTotals = {
   turns: 0
 };
 
+// One model's share of the window. Both CLIs contribute — Copilot runs Claude models as well as
+// OpenAI ones, so this spans them and only the dollars are Claude Code's.
+export interface UsageModelUse {
+  model: string;
+  outputTokens: number;
+  turns: number;
+  usd: number;
+  // Of the window's output tokens, 0–1.
+  fraction: number;
+  // No rates for it in `pricing.ts`, so its tokens count and its dollars don't.
+  unpriced: boolean;
+}
+
 export interface UsageBreakdown {
   window: UsageWindow;
   // The start of the window, absolute.
@@ -115,6 +129,12 @@ export interface UsageBreakdown {
   // Model ids `pricing.ts` doesn't know. Their tokens count; their dollars don't, and the view
   // names them rather than quietly pricing them at zero.
   unpricedModels: string[];
+  // What the dollar figure is made of, and which models produced the window. Both exist for one
+  // reason: a total on its own reads as wrong. 1.4M output tokens priced at $249 looks like an
+  // error until you can see that $147 of it is cache reads.
+  costParts: UsdParts;
+  // Sorted by output tokens, largest first.
+  models: UsageModelUse[];
 }
 
 // Both windows, aggregated. The host computes them together and posts one message: the toggle is

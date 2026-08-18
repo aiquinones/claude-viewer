@@ -18,6 +18,7 @@ import { PanelActions } from '../PanelActions';
 import { useSettings, useSetUsage } from '../settings/SettingsContext';
 import { surfaceAccent } from '../surfaces';
 import { UsageBar } from '../UsageBar';
+import { UsageInfo } from '../UsageInfo';
 import { UsageChoice } from '../UsageChoice';
 import { sliceLabel } from '../usage-format';
 import { WINDOW_OPTIONS } from '../usage-options';
@@ -159,15 +160,18 @@ interface CostNoteProps {
 // presented as current — and a model with no rates contributes its tokens and no dollars rather
 // than being quietly priced at zero.
 const CostNote = ({ breakdown }: CostNoteProps) => (
-  <p className="px-1 text-xs leading-relaxed text-muted-foreground">
-    Claude Code records tokens only, so dollars are priced from a table last checked {PRICED_AT}.
-    Copilot CLI writes its own billed figure, so its AIU is exact.
-    {breakdown.unpricedModels.length > 0 && (
-      <>
-        {' '}
-        No rates for {breakdown.unpricedModels.join(', ')} — those turns are in the token totals and
-        not in the dollar one.
-      </>
-    )}
+  <p className="flex flex-wrap items-center gap-x-1.5 px-1 text-xs leading-relaxed text-muted-foreground">
+    <UsageInfo breakdown={breakdown} />
+    <span>
+      Claude Code records tokens only, so dollars are priced from a table last checked {PRICED_AT}.
+      Copilot CLI writes its own billed figure, so its AIU is exact.
+      {breakdown.unpricedModels.length > 0 && (
+        <>
+          {' '}
+          No rates for {breakdown.unpricedModels.join(', ')} — those turns are in the token totals
+          and not in the dollar one.
+        </>
+      )}
+    </span>
   </p>
 );

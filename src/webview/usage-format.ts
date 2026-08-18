@@ -2,6 +2,7 @@
 // the first is shared by both CLIs, so each one prints on its own terms and none of them is
 // converted into another.
 
+import { UsdPart } from '../model/usage/pricing';
 import { UsageMetric, UsageSlice, UsageTotals } from '../model/usage/types';
 
 // A week of turns runs to millions, which `format-size`'s `k` alone can't say. Same idea though:
@@ -62,3 +63,18 @@ export const formatTotal = (totals: UsageTotals, metric: UsageMetric): string =>
 // The name a slice draws. Turns with no skill are a real row, not a gap: leaving them out would
 // make the percentages look like a breakdown that doesn't add up.
 export const sliceLabel = (slice: UsageSlice): string => slice.skill ?? 'No skill';
+
+// What each piece of the dollar figure is. `cacheRead` is the one worth naming plainly: it's usually
+// the largest share and it's the least obvious, since nothing about it shows up in a token count
+// anyone looks at.
+export const USD_PART_LABEL: Record<UsdPart, string> = {
+  output: 'Output',
+  cacheRead: 'Cache reads',
+  cacheWrite: 'Cache writes',
+  input: 'Input'
+};
+
+// Rates print as whole dollars where they are whole dollars — $5, not $5.00 — since the table is
+// read as a rate card rather than as an amount.
+export const formatRate = (perMTok: number): string =>
+  Number.isInteger(perMTok) ? `$${perMTok}` : `$${perMTok.toFixed(2)}`;
