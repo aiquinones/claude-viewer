@@ -7,8 +7,10 @@ export const AskingRobot = () => (
   <RobotHead
     face={
       <>
-        <circle className="bot-eye" cx={13} cy={18} r={1.3} fill="currentColor" />
-        <circle className="bot-eye" cx={19} cy={18} r={1.3} fill="currentColor" />
+        {/* `stroke="none"`, or the root's 2-unit stroke is added around the radius and the eye
+            comes out 4.6 across against an icon whose eyes are 2. */}
+        <circle className="bot-eye" cx={13} cy={18} r={1.4} fill="currentColor" stroke="none" />
+        <circle className="bot-eye" cx={19} cy={18} r={1.4} fill="currentColor" stroke="none" />
       </>
     }
     aside={

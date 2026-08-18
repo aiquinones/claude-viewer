@@ -9,7 +9,9 @@ export const WaitingRobot = () => (
     face={
       <>
         <path className="bot-eye" d="M13 17v2" />
-        <circle className="bot-eye" cx={19} cy={18} r={1.1} fill="currentColor" />
+        {/* Same width as the tick beside it: `stroke="none"` and a radius of 1.2, rather than a
+            radius that the root's stroke then grows by another unit on every side. */}
+        <circle className="bot-eye" cx={19} cy={18} r={1.2} fill="currentColor" stroke="none" />
       </>
     }
     aside={
