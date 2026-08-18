@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { CSSProperties } from 'react';
 import { AGENT_COLORS, AgentColor } from '../../model/types';
 import { AGENT_COLOR_LABEL, AGENT_COLOR_VAR } from '../agent-color/agent-colors';
+import { Robot } from '../loading/Robot';
 import { AgentRobot } from './AgentRobot';
 import { ROBOT_MOODS, RobotMood, ROBOT_MOOD_LABEL } from './moods';
 
@@ -99,12 +100,56 @@ const Tinted = ({ color, mood, tickMs }: TintedProps) => (
 // The tick every mood is timed against. Slow enough to watch one gesture at a time.
 export const SlowTick: Story = { args: { tickMs: 2400, mood: 'asking' } };
 
-// Row size — 44px, which is what nine of them on a surface actually look like.
-export const RowSize: Story = {
+// Beside the icon itself, which is the thing this must not drift from. The middle head in every
+// pair is the same sixteen units wide as the one on the left — if a mood changes the silhouette,
+// it shows up here first.
+export const AgainstTheIcon: Story = {
   render: (args) => (
-    <div className="flex items-end gap-4">
+    <div className="flex flex-wrap items-center justify-center gap-10">
+      <figure className="flex flex-col items-center gap-2">
+        <Robot className="size-20" />
+        <figcaption className="text-xs text-muted-foreground">the icon</figcaption>
+      </figure>
       {ROBOT_MOODS.map((mood) => (
-        <AgentRobot key={mood} {...args} mood={mood} className="size-11" />
+        <figure key={mood} className="flex flex-col items-center gap-2">
+          <AgentRobot {...args} mood={mood} className="size-20" />
+          <figcaption className="text-xs text-muted-foreground">{mood}</figcaption>
+        </figure>
+      ))}
+    </div>
+  )
+};
+
+// The point of the whole surface: four cards, read from across the room. Squint at this one —
+// if two of them are the same shape at this size, the mood isn't carrying.
+export const AsCards: Story = {
+  render: (args) => (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {ROBOT_MOODS.map((mood) => (
+        <div
+          key={mood}
+          className="flex flex-col items-center gap-2 rounded-md border border-border p-4"
+        >
+          <AgentRobot {...args} mood={mood} className="size-16" />
+          <span className="text-xs font-medium">{ROBOT_MOOD_LABEL[mood]}</span>
+        </div>
+      ))}
+    </div>
+  )
+};
+
+// Every size the panel might draw one at, so the smallest is checked rather than assumed. The eyes
+// are the first thing to go — a slant and an arc have to survive 24px.
+export const Sizes: Story = {
+  render: (args) => (
+    <div className="flex flex-col gap-6">
+      {['size-6', 'size-9', 'size-12', 'size-16', 'size-24'].map((size) => (
+        <div key={size} className="flex items-center gap-6">
+          <span className="w-16 shrink-0 text-xs text-muted-foreground">{size}</span>
+          {ROBOT_MOODS.map((mood) => (
+            <AgentRobot key={mood} {...args} mood={mood} className={size} />
+          ))}
+        </div>
       ))}
     </div>
   )
