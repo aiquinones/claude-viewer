@@ -19,7 +19,7 @@ export default meta;
 
 type Story = StoryObj<typeof PanelActions>;
 
-// Hover either button for its tooltip; the magnifier's carries the chord.
+// Hover either button for its tooltip; the magnifier's carries the chord. Click the refresh icon to see it spin.
 export const Default: Story = {
   args: {}
 };
