@@ -2,6 +2,19 @@
 
 Notable changes to Claude Viewer, newest first.
 
+## 0.14.0 - 2026-08-18
+
+### Added 
+
+- **Robot Mode** on the active agent view
+
+- **Usage View** tracks the cost of your sessions, tagging them by skill
+
+### Changed
+
+- **Better Budget Info**, with sources for articles on skill budgets
+
+
 ## 0.12.0 - 2026-08-17
 
 ### Added
@@ -12,7 +25,7 @@ Notable changes to Claude Viewer, newest first.
 
 - **Visual bug on the robot svg**, related to transparecy
 
-- **Visual: refrehs button spins while running**
+- **Visual: refresh button spins while running**
 
 
 ## 0.10.0 — 2026-08-14
