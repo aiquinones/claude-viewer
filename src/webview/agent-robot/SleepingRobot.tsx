@@ -11,12 +11,17 @@ import { RobotHead } from './RobotHead';
 //
 // 3 is also the widest they go: the eyes are 6 apart and the head's inside is 14 across, so any
 // wider and the two strokes touch each other in the middle.
+//
+// These are the one place the drawing steps off the icon's weight of 2. A stroke bent through 180
+// degrees puts three times as much ink in the same space as the straight tick the icon uses, so at
+// a matched width the shut eyes read as the heaviest thing on the face. 1.5 is what makes them
+// weigh the same as everyone else's.
 export const SleepingRobot = () => (
   <RobotHead
     face={
       <>
-        <path className="bot-eye" d="M11.5 16.2C11.5 19.2 14.5 19.2 14.5 16.2" />
-        <path className="bot-eye" d="M17.5 16.2C17.5 19.2 20.5 19.2 20.5 16.2" />
+        <path className="bot-eye" strokeWidth={1.5} d="M11.5 16.2C11.5 19.2 14.5 19.2 14.5 16.2" />
+        <path className="bot-eye" strokeWidth={1.5} d="M17.5 16.2C17.5 19.2 20.5 19.2 20.5 16.2" />
       </>
     }
     aside={
