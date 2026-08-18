@@ -506,10 +506,10 @@
   90%, 100% { scale: 0.86; }
 }
 
-/* Sleeping: the tilt is static and the doze is an animation, on two properties, so both apply. The
-   Zs leave one at a time, a tick apart, over the same period. */
+/* Sleeping: the head stays level and only breathes. The shut eyes and the Zs already say asleep,
+   and a tilt on top of them bent the one silhouette every mood is meant to share. The Zs leave one
+   at a time, a tick apart, over the same period. */
 .agent-robot--sleeping .bot-head {
-  rotate: 7deg;
   animation: robot-doze calc(var(--robot-tick, 1s) * 3) ease-in-out infinite;
 }
 
