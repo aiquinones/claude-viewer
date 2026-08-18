@@ -1,17 +1,15 @@
 import { RobotBubble } from './RobotBubble';
 import { RobotHead } from './RobotHead';
 
-// A tool call is out and there is nothing to do but watch the dots go round. One eye still a tick
-// and the other gone round — the normal face, half shut, which is where it should be: this is the
-// state on its way to sleeping if nothing comes back.
+// A tool call is out and there is nothing to do but watch the dots go round. The icon's own face,
+// with its eyes rolled up — the dots in the bubble are what say it's waiting, and the face doesn't
+// need to say it twice.
 export const WaitingRobot = () => (
   <RobotHead
     face={
       <>
-        <path className="bot-eye" d="M13 17v2" />
-        {/* Same width as the tick beside it: `stroke="none"` and a radius of 1.2, rather than a
-            radius that the root's stroke then grows by another unit on every side. */}
-        <circle className="bot-eye" cx={19} cy={18} r={1.2} fill="currentColor" stroke="none" />
+        <path className="bot-eye bot-eye-left" d="M13 17v2" />
+        <path className="bot-eye bot-eye-right" d="M19 17v2" />
       </>
     }
     aside={

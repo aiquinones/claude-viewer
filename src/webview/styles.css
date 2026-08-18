@@ -426,6 +426,7 @@
 .bot-head,
 .bot-eye,
 .bot-bubble,
+.bot-ask,
 .bot-z,
 .bot-dot {
   transform-box: view-box;
@@ -480,30 +481,49 @@
   40%      { opacity: 1; }
 }
 
-/* Asking: the head goes over and stays there while the question mark swells, then both come back.
-   One period, so the pose and the punctuation are the same gesture. The ? never fades out — it's
-   the mark you most need to catch from across a screen, and half a cycle of invisible is half a
-   chance of missing the one row that's waiting on you. */
+/* Asking: one gesture in four beats, on a single period so the parts can't drift apart. It sits
+   level and blinks; then, where the icon would glance to the sides, it tilts; only once it's over
+   does the ? drop in from above; then the ? leaves and the head straightens at the same moment.
+
+   The percentages below are that order, and they are the whole design — a ? that is simply always
+   up says the row is blocked, and one that arrives after the head has gone over says the robot
+   thought about it first. Move one number and check the other two still come after it. */
 .agent-robot--asking .bot-head {
-  animation: robot-cock calc(var(--robot-tick, 1s) * 3) ease-in-out infinite;
+  animation: robot-tilt calc(var(--robot-tick, 1s) * 5) ease-in-out infinite;
+}
+
+.agent-robot--asking .bot-eye {
+  animation: robot-eye-blink calc(var(--robot-tick, 1s) * 5) ease-in-out infinite;
 }
 
 .bot-ask {
-  transform-origin: 26.5px 7px;
-  animation: robot-ask-pop calc(var(--robot-tick, 1s) * 3) ease-in-out infinite;
+  animation: robot-ask-drop calc(var(--robot-tick, 1s) * 5) ease-in-out infinite;
 }
 
-@keyframes robot-cock {
-  0%, 8%    { rotate: 0deg; }
-  22%, 74%  { rotate: -12deg; }
+/* A blink is a scale about the eye's own middle, so each eye needs its own origin — under
+   `transform-box: view-box` these are positions in the picture, not in the eye. */
+.bot-eye-left  { transform-origin: 13px 18px; }
+.bot-eye-right { transform-origin: 19px 18px; }
+
+@keyframes robot-eye-blink {
+  0%, 12%   { scale: 1 1; }
+  16%       { scale: 1 0.1; }
+  20%, 100% { scale: 1 1; }
+}
+
+@keyframes robot-tilt {
+  0%, 24%   { rotate: 0deg; }
+  36%, 76%  { rotate: -13deg; }
   88%, 100% { rotate: 0deg; }
 }
 
-@keyframes robot-ask-pop {
-  0%, 12%   { scale: 0.86; }
-  26%       { scale: 1.12; }
-  36%, 74%  { scale: 1; }
-  90%, 100% { scale: 0.86; }
+/* In from above and back out the same way. Opacity and translate share every percentage, so it
+   fades as it travels rather than sliding in already visible — and the exit is timed to the head's:
+   both start moving at 76% and both are done at 88%. */
+@keyframes robot-ask-drop {
+  0%, 38%   { opacity: 0; translate: 0 -6px; }
+  50%, 76%  { opacity: 1; translate: 0 0; }
+  88%, 100% { opacity: 0; translate: 0 -6px; }
 }
 
 /* Sleeping: the head stays level and only breathes. The shut eyes and the Zs already say asleep,
@@ -548,9 +568,11 @@
   }
 
   /* Every mood is markup and only the motion is animated, so stopping all of it still leaves four
-     robots you can tell apart: shut eyes and Zs, a slanted pair, a round pair under a ?, a tick and
-     a dot under three dots. The Zs sit at full opacity here — their keyframes start them invisible,
-     and the base style is what a stopped animation falls back to. */
+     robots you can tell apart: shut eyes and Zs, a slanted pair, and two level pairs under a ? and
+     under three dots. The Zs and the ? sit at full opacity and in place here — their keyframes
+     start them hidden and above the box, and the base style is what a stopped animation falls back
+     to. Asking loses its tilt with the rest of the motion, so the bubble is all that separates it
+     from waiting; the two are one agent state anyway. */
   .agent-robot [class^='bot-'] {
     animation: none;
   }
