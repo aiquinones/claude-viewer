@@ -394,6 +394,93 @@
   }
 }
 
+/* The flow view. Three layouts share these — a step card is the same card wherever it sits. */
+
+/* The flow pane collapsing to its rail. Width rather than a grid track: `1fr` and `11rem` don't
+   interpolate, so animating grid-template-columns between them would snap. Timing lives here so
+   the reduced-motion query below can reach it. */
+.flow-pane {
+  width: 100%;
+  transition: width 260ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.flow-pane[data-focused='true'] {
+  width: 11rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow-pane {
+    transition-duration: 0s;
+  }
+}
+
+.flow-canvas {
+  background: color-mix(in srgb, var(--foreground) 3%, var(--background));
+}
+
+/* `translate` and `scale` are written by useCanvasPan on every pointer move, so neither may carry
+   a transition here — a transition and a loop can't share a property. */
+.flow-surface {
+  transform-origin: 50% 0;
+}
+
+.step-card {
+  border-color: var(--border);
+  background: var(--background);
+  transition: border-color 140ms ease-out, background 140ms ease-out, opacity 140ms ease-out;
+}
+
+.step-card:hover {
+  border-color: color-mix(in srgb, var(--surface-accent, var(--foreground)) 55%, transparent);
+  background: color-mix(in srgb, var(--surface-accent, var(--foreground)) 6%, var(--background));
+}
+
+/* The open step. Its badge fills too, which is the part still readable once the card is a rail
+   11rem wide and the label has truncated away. */
+.step-card-active {
+  border-color: var(--surface-accent, var(--foreground));
+  background: color-mix(in srgb, var(--surface-accent, var(--foreground)) 12%, var(--background));
+}
+
+.step-card-active .step-badge {
+  background: var(--surface-accent, var(--foreground));
+  color: var(--background);
+}
+
+/* Every other card while one is open. Dimmed rather than hidden — the sequence is the point, and
+   a gap in it would say a step went away. */
+.step-card-faded {
+  opacity: 0.55;
+}
+
+.step-card-faded:hover {
+  opacity: 1;
+}
+
+.step-badge {
+  background: color-mix(in srgb, var(--foreground) 10%, transparent);
+  color: var(--muted-foreground);
+}
+
+.step-skill-count {
+  color: color-mix(in srgb, var(--surface-accent, var(--foreground)) 80%, var(--foreground));
+}
+
+.step-connector line {
+  stroke: color-mix(in srgb, var(--foreground) 30%, transparent);
+  stroke-width: 1.5;
+}
+
+.step-connector path {
+  fill: color-mix(in srgb, var(--foreground) 30%, transparent);
+}
+
+.step-connector-active line,
+.step-connector-active path {
+  stroke: var(--surface-accent, var(--foreground));
+  fill: var(--surface-accent, var(--foreground));
+}
+
 /* VS Code injects an unlayered `input:focus { outline: 1px solid -webkit-focus-ring-color }` into
    every webview, and an unlayered rule beats anything in a Tailwind layer — so `outline-none` can't
    turn it off. The opt-out has to stay outside `@layer` and out-specify `input:focus`. */

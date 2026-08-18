@@ -3,6 +3,7 @@ import { buildSearchIndex } from '../model/search/build-index';
 import { searchIndex } from '../model/search/search';
 import { listed } from '../model/shadowing';
 import { buildSkillGraph } from '../model/skill-graph/build-graph';
+import { SkillFlow, toSkillFlow } from './flow/steps';
 import {
   BudgetValue,
   DEFAULT_SETTINGS,
@@ -371,6 +372,80 @@ The command is **not** idempotent — a second run cuts a second version. See
 
 Two lines of heading would be two rows tall, and every offset below it would be wrong.
 `;
+
+// A SKILL.md written as a numbered sequence — the shape ten of the thirteen real skills have, and
+// what the flow view is built to read. The skill names in it are the ones above, in all four
+// marker forms, so the chips and the hover counts have something true to show.
+export const stepMarkdown: string = `# Release Flow
+
+Cut a release. Nine steps, and the loop back from the last one is the part worth seeing.
+
+## 1. Read the state
+
+Check what's already on the branch before touching anything.
+
+### The working tree
+
+A dirty tree is the one state that makes every later step lie. Run \`git status\` first.
+
+### The remote
+
+- Fetch, don't pull
+- Compare against \`origin/main\`
+
+## 2. Write the tests
+
+Anything shipping without a test is a thing you'll debug in production instead. Use
+[[write-tests]] on whatever changed.
+
+## 3. Commit
+
+Stage in pieces and let /commit write the message — one commit per idea, not one per file.
+
+### What not to stage
+
+\`\`\`bash
+git add -p          # never git add -A
+git status --short  # read it before you commit
+\`\`\`
+
+### The message
+
+| Part | Rule |
+|------|------|
+| Subject | imperative, under 60 chars |
+| Body | why, not what |
+
+## 4. Ship it
+
+Run \`deploy\` once the tests are green. It is **not** idempotent — a second run cuts a second
+version.
+
+### If it fails
+
+Freeze first, then roll back. Never roll forward through a failed deploy.
+
+#### The freeze window
+
+Ten minutes, and it holds every other deploy on the account. Say so in the channel before you
+take it.
+
+## 5. Report back
+
+Post the version and the diff URL. If step 4 failed, go back to step 1 rather than patching
+over it — the \`deploy\` log and the /commit that cut it are both linked from the release page.
+`;
+
+// Built by the real parser over the body above, the way skillGraph is built by the real scanner —
+// steps written out by hand would sooner or later disagree with the markdown next to them.
+const flowFor = (raw: string): SkillFlow =>
+  toSkillFlow({ raw, skills: allSkills, selfPath: undefined }) ?? { steps: [], source: 'numbered' };
+
+// Five numbered steps, sub-sections three deep, and skills named in all four marker forms.
+export const stepFlow: SkillFlow = flowFor(stepMarkdown);
+
+// Nothing numbered: the steps are the sections one level under the single `#` title.
+export const sectionFlow: SkillFlow = flowFor(skillMarkdown);
 
 // No headings at all — everything lands in the section that has no sticky bar.
 export const headinglessMarkdown: string = `Just a paragraph and a list, with no headings anywhere.
