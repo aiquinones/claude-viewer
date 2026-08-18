@@ -1,0 +1,11 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";import{A as t,F as n,g as r,n as i}from"./iframe-7U4_CvBF.js";import{i as a,r as o}from"./surfaces-DTnoiQK3.js";import{i as s,n as c,r as l,t as u}from"./useFlowFocus-m8-ZgY9x.js";import{n as d,t as f}from"./StepColumn-D_uAAxyA.js";import{n as p,t as m}from"./StepDetail-Y4iRtXHK.js";var h,g;function _(){return(_=e((()=>{s(),d(),p(),u(),h=i(),g=({flow:e,onOpenSkill:t})=>{let n=c(),r=e.steps.findIndex(e=>e.id===n.stepId);return(0,h.jsx)(l,{focused:!!n.node,flow:(0,h.jsx)(`div`,{className:`h-full overflow-y-auto overflow-x-clip px-3 py-4`,children:(0,h.jsx)(`div`,{className:n.node?``:`mx-auto max-w-sm`,children:(0,h.jsx)(f,{steps:e.steps,focusedStepId:n.stepId,compact:!!n.node,onOpen:n.focusStep})})}),detail:n.node&&(0,h.jsx)(m,{trail:n.trail,stepIndex:r,onGoTo:n.goTo,onDrill:n.drill,onClose:n.close,onOpenSkill:t})})},g.__docgenInfo={description:``,methods:[],displayName:`FlowColumn`,props:{flow:{required:!0,tsType:{name:`SkillFlow`},description:``},onOpenSkill:{required:!0,tsType:{name:`signature`,type:`function`,raw:`(path: string) => void`,signature:{arguments:[{type:{name:`string`},name:`path`}],return:{name:`void`}}},description:``}}}})))()}var v,y,b,x,S,C;function w(){return(w=e((()=>{r(),o(),_(),v=i(),y={title:`Skills/Flow/A · Column`,component:g,args:{flow:n},decorators:[e=>(0,v.jsx)(`div`,{className:`h-[36rem] rounded-lg border border-border`,style:{"--surface-accent":a(`skills`)},children:(0,v.jsx)(e,{})})]},b={},x={args:{flow:t}},S={globals:{viewport:{value:`narrowPanel`}}},b.parameters={...b.parameters,docs:{...b.parameters?.docs,source:{originalSource:`{}`,...b.parameters?.docs?.source}}},x.parameters={...x.parameters,docs:{...x.parameters?.docs,source:{originalSource:`{
+  args: {
+    flow: sectionFlow
+  }
+}`,...x.parameters?.docs?.source}}},S.parameters={...S.parameters,docs:{...S.parameters?.docs,source:{originalSource:`{
+  globals: {
+    viewport: {
+      value: 'narrowPanel'
+    }
+  }
+}`,...S.parameters?.docs?.source}}},C=[`Default`,`UnnumberedSections`,`NarrowPanel`]})))()}w();export{b as Default,S as NarrowPanel,x as UnnumberedSections,C as __namedExportsOrder,y as default};
