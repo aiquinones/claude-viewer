@@ -22,6 +22,15 @@ export const USAGE_SCOPES = ['all', 'workspace'] as const;
 
 export type UsageScope = (typeof USAGE_SCOPES)[number];
 
+// Which tokens the Claude dollar figure counts. `all` is every billed token — input, cache reads,
+// cache writes and output. `output` prices output alone, which is how Claude Code weights a skill's
+// share of your usage, and it leaves out the cache reads that otherwise dominate the figure.
+//
+// Deliberately not annotated: a type here would erase the literals UsageCostBasis derives from.
+export const USAGE_COST_BASES = ['all', 'output'] as const;
+
+export type UsageCostBasis = (typeof USAGE_COST_BASES)[number];
+
 // Where a turn's skill came from. Claude stamps `attributionSkill` on the turn and clears it, so
 // the boundaries are exact. Copilot writes `skill.invoked` and no completion event, so a skill
 // claims every later message until the next one — a heuristic, and the only option available.
@@ -132,7 +141,12 @@ export interface UsageBreakdown {
   // What the dollar figure is made of, and which models produced the window. Both exist for one
   // reason: a total on its own reads as wrong. 1.4M output tokens priced at $249 looks like an
   // error until you can see that $147 of it is cache reads.
+  //
+  // Always the full split, whatever the basis counts — the parts nobody is counting are exactly the
+  // ones a reader needs in order to know which figure they're looking at.
   costParts: UsdParts;
+  // Which of those parts `total.usd` adds up.
+  costBasis: UsageCostBasis;
   // Sorted by output tokens, largest first.
   models: UsageModelUse[];
 }

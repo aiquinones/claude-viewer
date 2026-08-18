@@ -2,7 +2,14 @@
 // is Claude's config: these are `claudeViewer.*` keys, and `~/.claude` is still never written.
 
 import { z } from 'zod';
-import { USAGE_METRICS, USAGE_SCOPES, UsageMetric, UsageScope } from '../usage/types';
+import {
+  USAGE_COST_BASES,
+  USAGE_METRICS,
+  USAGE_SCOPES,
+  UsageCostBasis,
+  UsageMetric,
+  UsageScope
+} from '../usage/types';
 
 // Which settings layer a value came from, most specific first. The array is the order the host
 // walks, and every card that explains a number prints whichever one won.
@@ -57,6 +64,7 @@ export interface Budgets {
 export interface UsageSettings {
   metric: SettingValue<UsageMetric>;
   scope: SettingValue<UsageScope>;
+  costBasis: SettingValue<UsageCostBasis>;
 }
 
 export interface ViewerSettings {
@@ -75,6 +83,11 @@ export const DEFAULT_CONTENT_BUDGET: number = 2000;
 export const DEFAULT_USAGE_METRIC: UsageMetric = 'output-tokens';
 export const DEFAULT_USAGE_SCOPE: UsageScope = 'all';
 
+// Every billed token by default, because that's what the API charges. `output` is the narrower read
+// — what the model wrote, priced — and it's there because the full figure is dominated by context
+// re-reads, which is not what most people mean when they ask what a skill cost.
+export const DEFAULT_USAGE_COST_BASIS: UsageCostBasis = 'all';
+
 export const DEFAULT_SETTINGS: ViewerSettings = {
   budgets: {
     skills: {
@@ -85,7 +98,8 @@ export const DEFAULT_SETTINGS: ViewerSettings = {
   },
   usage: {
     metric: { value: DEFAULT_USAGE_METRIC, source: 'default' },
-    scope: { value: DEFAULT_USAGE_SCOPE, source: 'default' }
+    scope: { value: DEFAULT_USAGE_SCOPE, source: 'default' },
+    costBasis: { value: DEFAULT_USAGE_COST_BASIS, source: 'default' }
   }
 };
 
@@ -122,6 +136,7 @@ export const parseOverrides = (raw: unknown): Record<string, SkillBudgetOverride
 // value is on screen.
 const metricSchema = z.enum(USAGE_METRICS);
 const scopeSchema = z.enum(USAGE_SCOPES);
+const costBasisSchema = z.enum(USAGE_COST_BASES);
 
 export const parseUsageMetric = (raw: unknown): UsageMetric | undefined => {
   const parsed = metricSchema.safeParse(raw);
@@ -130,5 +145,10 @@ export const parseUsageMetric = (raw: unknown): UsageMetric | undefined => {
 
 export const parseUsageScope = (raw: unknown): UsageScope | undefined => {
   const parsed = scopeSchema.safeParse(raw);
+  return parsed.success ? parsed.data : undefined;
+};
+
+export const parseUsageCostBasis = (raw: unknown): UsageCostBasis | undefined => {
+  const parsed = costBasisSchema.safeParse(raw);
   return parsed.success ? parsed.data : undefined;
 };

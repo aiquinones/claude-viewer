@@ -92,6 +92,19 @@
           ],
           "default": "all",
           "markdownDescription": "Which sessions the **Usage** surface counts."
+        },
+        "claudeViewer.usage.costBasis": {
+          "type": "string",
+          "enum": [
+            "all",
+            "output"
+          ],
+          "enumDescriptions": [
+            "Every billed token: input, cache reads, cache writes and output. What the API charges.",
+            "Output tokens only, the way Claude Code's /usage weights a skill's share."
+          ],
+          "default": "all",
+          "markdownDescription": "Which tokens the Claude Code dollar figure counts. `all` is the invoice; `output` prices what the model wrote and leaves out the context re-reads, which are usually most of the total. Copilot CLI is unaffected — it records its own billed AIU."
         }
       }
     },

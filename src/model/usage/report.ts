@@ -4,6 +4,7 @@
 import { aggregateUsage } from './aggregate';
 import {
   UsageBreakdown,
+  UsageCostBasis,
   UsageReport,
   UsageScope,
   UsageWindow,
@@ -20,13 +21,15 @@ interface BuildUsageReportArgs {
   now: number;
   scope: UsageScope;
   workspaceRoot: string | undefined;
+  costBasis: UsageCostBasis;
 }
 
 export const buildUsageReport = ({
   turns,
   now,
   scope,
-  workspaceRoot
+  workspaceRoot,
+  costBasis
 }: BuildUsageReportArgs): UsageReport => {
   const windows = {} as Record<UsageWindow, UsageBreakdown>;
 
@@ -36,7 +39,8 @@ export const buildUsageReport = ({
       window,
       now,
       scope,
-      workspaceRoot
+      workspaceRoot,
+      costBasis
     });
   }
 

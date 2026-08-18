@@ -1,5 +1,6 @@
 import { SkillEntry } from '../model/types';
 import { UsageMetric, UsageSlice } from '../model/usage/types';
+import { HoverCard, HoverCardBody, HoverCardTitle } from './HoverCard';
 import { SkillHoverCard } from './SkillHoverCard';
 import { formatShare, formatSliceValue, sliceLabel } from './usage-format';
 
@@ -26,18 +27,7 @@ export const UsageBar = ({ slice, metric, scale, skill, onOpenSkill }: UsageBarP
     <div className="flex flex-col gap-2 px-4 py-3">
       <div className="flex items-baseline gap-2.5">
         <Label slice={slice} attributed={attributed} skill={skill} onOpenSkill={onOpenSkill} />
-        {inferred && (
-          <span
-            title={
-              slice.sources.length > 1
-                ? 'Part of this is inferred — Copilot announces a skill and never closes it, so it claims every turn until the next one.'
-                : 'Inferred — Copilot announces a skill and never closes it, so it claims every turn until the next one.'
-            }
-            className="shrink-0 rounded border border-dashed border-border px-1.5 py-0.5 text-[10px] text-muted-foreground"
-          >
-            inferred
-          </span>
-        )}
+        {inferred && <InferredTag mixed={slice.sources.length > 1} />}
         <span className="ml-auto shrink-0 text-sm tabular-nums">
           {formatSliceValue(slice, metric)}
         </span>
@@ -57,6 +47,34 @@ export const UsageBar = ({ slice, metric, scale, skill, onOpenSkill }: UsageBarP
     </div>
   );
 };
+
+interface InferredTagProps {
+  // The row is fed by both CLIs, so only part of it is a guess.
+  mixed: boolean;
+}
+
+// Why this row's attribution is weaker than the rest. A card rather than a `title`: the explanation
+// is two sentences, and the native tooltip is OS-styled and a second late.
+const InferredTag = ({ mixed }: InferredTagProps) => (
+  <HoverCard
+    className="shrink-0"
+    card={
+      <>
+        <HoverCardTitle>{mixed ? 'Partly inferred' : 'Inferred'}</HoverCardTitle>
+        <HoverCardBody>
+          Copilot announces a skill and never closes it, so it claims every turn until the next one
+          or the end of the session. Claude Code stamps the skill on each turn and clears it, so
+          those rows are read rather than guessed
+          {mixed ? ' — this row has both.' : '.'}
+        </HoverCardBody>
+      </>
+    }
+  >
+    <span className="rounded border border-dashed border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">
+      inferred
+    </span>
+  </HoverCard>
+);
 
 interface LabelProps {
   slice: UsageSlice;

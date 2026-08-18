@@ -19,6 +19,7 @@ import { useSettings, useSetUsage } from '../settings/SettingsContext';
 import { surfaceAccent } from '../surfaces';
 import { UsageBar } from '../UsageBar';
 import { UsageInfo } from '../UsageInfo';
+import { UsageMenu } from '../UsageMenu';
 import { UsageChoice } from '../UsageChoice';
 import { sliceLabel } from '../usage-format';
 import { WINDOW_OPTIONS } from '../usage-options';
@@ -159,10 +160,14 @@ interface CostNoteProps {
 // rather than this extension's, so the date they were read is printed instead of the figure being
 // presented as current — and a model with no rates contributes its tokens and no dollars rather
 // than being quietly priced at zero.
+// Both controls sit *in* the sentence rather than in a flex row beside it. As flex items they were
+// laid out against the whole paragraph, so a panel too narrow for the text on one line pushed them
+// onto a line of their own — two icons alone above a wall of grey.
 const CostNote = ({ breakdown }: CostNoteProps) => (
-  <p className="flex flex-wrap items-center gap-x-1.5 px-1 text-xs leading-relaxed text-muted-foreground">
+  <p className="px-1 text-xs leading-relaxed text-muted-foreground">
     <UsageInfo breakdown={breakdown} />
-    <span>
+    <UsageMenu />
+    <span className="ml-1.5">
       Claude Code records tokens only, so dollars are priced from a table last checked {PRICED_AT}.
       Copilot CLI writes its own billed figure, so its AIU is exact.
       {breakdown.unpricedModels.length > 0 && (

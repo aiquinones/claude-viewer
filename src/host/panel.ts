@@ -176,7 +176,11 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'surfaceChanged') return _onSurfaceChanged(message.surface);
   if (message.type === 'openSettings') return revealSettings();
   if (message.type === 'setUsage') {
-    return writeUsageSettings({ metric: message.metric, scope: message.scope });
+    return writeUsageSettings({
+      metric: message.metric,
+      scope: message.scope,
+      costBasis: message.costBasis
+    });
   }
   if (message.type === 'setAgentColor') {
     return setAgentColor({ sessionId: message.sessionId, color: message.color });

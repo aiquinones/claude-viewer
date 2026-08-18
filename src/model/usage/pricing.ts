@@ -87,10 +87,10 @@ export const usdPartsFor = ({ model, tokens }: UsdForArgs): UsdParts | undefined
   };
 };
 
-export const usdFor = (args: UsdForArgs): number | undefined => {
-  const parts: UsdParts | undefined = usdPartsFor(args);
-  return parts && parts.input + parts.output + parts.cacheRead + parts.cacheWrite;
-};
+// Every billed token, added up — what a cost basis of `all` means and what the API would charge.
+// Which parts a figure actually counts is the setting's business, so that decision isn't made here.
+export const sumUsdParts = (parts: UsdParts): number =>
+  parts.input + parts.output + parts.cacheRead + parts.cacheWrite;
 
 // The multipliers, for the card that explains a figure. Cache tokens are priced off the model's
 // input rate, so these are what a reader needs on top of the two numbers in the table.

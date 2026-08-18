@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { bothClis, dayOfWork, noUsage, unpricedModel } from './usage-fixtures';
+import { bothClis, dayOfWork, noUsage, outputOnlyBasis, unpricedModel } from './usage-fixtures';
 import { UsageInfo } from './UsageInfo';
 
 // The card only opens on hover, and it opens *upward* — on the surface it sits at the bottom of the
@@ -32,6 +32,10 @@ export const BothClis: Story = { args: { breakdown: bothClis.windows.day } };
 
 // A model with no rates. It keeps its share of the tokens and says its dollars aren't counted.
 export const UnpricedModel: Story = { args: { breakdown: unpricedModel.windows.day } };
+
+// The same turns priced on output alone. Every part is still listed, with the ones this basis
+// ignores struck through and totalled — otherwise `output` would read as the whole story.
+export const OutputOnly: Story = { args: { breakdown: outputOnlyBasis.windows.day } };
 
 // Nothing in the window. The (i) renders nothing at all rather than opening an empty box.
 export const Empty: Story = { args: { breakdown: noUsage.windows.day } };

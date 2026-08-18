@@ -4,10 +4,11 @@
 
 import { AgentTool } from '../types';
 import { cutoff } from './window';
-import { EMPTY_USD_PARTS, ratesFor, usdFor, usdPartsFor, UsdParts } from './pricing';
+import { EMPTY_USD_PARTS, ratesFor, sumUsdParts, usdPartsFor, UsdParts } from './pricing';
 import {
   EMPTY_TOTALS,
   UsageBreakdown,
+  UsageCostBasis,
   UsageModelUse,
   UsageScope,
   UsageSlice,
@@ -27,6 +28,9 @@ interface AggregateUsageArgs {
   now: number;
   scope: UsageScope;
   workspaceRoot: string | undefined;
+  // Which billed tokens the dollar figure counts. Unlike the metric this *is* an argument: it
+  // changes the number rather than which number is printed.
+  costBasis: UsageCostBasis;
 }
 
 // The metric isn't an argument. Every figure is computed, and the view prints whichever the setting
@@ -36,7 +40,8 @@ export const aggregateUsage = ({
   window,
   now,
   scope,
-  workspaceRoot
+  workspaceRoot,
+  costBasis
 }: AggregateUsageArgs): UsageBreakdown => {
   const since: number = cutoff({ window, now });
   const inWindow: UsageTurn[] = turns.filter(
@@ -51,12 +56,12 @@ export const aggregateUsage = ({
     else bySkill.set(key, [turn]);
   }
 
-  const total: UsageTotals = sum(inWindow);
+  const total: UsageTotals = sum(inWindow, costBasis);
   const sessions: number = new Set(inWindow.map((turn) => turn.sessionId)).size;
 
   const slices: UsageSlice[] = [...bySkill.entries()]
     .map(([skill, group]) => {
-      const totals: UsageTotals = sum(group);
+      const totals: UsageTotals = sum(group, costBasis);
       return {
         ...(skill === NO_SKILL ? {} : { skill }),
         ...totals,
@@ -75,12 +80,19 @@ export const aggregateUsage = ({
     slices,
     total,
     byTool: {
-      claude: sum(inWindow.filter((turn) => turn.tool === 'claude')),
-      copilot: sum(inWindow.filter((turn) => turn.tool === 'copilot'))
+      claude: sum(
+        inWindow.filter((turn) => turn.tool === 'claude'),
+        costBasis
+      ),
+      copilot: sum(
+        inWindow.filter((turn) => turn.tool === 'copilot'),
+        costBasis
+      )
     },
     unpricedModels: unpricedIn(inWindow),
     costParts: costPartsOf(inWindow),
-    models: modelsIn(inWindow)
+    costBasis,
+    models: modelsIn(inWindow, costBasis)
   };
 };
 
@@ -102,7 +114,7 @@ const costPartsOf = (turns: UsageTurn[]): UsdParts =>
 
 // Which models produced the window, largest first. Spans both CLIs — Copilot runs Claude models
 // too, so this is the one place the two are counted together on something other than tokens.
-const modelsIn = (turns: UsageTurn[]): UsageModelUse[] => {
+const modelsIn = (turns: UsageTurn[], costBasis: UsageCostBasis): UsageModelUse[] => {
   const output: number = turns.reduce((sum, turn) => sum + turn.tokens.output, 0);
   const byModel: Map<string, UsageTurn[]> = new Map();
 
@@ -114,7 +126,7 @@ const modelsIn = (turns: UsageTurn[]): UsageModelUse[] => {
 
   return [...byModel.entries()]
     .map(([model, group]) => {
-      const totals: UsageTotals = sum(group);
+      const totals: UsageTotals = sum(group, costBasis);
       return {
         model,
         outputTokens: totals.outputTokens,
@@ -128,11 +140,11 @@ const modelsIn = (turns: UsageTurn[]): UsageModelUse[] => {
     .sort((left, right) => right.outputTokens - left.outputTokens);
 };
 
-const sum = (turns: UsageTurn[]): UsageTotals =>
+const sum = (turns: UsageTurn[], costBasis: UsageCostBasis): UsageTotals =>
   turns.reduce(
     (totals: UsageTotals, turn: UsageTurn) => ({
       outputTokens: totals.outputTokens + turn.tokens.output,
-      usd: totals.usd + usdOf(turn),
+      usd: totals.usd + usdOf(turn, costBasis),
       nanoAiu: totals.nanoAiu + (turn.nanoAiu ?? 0),
       turns: totals.turns + 1
     }),
@@ -142,8 +154,17 @@ const sum = (turns: UsageTurn[]): UsageTotals =>
 // Dollars are Claude's number and AIU is Copilot's, and neither converts to the other. Pricing a
 // Copilot turn would be worse than not having one: it records the output side only, so the figure
 // would come out several times low and still look like a price.
-const usdOf = (turn: UsageTurn): number =>
-  turn.tool === 'claude' ? (usdFor({ model: turn.model, tokens: turn.tokens }) ?? 0) : 0;
+//
+// The basis decides which parts of a Claude turn count. `output` is the narrow read — what the model
+// wrote, priced — and it drops the context re-reads that make up most of the full figure.
+const usdOf = (turn: UsageTurn, costBasis: UsageCostBasis): number => {
+  if (turn.tool !== 'claude') return 0;
+
+  const parts: UsdParts | undefined = usdPartsFor({ model: turn.model, tokens: turn.tokens });
+  if (!parts) return 0;
+
+  return costBasis === 'output' ? parts.output : sumUsdParts(parts);
+};
 
 // In the declared order rather than first-seen, so a slice fed by both CLIs always reads the same
 // way round.

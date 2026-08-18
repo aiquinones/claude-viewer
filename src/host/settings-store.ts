@@ -3,16 +3,18 @@ import {
   BudgetValue,
   DEFAULT_CONTENT_BUDGET,
   DEFAULT_DESCRIPTION_BUDGET,
+  DEFAULT_USAGE_COST_BASIS,
   DEFAULT_USAGE_METRIC,
   DEFAULT_USAGE_SCOPE,
   parseBudgetTokens,
   parseOverrides,
+  parseUsageCostBasis,
   parseUsageMetric,
   parseUsageScope,
   SettingValue,
   ViewerSettings
 } from '../model/settings/settings';
-import { UsageMetric, UsageScope } from '../model/usage/types';
+import { UsageCostBasis, UsageMetric, UsageScope } from '../model/usage/types';
 
 // Registered in package.json under contributes.configuration — the section, the keys and the
 // defaults there all have to agree with this file.
@@ -22,6 +24,7 @@ const CONTENT_KEY: string = 'budgets.skills.content';
 const OVERRIDES_KEY: string = 'budgets.skills.overrides';
 const USAGE_METRIC_KEY: string = 'usage.metric';
 const USAGE_SCOPE_KEY: string = 'usage.scope';
+const USAGE_COST_BASIS_KEY: string = 'usage.costBasis';
 
 // What the Settings UI opens filtered to. A plain query rather than `@ext:`, so it doesn't carry a
 // second copy of the publisher id.
@@ -61,6 +64,12 @@ export const currentSettings = (): ViewerSettings => {
         key: USAGE_SCOPE_KEY,
         parse: parseUsageScope,
         fallback: DEFAULT_USAGE_SCOPE
+      }),
+      costBasis: readValue({
+        config,
+        key: USAGE_COST_BASIS_KEY,
+        parse: parseUsageCostBasis,
+        fallback: DEFAULT_USAGE_COST_BASIS
       })
     }
   };
@@ -69,16 +78,24 @@ export const currentSettings = (): ViewerSettings => {
 interface WriteUsageArgs {
   metric?: UsageMetric;
   scope?: UsageScope;
+  costBasis?: UsageCostBasis;
 }
 
 // The usage surface's toggles write these two keys. This is the extension's own configuration, not
 // Claude's — `~/.claude` is still never written — and it goes to the global layer because which
 // number you want to look at is a preference rather than a property of the repo.
-export const writeUsageSettings = async ({ metric, scope }: WriteUsageArgs): Promise<void> => {
+export const writeUsageSettings = async ({
+  metric,
+  scope,
+  costBasis
+}: WriteUsageArgs): Promise<void> => {
   const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(SECTION);
 
   if (metric) await config.update(USAGE_METRIC_KEY, metric, vscode.ConfigurationTarget.Global);
   if (scope) await config.update(USAGE_SCOPE_KEY, scope, vscode.ConfigurationTarget.Global);
+  if (costBasis) {
+    await config.update(USAGE_COST_BASIS_KEY, costBasis, vscode.ConfigurationTarget.Global);
+  }
 };
 
 export const startWatchingSettings = (): vscode.Disposable =>

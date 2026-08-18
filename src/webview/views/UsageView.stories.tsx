@@ -1,27 +1,29 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ReactNode } from 'react';
 import { DEFAULT_SETTINGS, ViewerSettings } from '../../model/settings/settings';
-import { UsageMetric, UsageScope } from '../../model/usage/types';
+import { UsageCostBasis, UsageMetric, UsageScope } from '../../model/usage/types';
 import { SettingsProvider } from '../settings/SettingsContext';
 import {
   bothClis,
   dayOfWork,
   noUsage,
+  outputOnlyBasis,
   quietDay,
   unpricedModel,
   usageSkills
 } from '../usage-fixtures';
 import { UsageView } from './UsageView';
 
-// The metric and the scope are settings, so a story that wants cost has to say so the way the host
-// does — through the provider. Everything else on the surface is state or props.
+// The metric, the scope and the cost basis are settings, so a story that wants one of them has to say
+// so the way the host does — through the provider. Everything else on the surface is state or props.
 interface WithSettingsArgs {
   metric?: UsageMetric;
   scope?: UsageScope;
+  costBasis?: UsageCostBasis;
   children: ReactNode;
 }
 
-const WithSettings = ({ metric, scope, children }: WithSettingsArgs) => {
+const WithSettings = ({ metric, scope, costBasis, children }: WithSettingsArgs) => {
   const settings: ViewerSettings = {
     ...DEFAULT_SETTINGS,
     usage: {
@@ -29,7 +31,8 @@ const WithSettings = ({ metric, scope, children }: WithSettingsArgs) => {
         value: metric ?? 'output-tokens',
         source: metric ? 'user' : 'default'
       },
-      scope: { value: scope ?? 'all', source: scope ? 'user' : 'default' }
+      scope: { value: scope ?? 'all', source: scope ? 'user' : 'default' },
+      costBasis: { value: costBasis ?? 'all', source: costBasis ? 'user' : 'default' }
     }
   };
 
@@ -82,6 +85,17 @@ export const Cost: Story = {
 // The same window on tokens, which is the only metric with one total across both CLIs. Read it
 // against Cost: the shares are the same, the numbers aren't comparable.
 export const BothClis: Story = { args: { report: bothClis } };
+
+// Claude cost from output tokens alone, set through the `...` menu. Read it against Cost: the same
+// turns, an order of magnitude apart, because the full figure is mostly context re-reads.
+export const CostFromOutputOnly: Story = {
+  args: { report: outputOnlyBasis },
+  render: (args) => (
+    <WithSettings metric="cost" costBasis="output">
+      <UsageView {...args} />
+    </WithSettings>
+  )
+};
 
 // A model the price table doesn't know. Its tokens are in the total and its dollars aren't, and the
 // note under the list names it rather than letting the figure look complete.

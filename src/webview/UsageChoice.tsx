@@ -1,4 +1,4 @@
-import { Tooltip } from './Tooltip';
+import { HoverCard, HoverCardBody } from './HoverCard';
 
 export interface ChoiceOption<Id extends string> {
   id: Id;
@@ -18,6 +18,9 @@ interface UsageChoiceProps<Id extends string> {
 // A segmented control with words in it. `ViewModeToggle` is the icon version and slides a tile
 // between equal-width buttons; these options are words of different lengths — Day against
 // This workspace — so the selected one is painted rather than chased.
+//
+// The hints are `HoverCard`, not `Tooltip`: they're sentences, and a nowrap tooltip on a control near
+// the panel edge is a sentence with its end cut off.
 export const UsageChoice = <Id extends string>({
   label,
   options,
@@ -30,7 +33,7 @@ export const UsageChoice = <Id extends string>({
     className="flex shrink-0 items-center rounded-lg border border-border bg-muted p-0.5"
   >
     {options.map((option) => (
-      <Tooltip key={option.id} label={option.hint}>
+      <HoverCard key={option.id} card={<HoverCardBody>{option.hint}</HoverCardBody>}>
         <button
           type="button"
           aria-pressed={option.id === value}
@@ -43,7 +46,7 @@ export const UsageChoice = <Id extends string>({
         >
           {option.label}
         </button>
-      </Tooltip>
+      </HoverCard>
     ))}
   </div>
 );

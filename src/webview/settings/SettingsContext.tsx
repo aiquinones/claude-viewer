@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useContext } from 'react';
 import { DEFAULT_SETTINGS, ViewerSettings } from '../../model/settings/settings';
-import { UsageMetric, UsageScope } from '../../model/usage/types';
+import { UsageCostBasis, UsageMetric, UsageScope } from '../../model/usage/types';
 
 // The usage surface's toggles write settings back. Every other setting here is read-only to the
 // panel and changed in the Settings UI; these two are controls on the surface itself, because
@@ -8,6 +8,7 @@ import { UsageMetric, UsageScope } from '../../model/usage/types';
 export interface UsageSettingsChange {
   metric?: UsageMetric;
   scope?: UsageScope;
+  costBasis?: UsageCostBasis;
 }
 
 // Everything about settings the webview has: the values, and the ways to change them. One context

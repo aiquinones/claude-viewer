@@ -2,7 +2,7 @@
 // only ever reads them.
 
 import { ViewerSettings } from './settings/settings';
-import { UsageMetric, UsageReport, UsageScope } from './usage/types';
+import { UsageCostBasis, UsageMetric, UsageReport, UsageScope } from './usage/types';
 
 // Two surfaces, two orderings, and they aren't the same list read backwards — each one gets its
 // own array, and `Scope` is the union.
@@ -338,4 +338,9 @@ export type WebviewMessage =
   | { type: 'setAgentColor'; sessionId: string; color?: AgentColor }
   // The usage surface's own toggles. They write `claudeViewer.usage.*` — the extension's settings,
   // not Claude's — and the host owns which layer that lands in.
-  | { type: 'setUsage'; metric?: UsageMetric; scope?: UsageScope };
+  | {
+      type: 'setUsage';
+      metric?: UsageMetric;
+      scope?: UsageScope;
+      costBasis?: UsageCostBasis;
+    };

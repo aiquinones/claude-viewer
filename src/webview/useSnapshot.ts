@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DEFAULT_SETTINGS, ViewerSettings } from '../model/settings/settings';
 import { AgentColor, AgentColors, AgentSession, ConfigSnapshot, Reveal } from '../model/types';
-import { UsageMetric, UsageReport, UsageScope } from '../model/usage/types';
+import { UsageCostBasis, UsageMetric, UsageReport, UsageScope } from '../model/usage/types';
 import { vscode } from './vscodeApi';
 
 // The single bridge to the extension host. The host owns the filesystem and pushes a whole
@@ -57,8 +57,11 @@ export const useSnapshot = () => {
 
   // The usage surface's toggles. The host writes the setting and posts the whole settings object
   // back, so nothing here guesses at what it wrote.
-  const changeUsage = (change: { metric?: UsageMetric; scope?: UsageScope }): void =>
-    vscode.postMessage({ type: 'setUsage', ...change });
+  const changeUsage = (change: {
+    metric?: UsageMetric;
+    scope?: UsageScope;
+    costBasis?: UsageCostBasis;
+  }): void => vscode.postMessage({ type: 'setUsage', ...change });
 
   // One row's colour. The host stores it and posts the whole map back, so nothing here guesses at
   // what it wrote.
