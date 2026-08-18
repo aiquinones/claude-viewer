@@ -476,11 +476,40 @@
   animation: robot-page calc(var(--robot-tick, 1s) * 4) ease-in-out infinite;
 }
 
-/* The stack behind is quieter than the sheet in front, which is most of what puts it behind — that
-   and the offset, which the incoming page starts at so it looks peeled off rather than faded in.
-   It never moves, and nothing is ever drawn on it. */
+/* The next sheet, quieter than the one in front, and drawn as two shapes with only one of them up
+   at a time. The page is an outline with no fill, so a whole rectangle behind it puts its left and
+   bottom edges straight through the writing — while the page is on the pad, all that may show is
+   the L those edges make outside it.
+
+   `steps(1, end)`, so neither ever half-fades into the other. They swap at 88%, by which point the
+   page has left the box. The full sheet is hidden in the stylesheet rather than only by a keyframe,
+   which is what makes the peek the one a stopped animation falls back to. */
 .bot-stack {
   opacity: 0.45;
+}
+
+.bot-stack--full {
+  opacity: 0;
+}
+
+.agent-robot--working .bot-stack--peek {
+  animation: robot-stack-peek calc(var(--robot-tick, 1s) * 4) steps(1, end) infinite;
+}
+
+.agent-robot--working .bot-stack--full {
+  animation: robot-stack-full calc(var(--robot-tick, 1s) * 4) steps(1, end) infinite;
+}
+
+@keyframes robot-stack-peek {
+  0%   { opacity: 0.45; }
+  88%  { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@keyframes robot-stack-full {
+  0%   { opacity: 0; }
+  88%  { opacity: 0.45; }
+  100% { opacity: 0.45; }
 }
 
 /* Normalised by `pathLength={1}` on the path, so one dash length covers any of the three. */

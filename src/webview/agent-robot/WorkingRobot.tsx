@@ -1,3 +1,4 @@
+import { OpenEyes } from './Eyes';
 import { RobotHead } from './RobotHead';
 
 // Heads down and frowning at it, with a pad beside the head filling up. Three lines of scribble draw
@@ -5,31 +6,35 @@ import { RobotHead } from './RobotHead';
 // already there underneath. The only mood whose aside changes rather than just pulsing, which is
 // right — it's the only one producing anything.
 //
-// The frown is two strokes a side, not one: a brow, shallow and angled down towards the middle, and
-// under it the icon's own vertical eye, which is the part that blinks. One slanted stroke doing both
-// jobs was the earlier version, and it read as a single V by the time the row was 8px tall.
+// The frown is a brow over the icon's own eye, which is the part that blinks. The eyes sit exactly
+// where every other mood puts them and the brows come down to meet them — a brow crosses its eye's x
+// at y=15.3, so its lower edge is 16.1 against an eye whose cap reaches 16. One slanted stroke doing
+// both jobs was the earlier version, and it read as a single V by the time the row was 8px tall.
 export const WorkingRobot = () => (
   <RobotHead
     face={
       <>
-        <path className="bot-brow" strokeWidth={1.6} d="M11.8 14.2 14.2 15" />
-        <path className="bot-brow" strokeWidth={1.6} d="M20.2 14.2 17.8 15" />
-        {/* Long enough to meet the brow above it. Each brow crosses its eye's x at y=14.6, so its
-            lower edge is 15.4 and an eye whose cap reaches 15.2 touches it. */}
-        <path className="bot-eye bot-eye-left" d="M13 16.2v3.4" />
-        <path className="bot-eye bot-eye-right" d="M19 16.2v3.4" />
+        <path className="bot-brow" strokeWidth={1.6} d="M11.8 14.9 14.2 15.7" />
+        <path className="bot-brow" strokeWidth={1.6} d="M20.2 14.9 17.8 15.7" />
+        <OpenEyes />
       </>
     }
     aside={
       <>
-        {/* The next sheet: a whole rectangle, offset up and right, drawn first so it stays behind.
-            It used to be two edges, and that was the bug — when the written sheet lifted away, what
-            it left behind was an L rather than a page.
+        {/* The next sheet, drawn twice, because the page in front of it is an outline with nothing
+            inside — whatever is behind shows straight through it. So only one of these is ever up:
+            the two edges that stick out past the page while it's on the pad, and the whole rectangle
+            once the page has lifted and there is nothing left to show through.
+
+            The alternative is filling the page, and the fill would have to be whatever is behind the
+            robot — the panel, or the row's tint, or the hover on either. Two shapes and a swap beats
+            four rules that have to track the row.
 
             The page's bottom edge stops at 16, which is as low as it goes: the right ear's stroke
             reaches y=19 from its centre line at 18, and the two were touching at 17.5. */}
+        <path className="bot-stack bot-stack--peek" strokeWidth={1.2} d="M26.3 6.7H33.3V15.3" />
         <rect
-          className="bot-stack"
+          className="bot-stack bot-stack--full"
           strokeWidth={1.2}
           x={26.3}
           y={6.7}
