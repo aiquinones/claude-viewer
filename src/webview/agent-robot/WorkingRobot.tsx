@@ -12,12 +12,12 @@ export const WorkingRobot = () => (
   <RobotHead
     face={
       <>
-        {/* A unit of clear air between a brow's inner end and the cap of the eye under it. At 0.3
-            the two merged into one mark and the frown stopped reading as a frown. */}
         <path className="bot-brow" strokeWidth={1.6} d="M11.8 14.2 14.2 15" />
         <path className="bot-brow" strokeWidth={1.6} d="M20.2 14.2 17.8 15" />
-        <path className="bot-eye bot-eye-left" d="M13 17.8v1.6" />
-        <path className="bot-eye bot-eye-right" d="M19 17.8v1.6" />
+        {/* Long enough to meet the brow above it. Each brow crosses its eye's x at y=14.6, so its
+            lower edge is 15.4 and an eye whose cap reaches 15.2 touches it. */}
+        <path className="bot-eye bot-eye-left" d="M13 16.2v3.4" />
+        <path className="bot-eye bot-eye-right" d="M19 16.2v3.4" />
       </>
     }
     aside={

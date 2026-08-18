@@ -513,17 +513,21 @@
   85%, 100% { translate: -0.9px 0; }
 }
 
-/* It appears already sitting on the stack — same offset, same place — and only then slides down
-   into the writing position, so the beat reads as taking the next sheet off the pad rather than as
-   one fading in over another. Then away downwards once it's full.
+/* It appears sitting on the stack — same offset, same place, so the top of the pad simply brightens
+   from the stack's 0.45 to full — and only then slides down into the writing position. Once it's
+   full it goes straight up and out of the view box.
 
-   Both ends are at zero opacity, so the jump from the bottom of one cycle to the top of the next is
-   never on screen. */
+   No opacity anywhere in here, which is the point. Fading the sheet out made it translucent on the
+   way, and the blank one behind it showed through the writing. A sheet clipped by the edge of the
+   box is gone rather than see-through. It leaves upwards because that is the way past the stack in
+   one unit of travel — right crosses it end to end, and left crosses the head.
+
+   100% is off the top and 0% is on the pad, so the loop's jump between them happens where there is
+   nothing to see. */
 @keyframes robot-page {
-  0%        { translate: 0.7px -0.7px; opacity: 0; }
-  8%        { translate: 0.7px -0.7px; opacity: 1; }
-  16%, 76%  { translate: 0 0; opacity: 1; }
-  88%, 100% { translate: 0 2.6px; opacity: 0; }
+  0%, 8%    { translate: 0.7px -0.7px; }
+  16%, 76%  { translate: 0 0; }
+  94%, 100% { translate: 0 -18px; }
 }
 
 /* Three keyframes rather than one with three delays. A delay shifts a line's reset along with its
