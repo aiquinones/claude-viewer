@@ -66,6 +66,32 @@
             },
             "additionalProperties": false
           }
+        },
+        "claudeViewer.usage.metric": {
+          "type": "string",
+          "enum": [
+            "output-tokens",
+            "cost"
+          ],
+          "enumDescriptions": [
+            "Output tokens per skill. Measured by both CLIs, and the number Claude Code's own /usage reports.",
+            "What the turns cost: US dollars for Claude Code, priced from a table, and AIU for Copilot CLI, which records its own billed figure."
+          ],
+          "default": "output-tokens",
+          "markdownDescription": "Which number the **Usage** surface reads. `output-tokens` is the only one with a single total across both CLIs — dollars and AIU are different units, so `cost` totals each CLI separately."
+        },
+        "claudeViewer.usage.scope": {
+          "type": "string",
+          "enum": [
+            "all",
+            "workspace"
+          ],
+          "enumDescriptions": [
+            "Every session on this machine, which is what usage limits are counted against.",
+            "Only sessions working under the open folder. A worktree under it counts as this workspace."
+          ],
+          "default": "all",
+          "markdownDescription": "Which sessions the **Usage** surface counts."
         }
       }
     },

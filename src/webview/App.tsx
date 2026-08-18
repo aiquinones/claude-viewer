@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { buildSearchIndex } from '../model/search/build-index';
 import { AgentSession, ConfigSnapshot, Reveal, SearchDoc } from '../model/types';
+import { UsageReport } from '../model/usage/types';
 import { AgentColorProvider } from './agent-color/AgentColorContext';
 import { Loading } from './loading/Loading';
 import { SettingsProvider } from './settings/SettingsContext';
@@ -12,6 +13,7 @@ import { useSnapshot } from './useSnapshot';
 import { ViewSlider } from './ViewSlider';
 import { AgentsView } from './views/AgentsView';
 import { LandingView } from './views/LandingView';
+import { UsageView } from './views/UsageView';
 import { SkillView } from './views/SkillView';
 import { SystemPromptView } from './views/SystemPromptView';
 
@@ -25,6 +27,8 @@ export const App = () => {
   const {
     snapshot,
     agents,
+    usage,
+    changeUsage,
     settings,
     agentColors,
     setAgentColor,
@@ -69,6 +73,13 @@ export const App = () => {
     [snapshot]
   );
 
+  // Selects one skill and shows it, wherever the ask came from. The nonce is what makes naming the
+  // same skill twice a second event rather than a no-op.
+  const openSkill = (path: string): void => {
+    setSelected({ path, nonce: Date.now() });
+    openSurface('skills');
+  };
+
   // A result knows its kind, and the kind names the surface that renders it.
   const chooseResult = (doc: SearchDoc): void => {
     const target: SurfaceId | undefined = surfaceForKind(doc.kind);
@@ -90,7 +101,7 @@ export const App = () => {
   }
 
   return (
-    <SettingsProvider settings={settings} openSettings={openSettings}>
+    <SettingsProvider settings={settings} openSettings={openSettings} setUsage={changeUsage}>
       <AgentColorProvider colors={agentColors} setColor={setAgentColor}>
         <ViewSlider
           showDetail={showDetail}
@@ -98,6 +109,7 @@ export const App = () => {
             <LandingView
               snapshot={snapshot}
               agents={agents}
+              usage={usage}
               onOpenSurface={openSurface}
               onUnavailableSurface={reportUnavailable}
               onSearch={openSpotlight}
@@ -109,6 +121,8 @@ export const App = () => {
               surface={surface}
               snapshot={snapshot}
               agents={agents}
+              usage={usage}
+              onOpenSkill={openSkill}
               reveal={selected}
               onOpenFile={openFile}
               onSearch={openSpotlight}
@@ -137,6 +151,9 @@ interface DetailProps {
   surface: SurfaceId | undefined;
   snapshot: ConfigSnapshot;
   agents: AgentSession[];
+  usage: UsageReport | undefined;
+  // A skill named on another surface — the usage rows do this. Opens it on the skills surface.
+  onOpenSkill: (path: string) => void;
   reveal?: Reveal;
   onOpenFile: (path: string) => void;
   onSearch: () => void;
@@ -150,6 +167,8 @@ const Detail = ({
   surface,
   snapshot,
   agents,
+  usage,
+  onOpenSkill,
   reveal,
   onOpenFile,
   onSearch,
@@ -187,6 +206,17 @@ const Detail = ({
           agents={agents}
           snapshot={snapshot}
           onOpenFile={onOpenFile}
+          onSearch={onSearch}
+          onRefresh={onRefresh}
+          onBack={onBack}
+        />
+      );
+    case 'usage':
+      return (
+        <UsageView
+          report={usage}
+          skills={snapshot.skills}
+          onOpenSkill={onOpenSkill}
           onSearch={onSearch}
           onRefresh={onRefresh}
           onBack={onBack}

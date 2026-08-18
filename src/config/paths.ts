@@ -32,6 +32,10 @@ export const userClaudeDir = (): string => join(homedir(), '.claude');
 // One file per running Claude Code process, named by pid.
 export const sessionsDir = (): string => join(userClaudeDir(), 'sessions');
 
+// One directory per working directory, each holding that directory's session transcripts. The whole
+// history of every session lives under here, which is what the usage surface reads.
+export const projectsDir = (): string => join(userClaudeDir(), 'projects');
+
 interface TranscriptPathArgs {
   cwd: string;
   sessionId: string;

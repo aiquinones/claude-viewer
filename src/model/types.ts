@@ -2,6 +2,7 @@
 // only ever reads them.
 
 import { ViewerSettings } from './settings/settings';
+import { UsageMetric, UsageReport, UsageScope } from './usage/types';
 
 // Two surfaces, two orderings, and they aren't the same list read backwards — each one gets its
 // own array, and `Scope` is the union.
@@ -311,7 +312,11 @@ export type HostMessage =
   | { type: 'skillGraph'; graph: SkillGraph }
   // The whole map every time — it's a handful of entries, and a delta would be a protocol for
   // something that fits in one message.
-  | { type: 'agentColors'; colors: AgentColors };
+  | { type: 'agentColors'; colors: AgentColors }
+  // What the sessions on this machine have cost, both windows already aggregated. Its own message
+  // for the reason agents are, and more so: the scan behind it reads every transcript on disk, and
+  // nothing else should have to wait for it.
+  | { type: 'usage'; report: UsageReport };
 
 // Webview → host. `surfaceUnavailable` carries only the surface's name: the host owns the
 // sentence, the same way it owns which paths `openFile` will accept. `openSettings` is the same
@@ -330,4 +335,7 @@ export type WebviewMessage =
   | { type: 'surfaceChanged'; surface: string | undefined }
   | { type: 'openSettings' }
   // One row's colour. No `color` clears it — the row goes back to painting like every other one.
-  | { type: 'setAgentColor'; sessionId: string; color?: AgentColor };
+  | { type: 'setAgentColor'; sessionId: string; color?: AgentColor }
+  // The usage surface's own toggles. They write `claudeViewer.usage.*` — the extension's settings,
+  // not Claude's — and the host owns which layer that lands in.
+  | { type: 'setUsage'; metric?: UsageMetric; scope?: UsageScope };

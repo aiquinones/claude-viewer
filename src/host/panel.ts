@@ -11,6 +11,7 @@ import {
   SkillGraph,
   WebviewMessage
 } from '../model/types';
+import { UsageReport } from '../model/usage/types';
 import {
   currentAgentColors,
   onDidChangeAgentColors,
@@ -30,8 +31,20 @@ import {
   onDidChangeSnapshot,
   refreshSnapshot
 } from './config-store';
-import { currentSettings, onDidChangeSettings, revealSettings } from './settings-store';
+import {
+  currentSettings,
+  onDidChangeSettings,
+  revealSettings,
+  writeUsageSettings
+} from './settings-store';
 import { currentSkillGraph } from './skill-graph-store';
+import {
+  currentUsage,
+  onDidChangeUsage,
+  reaggregateUsage,
+  refreshUsage,
+  setUsagePollMode
+} from './usage-store';
 import { getWebviewHtml } from './shell-html';
 
 // Registered in package.json under contributes.commands — the two have to agree.
@@ -45,10 +58,15 @@ export const PANEL_TITLE: string = 'Claude Viewer';
 // match the `id` of its SURFACES entry — same agreement as a command id and package.json.
 const AGENTS_SURFACE: string = 'active-agents';
 
+// The other surface that goes stale on its own, on a much slower clock. Same agreement with its
+// SURFACES entry.
+const USAGE_SURFACE: string = 'usage';
+
 let panel: vscode.WebviewPanel | undefined;
 let snapshotSubscription: vscode.Disposable | undefined;
 let settingsSubscription: vscode.Disposable | undefined;
 let agentsSubscription: vscode.Disposable | undefined;
+let usageSubscription: vscode.Disposable | undefined;
 let colorsSubscription: vscode.Disposable | undefined;
 // The webview can't hear anything until it has booted and said so.
 let webviewReady: boolean = false;
@@ -105,11 +123,18 @@ export const openPanel = ({ context, revealPath }: OpenPanelArgs): void => {
   // The store owns the watchers; the panel just listens while it's open.
   snapshotSubscription = onDidChangeSnapshot((snapshot) => void _post(snapshot));
   // Its own channel: a budget changing shouldn't re-walk the disk for a snapshot nothing asked for.
-  settingsSubscription = onDidChangeSettings((settings) => void _postSettings(settings));
+  // The scope setting decides which turns the usage surface counts, so a change re-aggregates what's
+  // already in hand — no disk, and the store posts the result on its own message.
+  settingsSubscription = onDidChangeSettings((settings) => {
+    void _postSettings(settings);
+    reaggregateUsage();
+  });
   // Same deal, the other way round: an agent starting shouldn't re-read every skill.
   agentsSubscription = onDidChangeAgents((agents) => void _postAgents(agents));
   // Picking a colour shouldn't cost a disk read, so it rides its own message like the rest.
   colorsSubscription = onDidChangeAgentColors((colors) => void _postAgentColors(colors));
+  // And this one is the reason the rule exists: a usage pass reads every transcript on the machine.
+  usageSubscription = onDidChangeUsage((report) => void _postUsage(report));
 
   // A hidden tab still holds its webview — retainContextWhenHidden — so nothing tells the poll to
   // stop except this. Reading the disk every two seconds for a panel nobody is looking at is the
@@ -119,6 +144,7 @@ export const openPanel = ({ context, revealPath }: OpenPanelArgs): void => {
 
   panel.onDidDispose(() => {
     setAgentPollMode('off');
+    setUsagePollMode('off');
     visibleSurface = undefined;
     snapshotSubscription?.dispose();
     snapshotSubscription = undefined;
@@ -128,6 +154,8 @@ export const openPanel = ({ context, revealPath }: OpenPanelArgs): void => {
     agentsSubscription = undefined;
     colorsSubscription?.dispose();
     colorsSubscription = undefined;
+    usageSubscription?.dispose();
+    usageSubscription = undefined;
     panel = undefined;
     webviewReady = false;
     pendingReveal = undefined;
@@ -139,7 +167,7 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   // Through the stores, so the tree redraws off the same read. One button, both channels: the
   // reader pressing refresh means everything on screen, whichever surface they're looking at.
   if (message.type === 'refresh') {
-    return void (await Promise.all([refreshSnapshot(), refreshAgents()]));
+    return void (await Promise.all([refreshSnapshot(), refreshAgents(), refreshUsage()]));
   }
   if (message.type === 'openFile') return _openFile(message.path);
   if (message.type === 'requestBody') return _sendBody(message.path);
@@ -147,6 +175,9 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'surfaceUnavailable') return _surfaceUnavailable(message.title);
   if (message.type === 'surfaceChanged') return _onSurfaceChanged(message.surface);
   if (message.type === 'openSettings') return revealSettings();
+  if (message.type === 'setUsage') {
+    return writeUsageSettings({ metric: message.metric, scope: message.scope });
+  }
   if (message.type === 'setAgentColor') {
     return setAgentColor({ sessionId: message.sessionId, color: message.color });
   }
@@ -157,11 +188,19 @@ const _onSurfaceChanged = (surface: string | undefined): void => {
   _updatePollMode();
 };
 
-// How fresh the agent rows have to be, which is a question about what's on screen — so it's the
-// panel that answers it and the store that acts on it.
+// How fresh the two live surfaces have to be, which is a question about what's on screen — so it's
+// the panel that answers it and each store that acts on it.
 const _updatePollMode = (): void => {
-  if (!panel?.visible) return setAgentPollMode('off');
+  if (!panel?.visible) {
+    setAgentPollMode('off');
+    setUsagePollMode('off');
+    return;
+  }
+
   setAgentPollMode(visibleSurface === AGENTS_SURFACE ? 'live' : 'background');
+  // No background rate for this one. Nothing off the surface itself moves fast enough to be worth a
+  // pass over every transcript on the machine.
+  setUsagePollMode(visibleSurface === USAGE_SURFACE ? 'live' : 'off');
 };
 
 // The selected file's text, read on demand rather than shipped with every snapshot. Same path
@@ -237,6 +276,11 @@ const _post = async (snapshot: ConfigSnapshot): Promise<void> => {
 const _postSettings = async (settings: ViewerSettings): Promise<void> => {
   if (!webviewReady) return;
   await panel?.webview.postMessage({ type: 'settings', settings });
+};
+
+const _postUsage = async (report: UsageReport): Promise<void> => {
+  if (!webviewReady) return;
+  await panel?.webview.postMessage({ type: 'usage', report });
 };
 
 // Every agent list is also the answer to which colours are still worth keeping, so the prune rides

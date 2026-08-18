@@ -4,6 +4,8 @@
 // Webview-only, so it lives here rather than in model/types.ts — none of it crosses to the host.
 
 import { AgentSession, ConfigSnapshot, SkillEntry, SystemPromptFile } from '../model/types';
+import { UsageReport } from '../model/usage/types';
+import { formatUsageTokens } from './usage-format';
 import { formatTokens, plural } from './format-size';
 import { alwaysLoads, totals } from './prompt-totals';
 import { listed } from '../model/shadowing';
@@ -43,6 +45,13 @@ export const SURFACES = [
     blurb: 'Claude Code and Copilot CLI sessions running right now, and what each is doing.',
     accent: 'var(--vscode-charts-green, #89d185)',
     status: 'ready'
+  },
+  {
+    id: 'usage',
+    title: 'Usage',
+    blurb: 'What your sessions cost, split by the skill that was running.',
+    accent: 'var(--vscode-charts-orange, #d18616)',
+    status: 'ready'
   }
 ] as const satisfies readonly SurfaceShape[];
 
@@ -58,6 +67,9 @@ interface DetailForSurfaceArgs {
   snapshot: ConfigSnapshot;
   // Not on the snapshot: live agents ride their own message. See host/agents-store.ts.
   agents: AgentSession[];
+  // Nor is this one, and it arrives later than the rest — the scan behind it reads every session
+  // log on the machine. Undefined means it hasn't landed yet.
+  usage: UsageReport | undefined;
 }
 
 // The line under a card's blurb: whatever that surface counts. Switching on the id means adding a
@@ -65,7 +77,8 @@ interface DetailForSurfaceArgs {
 export const getDetailForSurface = ({
   surface,
   snapshot,
-  agents
+  agents,
+  usage
 }: DetailForSurfaceArgs): string => {
   switch (surface.id) {
     case 'skills':
@@ -74,7 +87,20 @@ export const getDetailForSurface = ({
       return promptDetail(snapshot.systemPrompt);
     case 'active-agents':
       return agentsDetail(agents);
+    case 'usage':
+      return usageDetail(usage);
   }
+};
+
+// The day's output tokens, which is the default metric and the one figure both CLIs measure. No
+// number at all until the scan lands — a zero would be a claim about a window nothing has read yet.
+const usageDetail = (usage: UsageReport | undefined): string => {
+  if (!usage) return 'Reading session logs…';
+
+  const day = usage.windows.day;
+  if (day.total.turns === 0) return 'Nothing in the last 24 hours';
+
+  return `~${formatUsageTokens(day.total.outputTokens)} output tokens today`;
 };
 
 // Counted, not measured: an agent costs nothing per request, it's either there or it isn't. The
