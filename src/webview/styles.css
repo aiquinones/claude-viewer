@@ -493,8 +493,8 @@
 }
 
 @keyframes robot-stack {
-  0%, 76%   { opacity: 0; }
-  92%, 100% { opacity: 0.45; }
+  0%, 82%   { opacity: 0; }
+  96%, 100% { opacity: 0.45; }
 }
 
 /* Normalised by `pathLength={1}` on the path, so one dash length covers any of the three. */
@@ -527,21 +527,24 @@
   85%, 100% { translate: -0.9px 0; }
 }
 
-/* It appears sitting on the stack — same offset, same place, so the top of the pad simply brightens
-   from the stack's 0.45 to full — and only then slides down into the writing position. Once it's
-   full it goes straight up and out of the view box.
+/* It appears sitting on the stack — same offset, same place, and at the stack's own 0.45 — and only
+   then slides down into the writing position, coming up to full as it goes. Starting at 0.45 is
+   what stops the loop point blinking: the last frame of a cycle is a 0.45 outline drawn by the
+   stack, the first frame of the next is the same 0.45 outline in the same place drawn by the page,
+   and nothing about the picture changes across the join. Handing over at full strength was a jump
+   from 0.45 to 1 on every lap.
 
-   No opacity anywhere in here, which is the point. Fading the sheet out made it translucent on the
-   way, and the blank one behind it showed through the writing. A sheet clipped by the edge of the
-   box is gone rather than see-through. It leaves upwards because that is the way past the stack in
-   one unit of travel — right crosses it end to end, and left crosses the head.
+   It never fades out, though. A sheet fading away is translucent for the whole exit, and with no
+   fill of its own the blank one behind shows through its writing. It goes straight up and out of
+   the view box instead — clipped is gone, where faded is see-through — and upwards because that is
+   the way past the stack in one unit of travel. Right crosses it end to end, left crosses the head.
 
-   100% is off the top and 0% is on the pad, so the loop's jump between them happens where there is
-   nothing to see. */
+   100% is off the top and 0% is back on the pad, so the loop's jump in position happens where there
+   is nothing to see. */
 @keyframes robot-page {
-  0%, 8%    { translate: 0.7px -0.7px; }
-  16%, 76%  { translate: 0 0; }
-  94%, 100% { translate: 0 -18px; }
+  0%, 8%    { translate: 0.7px -0.7px; opacity: 0.45; }
+  16%, 76%  { translate: 0 0; opacity: 1; }
+  94%, 100% { translate: 0 -18px; opacity: 1; }
 }
 
 /* Three keyframes rather than one with three delays. A delay shifts a line's reset along with its
