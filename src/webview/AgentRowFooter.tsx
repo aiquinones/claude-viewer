@@ -6,8 +6,10 @@ interface AgentRowFooterProps {
   agent: AgentSession;
 }
 
-// What hangs under a row in either mode: the PR this session opened, and anything wrong with it.
-// Outside the row's button because a `<button>` can hold neither an `<a>` nor a `<ul>`.
+// What hangs under a dense row: the PR this session opened, and anything wrong with it. Outside the
+// row's button because a `<button>` can hold neither an `<a>` nor a `<ul>`.
+//
+// Robots mode doesn't use it — a PR is a squircle there, and an issue doesn't show at all.
 export const AgentRowFooter = ({ agent }: AgentRowFooterProps) => {
   if (!agent.pullRequest && agent.issues.length === 0) return null;
 
