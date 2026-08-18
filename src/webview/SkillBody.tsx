@@ -1,17 +1,18 @@
 import { useMemo } from 'react';
 import { CircleAlert } from 'lucide-react';
 import { SkillGraph } from '../model/types';
-import { ModeBlockers, ViewModeToggle } from './ViewModeToggle';
+import { ViewModeToggle } from './ViewModeToggle';
+import { ModeBlockers } from './view-mode';
 import { plural } from './format-size';
 import { GraphView } from './graph/GraphView';
 import { neighborhood } from './graph/neighborhood';
 import { Loading } from './loading/Loading';
 import { Markdown, STICKY_ROW_CLASS } from './markdown/Markdown';
-import { SkillViewMode } from './view-modes';
+import { SkillViewMode, VIEW_MODES } from './view-modes';
 
 interface SkillBodyProps {
   mode: SkillViewMode;
-  blockers: ModeBlockers;
+  blockers: ModeBlockers<SkillViewMode>;
   onChangeMode: (mode: SkillViewMode) => void;
   // Text mode: SKILL.md below its frontmatter. Undefined while the host is still reading it.
   body: string | undefined;
@@ -55,7 +56,7 @@ export const SkillBody = ({
         <h2 className="min-w-0 truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {heading({ mode, graph: shown })}
         </h2>
-        <ViewModeToggle mode={mode} blockers={blockers} onChange={onChangeMode} />
+        <ViewModeToggle modes={VIEW_MODES} mode={mode} blockers={blockers} onChange={onChangeMode} />
       </div>
 
       <div className="pt-3">

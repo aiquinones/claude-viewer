@@ -3,7 +3,20 @@ import { readTextFile } from '../config/read';
 import { ConfigError, Result } from '../config/result';
 import { ViewerSettings } from '../model/settings/settings';
 import { loadSkillBody } from '../model/skill-body';
-import { AgentSession, ConfigSnapshot, FileBody, SkillGraph, WebviewMessage } from '../model/types';
+import {
+  AgentColors,
+  AgentSession,
+  ConfigSnapshot,
+  FileBody,
+  SkillGraph,
+  WebviewMessage
+} from '../model/types';
+import {
+  currentAgentColors,
+  onDidChangeAgentColors,
+  pruneAgentColors,
+  setAgentColor
+} from './agent-colors-store';
 import {
   cachedAgents,
   currentAgents,
@@ -36,6 +49,7 @@ let panel: vscode.WebviewPanel | undefined;
 let snapshotSubscription: vscode.Disposable | undefined;
 let settingsSubscription: vscode.Disposable | undefined;
 let agentsSubscription: vscode.Disposable | undefined;
+let colorsSubscription: vscode.Disposable | undefined;
 // The webview can't hear anything until it has booted and said so.
 let webviewReady: boolean = false;
 // A reveal that arrived before that, held until it can be delivered.
@@ -94,6 +108,8 @@ export const openPanel = ({ context, revealPath }: OpenPanelArgs): void => {
   settingsSubscription = onDidChangeSettings((settings) => void _postSettings(settings));
   // Same deal, the other way round: an agent starting shouldn't re-read every skill.
   agentsSubscription = onDidChangeAgents((agents) => void _postAgents(agents));
+  // Picking a colour shouldn't cost a disk read, so it rides its own message like the rest.
+  colorsSubscription = onDidChangeAgentColors((colors) => void _postAgentColors(colors));
 
   // A hidden tab still holds its webview — retainContextWhenHidden — so nothing tells the poll to
   // stop except this. Reading the disk every two seconds for a panel nobody is looking at is the
@@ -110,6 +126,8 @@ export const openPanel = ({ context, revealPath }: OpenPanelArgs): void => {
     settingsSubscription = undefined;
     agentsSubscription?.dispose();
     agentsSubscription = undefined;
+    colorsSubscription?.dispose();
+    colorsSubscription = undefined;
     panel = undefined;
     webviewReady = false;
     pendingReveal = undefined;
@@ -129,6 +147,9 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'surfaceUnavailable') return _surfaceUnavailable(message.title);
   if (message.type === 'surfaceChanged') return _onSurfaceChanged(message.surface);
   if (message.type === 'openSettings') return revealSettings();
+  if (message.type === 'setAgentColor') {
+    return setAgentColor({ sessionId: message.sessionId, color: message.color });
+  }
 };
 
 const _onSurfaceChanged = (surface: string | undefined): void => {
@@ -187,6 +208,7 @@ const _surfaceUnavailable = async (title: string): Promise<void> => {
 const _onReady = async (): Promise<void> => {
   webviewReady = true;
   await _postSettings(currentSettings());
+  await _postAgentColors(currentAgentColors());
   await _post(await currentSnapshot());
   await _postAgents(await currentAgents());
 
@@ -217,9 +239,17 @@ const _postSettings = async (settings: ViewerSettings): Promise<void> => {
   await panel?.webview.postMessage({ type: 'settings', settings });
 };
 
+// Every agent list is also the answer to which colours are still worth keeping, so the prune rides
+// along here rather than on a clock of its own.
 const _postAgents = async (agents: AgentSession[]): Promise<void> => {
+  await pruneAgentColors(agents.map((agent) => agent.sessionId));
   if (!webviewReady) return;
   await panel?.webview.postMessage({ type: 'agents', agents });
+};
+
+const _postAgentColors = async (colors: AgentColors): Promise<void> => {
+  if (!webviewReady) return;
+  await panel?.webview.postMessage({ type: 'agentColors', colors });
 };
 
 // Opens a config file in the editor. Only paths the host itself put in the snapshot are honored,

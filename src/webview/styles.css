@@ -385,8 +385,217 @@
   100% { transform: translateX(400%); }
 }
 
+/* ── The agent robots ──────────────────────────────────────────────────────────────────────────
+   One robot per row on the Active Agents surface, four moods. Every number below is a view-box
+   coordinate out of agent-robot/RobotChassis.tsx — move a part there and the origin that turns it
+   has to move here.
+
+   The parts are `bot-*` rather than `robot-*`: the loading robot owns `.robot-eye` unscoped, and
+   these eyes would otherwise inherit its blink around origins that aren't in this box.
+
+   `transform-box: view-box` on everything that moves. An SVG child's default box is its own
+   bounding box, so an origin like `21px 24px` would mean 21px into the head rather than into the
+   picture.
+
+   One animation per property. `rotate`, `scale` and `translate` are separate properties the browser
+   composes, which is what lets the sleeper's head hang on `rotate` while it breathes on `scale`.
+   Written as two `transform` animations the later one takes the property outright and the first
+   never renders at all. */
+
+/* A row that's been given a colour wins; failing that the mood picks one. All four are opaque: this
+   robot's ears meet its head, its antenna meets its cap and its arms meet its torso, and a stroke
+   colour carrying alpha composites twice at every one of those seams. `--activity-idle` is exactly
+   such a colour on Dark+, which is why sleeping doesn't reach for it. */
+.agent-robot {
+  color: var(--row-color, var(--muted-foreground-solid));
+}
+
+.agent-robot--working {
+  color: var(--row-color, var(--activity-running));
+}
+
+.agent-robot--waiting,
+.agent-robot--asking {
+  color: var(--row-color, var(--activity-blocked));
+}
+
+.bot-head,
+.bot-torso,
+.bot-eye,
+.bot-arm-left,
+.bot-arm-right,
+.bot-ask,
+.bot-z,
+.bot-dot {
+  transform-box: view-box;
+}
+
+/* Working: a head bob at typing speed, arms tapping half a beat apart, eyes scanning the line
+   they're writing, and the antenna blipping once a tick. */
+.agent-robot--working .bot-head {
+  transform-origin: 21px 24px;
+  animation: robot-bob calc(var(--robot-tick, 1s) * 0.5) ease-in-out infinite alternate;
+}
+
+.agent-robot--working .bot-arm-left,
+.agent-robot--working .bot-arm-right {
+  animation: robot-tap calc(var(--robot-tick, 1s) * 0.5) ease-in-out infinite alternate;
+}
+
+.agent-robot--working .bot-arm-left {
+  transform-origin: 13px 29.5px;
+}
+
+.agent-robot--working .bot-arm-right {
+  transform-origin: 29px 29.5px;
+  animation-delay: calc(var(--robot-tick, 1s) * 0.25);
+}
+
+.agent-robot--working .bot-eye {
+  animation: robot-scan calc(var(--robot-tick, 1s) * 2.5) ease-in-out infinite;
+}
+
+.agent-robot--working .bot-antenna {
+  fill: currentColor;
+  animation: robot-blip var(--robot-tick, 1s) ease-in-out infinite;
+}
+
+@keyframes robot-bob {
+  from { translate: 0 0; }
+  to   { translate: 0 0.7px; }
+}
+
+@keyframes robot-tap {
+  from { rotate: 0deg; }
+  to   { rotate: -7deg; }
+}
+
+@keyframes robot-scan {
+  0%, 28%   { translate: 0 0; }
+  38%, 52%  { translate: -1.3px 0; }
+  62%, 78%  { translate: 1.3px 0; }
+  88%, 100% { translate: 0 0; }
+}
+
+@keyframes robot-blip {
+  0%, 68%, 100% { opacity: 0.3; }
+  80%           { opacity: 1; }
+}
+
+/* Waiting: nothing to do but drum a hand, roll its eyes up, and watch the dots go round. */
+.agent-robot--waiting .bot-arm-right {
+  transform-origin: 29px 29.5px;
+  animation: robot-drum calc(var(--robot-tick, 1s) * 0.45) ease-in-out infinite alternate;
+}
+
+.agent-robot--waiting .bot-eye {
+  animation: robot-look-up calc(var(--robot-tick, 1s) * 4) ease-in-out infinite;
+}
+
+.bot-dot {
+  animation: robot-dot-pulse calc(var(--robot-tick, 1s) * 1.6) ease-in-out infinite;
+}
+
+.bot-dot--2 { animation-delay: calc(var(--robot-tick, 1s) * 0.25); }
+.bot-dot--3 { animation-delay: calc(var(--robot-tick, 1s) * 0.5); }
+
+@keyframes robot-drum {
+  from { rotate: 0deg; }
+  to   { rotate: 6deg; }
+}
+
+@keyframes robot-look-up {
+  0%, 55%, 100% { translate: 0 0; }
+  65%, 85%      { translate: 0 -1px; }
+}
+
+@keyframes robot-dot-pulse {
+  0%, 100% { opacity: 0.25; }
+  40%      { opacity: 1; }
+}
+
+/* Asking: the head goes over and stays there for as long as the question mark is up, then comes
+   back. One period for both, so the pose and the punctuation are the same gesture. */
+.agent-robot--asking .bot-head {
+  transform-origin: 21px 24px;
+  animation: robot-cock calc(var(--robot-tick, 1s) * 3) ease-in-out infinite;
+}
+
+.bot-ask {
+  transform-origin: 38px 11px;
+  animation: robot-ask-pop calc(var(--robot-tick, 1s) * 3) ease-in-out infinite;
+}
+
+@keyframes robot-cock {
+  0%, 8%    { rotate: 0deg; }
+  22%, 74%  { rotate: -13deg; }
+  88%, 100% { rotate: 0deg; }
+}
+
+@keyframes robot-ask-pop {
+  0%, 10%   { opacity: 0; scale: 0.4; }
+  26%       { opacity: 1; scale: 1.15; }
+  34%, 72%  { opacity: 1; scale: 1; }
+  86%, 100% { opacity: 0; scale: 0.85; }
+}
+
+/* Sleeping: the tilt is static and the breath is an animation, on two properties, so both apply.
+   The Zs leave one at a time, a tick apart, over the same period as the breathing. */
+.agent-robot--sleeping .bot-head {
+  transform-origin: 21px 24px;
+  rotate: 7deg;
+  animation: robot-doze calc(var(--robot-tick, 1s) * 3) ease-in-out infinite;
+}
+
+.agent-robot--sleeping .bot-torso {
+  transform-origin: 21px 37px;
+  animation: robot-breathe calc(var(--robot-tick, 1s) * 3) ease-in-out infinite;
+}
+
+.bot-z {
+  animation: robot-z-rise calc(var(--robot-tick, 1s) * 3) ease-out infinite;
+}
+
+.bot-z--2 { animation-delay: var(--robot-tick, 1s); }
+.bot-z--3 { animation-delay: calc(var(--robot-tick, 1s) * 2); }
+
+@keyframes robot-doze {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -0.4px; }
+}
+
+@keyframes robot-breathe {
+  0%, 100% { scale: 1 1; }
+  50%      { scale: 1.04 1.05; }
+}
+
+@keyframes robot-z-rise {
+  0%   { opacity: 0; translate: 0 2px; }
+  30%  { opacity: 1; }
+  100% { opacity: 0; translate: 0 -5px; }
+}
+
+/* A row someone gave a colour to. Two rules rather than one on `.agent-row`, so an uncoloured row
+   keeps the editor's own `hover:bg-accent`: a `color-mix` down to transparent is still a background
+   declaration, and an unlayered one beats every Tailwind utility. */
+.agent-row--tinted {
+  background: color-mix(in srgb, var(--row-color) 14%, transparent);
+}
+
+.agent-row--tinted:hover {
+  background: color-mix(in srgb, var(--row-color) 24%, transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .robot-eye {
+    animation: none;
+  }
+
+  /* Every pose is markup and only the motion is animated, so stopping all of it still leaves four
+     robots you can tell apart: closed eyes and Zs, a cocked head and a ?, dots, a desk. The Zs and
+     the ? sit at full opacity here — their keyframes start them invisible, and the base style is
+     what a stopped animation falls back to. */
+  .agent-robot [class^='bot-'] {
     animation: none;
   }
 

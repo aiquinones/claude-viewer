@@ -8,7 +8,7 @@ import { PanelActions } from '../PanelActions';
 import { SkillBody } from '../SkillBody';
 import { SkillDetail } from '../SkillDetail';
 import { SkillNav } from '../SkillNav';
-import { ModeBlockers } from '../ViewModeToggle';
+import { ModeBlockers } from '../view-mode';
 import { formatTokens } from '../format-size';
 import { useSkillGraph } from '../graph/useSkillGraph';
 import { listingTotals } from '../skill-totals';
@@ -151,7 +151,7 @@ interface ModeBlockersArgs {
 
 // A skill has references exactly when it's a node in the graph — the graph already dropped the
 // unconnected ones, so this is a lookup rather than a second rule that could drift from the first.
-const modeBlockers = ({ graph, path }: ModeBlockersArgs): ModeBlockers => {
+const modeBlockers = ({ graph, path }: ModeBlockersArgs): ModeBlockers<SkillViewMode> => {
   if (!graph) return { graph: 'Building the graph…' };
   if (graph.nodes.some((node) => node.path === path)) return {};
   return { graph: 'This skill names no other, and none names it' };
