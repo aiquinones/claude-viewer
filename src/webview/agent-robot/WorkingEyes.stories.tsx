@@ -94,7 +94,7 @@ interface CandidateProps {
 // and runs the bob and the scan, so each candidate is animated exactly as it would ship.
 const Candidate = ({ option, size }: CandidateProps) => (
   <svg
-    viewBox="0 0 32 32"
+    viewBox="-2 0 36 32"
     fill="none"
     stroke="currentColor"
     strokeWidth={2}

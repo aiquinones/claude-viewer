@@ -28,6 +28,11 @@ const ROBOTS: Record<RobotMood, FunctionComponent> = {
 // at 1:1 — with the eyes swapped per mood and at most one thing floating beside it. A card of these
 // has to be recognisable as the icon from across the room, which rules out giving it a body.
 //
+// The box starts at -2 rather than 0. The head is centred on x=16 and the working robot's page
+// needed more than the six units left of the right edge — extending symmetrically buys eight on
+// each side while leaving 16 the middle of the box, so not one head, eye or transform origin
+// moves.
+//
 // Every animation is CSS, keyed off the mood class. The surface re-renders every second to re-age
 // its rows and none of this should ride that.
 export const AgentRobot = ({
@@ -39,7 +44,7 @@ export const AgentRobot = ({
 
   return (
     <svg
-      viewBox="0 0 32 32"
+      viewBox="-2 0 36 32"
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
