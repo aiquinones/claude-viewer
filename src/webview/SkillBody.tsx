@@ -3,6 +3,8 @@ import { CircleAlert } from 'lucide-react';
 import { SkillGraph } from '../model/types';
 import { ModeBlockers, ViewModeToggle } from './ViewModeToggle';
 import { plural } from './format-size';
+import { FlowCanvas } from './flow/FlowCanvas';
+import { SkillFlow } from './flow/steps';
 import { GraphView } from './graph/GraphView';
 import { neighborhood } from './graph/neighborhood';
 import { Loading } from './loading/Loading';
@@ -20,6 +22,9 @@ interface SkillBodyProps {
   // Graph mode: who mentions whom, across every listed skill. Narrowed to the viewed skill's own
   // neighbourhood before anything draws it.
   graph: SkillGraph | undefined;
+  // Flow mode: this skill's own steps. Built from the same body text the markdown renders, so it
+  // arrives and goes stale with it.
+  flow: SkillFlow | undefined;
   viewedPath: string | undefined;
   onOpenSkill: (path: string) => void;
 }
@@ -34,6 +39,7 @@ export const SkillBody = ({
   error,
   loading,
   graph,
+  flow,
   viewedPath,
   onOpenSkill
 }: SkillBodyProps) => {
@@ -53,16 +59,26 @@ export const SkillBody = ({
         className={`sticky top-0 -mx-5 flex ${STICKY_ROWS_CLASS} items-center justify-between gap-3 border-b border-border bg-background px-5`}
       >
         <h2 className="min-w-0 truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {heading({ mode, graph: shown })}
+          {heading({ mode, graph: shown, flow })}
         </h2>
         <ViewModeToggle mode={mode} blockers={blockers} onChange={onChangeMode} />
       </div>
 
+      {/* Three guards rather than nested ternaries — the modes are exclusive, so each one reads on
+          its own line. */}
       <div className="pt-3">
-        {mode === 'graph' ? (
+        {mode === 'text' && <Content body={body} error={error} loading={loading} />}
+        {mode === 'graph' && (
           <Graph graph={shown} viewedPath={viewedPath} onOpenSkill={onOpenSkill} />
-        ) : (
-          <Content body={body} error={error} loading={loading} />
+        )}
+        {mode === 'flow' && (
+          <Flow
+            flow={flow}
+            error={error}
+            loading={loading}
+            viewedPath={viewedPath}
+            onOpenSkill={onOpenSkill}
+          />
         )}
       </div>
     </section>
@@ -77,13 +93,19 @@ const STICKY_ROWS_CLASS: string = 'h-14';
 interface HeadingArgs {
   mode: SkillViewMode;
   graph: SkillGraph | undefined;
+  flow: SkillFlow | undefined;
 }
 
-const heading = ({ mode, graph }: HeadingArgs): string => {
-  if (mode !== 'graph') return 'Content';
-  if (!graph) return 'Graph';
-  // Counts the picture, not the whole install: `graph` is already the neighbourhood by here.
-  return `Graph · ${plural(graph.nodes.length, 'skill')} · ${plural(graph.edges.length, 'link')}`;
+const heading = ({ mode, graph, flow }: HeadingArgs): string => {
+  if (mode === 'graph') {
+    if (!graph) return 'Graph';
+    // Counts the picture, not the whole install: `graph` is already the neighbourhood by here.
+    return `Graph · ${plural(graph.nodes.length, 'skill')} · ${plural(graph.edges.length, 'link')}`;
+  }
+  if (mode === 'flow') {
+    return flow ? `Flow · ${plural(flow.steps.length, 'step')}` : 'Flow';
+  }
+  return 'Content';
 };
 
 interface ContentProps {
@@ -93,14 +115,7 @@ interface ContentProps {
 }
 
 const Content = ({ body, error, loading }: ContentProps) => {
-  if (error) {
-    return (
-      <p className="flex items-start gap-2 text-xs text-error">
-        <CircleAlert className="mt-px size-3.5 shrink-0" />
-        <span>could not read the file: {error}</span>
-      </p>
-    );
-  }
+  if (error) return <ReadError error={error} />;
   if (loading) return <Loading label="Reading SKILL.md" />;
   if (!body?.trim()) {
     return <p className="text-sm italic text-muted-foreground">nothing below the frontmatter</p>;
@@ -130,3 +145,41 @@ const Graph = ({ graph, viewedPath, onOpenSkill }: GraphProps) => {
 
   return <GraphView graph={graph} viewedPath={viewedPath} onOpenSkill={onOpenSkill} />;
 };
+
+interface FlowProps {
+  flow: SkillFlow | undefined;
+  error: string | undefined;
+  loading: boolean;
+  viewedPath: string | undefined;
+  onOpenSkill: (path: string) => void;
+}
+
+const Flow = ({ flow, error, loading, viewedPath, onOpenSkill }: FlowProps) => {
+  if (error) return <ReadError error={error} />;
+  if (loading) return <Loading label="Reading SKILL.md" />;
+
+  // Reachable by staying in flow mode while selecting a skill that has no sequence — the toggle
+  // blocks picking it in the first place.
+  if (!flow) {
+    return (
+      <p className="text-sm italic text-muted-foreground">
+        this skill isn't written as a sequence, so there's nothing to lay out
+      </p>
+    );
+  }
+
+  // Keyed on the skill, so selecting another one starts with nothing open. The trail holds nodes
+  // from the flow it was opened on, and those don't exist in the next skill's.
+  return <FlowCanvas key={viewedPath} flow={flow} onOpenSkill={onOpenSkill} />;
+};
+
+interface ReadErrorProps {
+  error: string;
+}
+
+const ReadError = ({ error }: ReadErrorProps) => (
+  <p className="flex items-start gap-2 text-xs text-error">
+    <CircleAlert className="mt-px size-3.5 shrink-0" />
+    <span>could not read the file: {error}</span>
+  </p>
+);

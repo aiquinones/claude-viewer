@@ -1,5 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { emptyGraph, projectDeploy, skillGraph, skillMarkdown } from './fixtures';
+import {
+  emptyGraph,
+  projectDeploy,
+  skillGraph,
+  skillMarkdown,
+  stepFlow,
+  stepMarkdown
+} from './fixtures';
 import { SkillBody } from './SkillBody';
 
 const meta: Meta<typeof SkillBody> = {
@@ -12,6 +19,7 @@ const meta: Meta<typeof SkillBody> = {
     error: undefined,
     loading: false,
     graph: skillGraph,
+    flow: stepFlow,
     viewedPath: projectDeploy.path
   },
   decorators: [
@@ -52,4 +60,19 @@ export const GraphEmpty: Story = { args: { mode: 'graph', graph: emptyGraph } };
 // What the toggle looks like on a skill nothing references.
 export const GraphBlocked: Story = {
   args: { body: skillMarkdown, blockers: { graph: 'This skill names no other, and none names it' } }
+};
+
+// The third mode, in the section it actually lives in — the heading counts the steps and the
+// toggle stays pinned above the canvas.
+export const Flow: Story = { args: { mode: 'flow', body: stepMarkdown } };
+
+// A skill whose SKILL.md is prose rather than a sequence. The toggle says so, and the section
+// says so too for anyone who got here by staying in flow mode across a selection.
+export const FlowBlocked: Story = {
+  args: {
+    mode: 'flow',
+    body: skillMarkdown,
+    flow: undefined,
+    blockers: { flow: "This skill isn't written as a sequence of steps" }
+  }
 };

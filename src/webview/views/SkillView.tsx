@@ -1,4 +1,4 @@
-import { CSSProperties, useEffect, useState } from 'react';
+import { CSSProperties, useEffect, useMemo, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { listed } from '../../model/shadowing';
 import { ConfigSnapshot, Reveal, SkillEntry, SkillGraph } from '../../model/types';
@@ -9,6 +9,7 @@ import { SkillBody } from '../SkillBody';
 import { SkillDetail } from '../SkillDetail';
 import { SkillNav } from '../SkillNav';
 import { ModeBlockers } from '../ViewModeToggle';
+import { SkillFlow, toSkillFlow } from '../flow/steps';
 import { formatTokens } from '../format-size';
 import { useSkillGraph } from '../graph/useSkillGraph';
 import { listingTotals } from '../skill-totals';
@@ -65,9 +66,16 @@ export const SkillView = ({
   // Asked for on mount, not on opening the graph: the toggle can't say whether this skill has
   // references until the graph is in hand.
   const { graph } = useSkillGraph(snapshot.loadedAt);
+  // Unlike the graph, the flow needs nothing from the host — it's this one body, which is already
+  // here, plus the names of the other skills to spot references to.
+  const flow: SkillFlow | undefined = useMemo(
+    () => (body === undefined ? undefined : toSkillFlow({ raw: body, skills, selfPath: selected?.path })),
+    [body, skills, selected?.path]
+  );
 
-  // The panel's selection follows a link out of the graph, and reading is what you asked for.
-  const openFromGraph = (path: string): void => {
+  // The panel's selection follows a link out of the graph or a chip in the flow, and reading is
+  // what you asked for either way.
+  const openSkill = (path: string): void => {
     setSelectedPath(path);
     setMode('text');
   };
@@ -125,14 +133,15 @@ export const SkillView = ({
                 </div>
                 <SkillBody
                   mode={mode}
-                  blockers={modeBlockers({ graph, path: selected.path })}
+                  blockers={modeBlockers({ graph, path: selected.path, flow, loading })}
                   onChangeMode={setMode}
                   body={body}
                   error={error}
                   loading={loading}
                   graph={graph}
+                  flow={flow}
                   viewedPath={selected.path}
-                  onOpenSkill={openFromGraph}
+                  onOpenSkill={openSkill}
                 />
                 {mode === 'text' && <AllowedTools tools={selected.allowedTools} />}
               </>
@@ -147,14 +156,28 @@ export const SkillView = ({
 interface ModeBlockersArgs {
   graph: SkillGraph | undefined;
   path: string;
+  flow: SkillFlow | undefined;
+  loading: boolean;
 }
 
-// A skill has references exactly when it's a node in the graph — the graph already dropped the
-// unconnected ones, so this is a lookup rather than a second rule that could drift from the first.
-const modeBlockers = ({ graph, path }: ModeBlockersArgs): ModeBlockers => {
+// Each mode is blocked by a lookup into the thing it would render, rather than a second rule that
+// could drift from the first: a skill has references exactly when it's a node in the graph, and it
+// has steps exactly when `toSkillFlow` found some.
+const modeBlockers = ({ graph, path, flow, loading }: ModeBlockersArgs): ModeBlockers => ({
+  ...graphBlocker({ graph, path }),
+  ...flowBlocker({ flow, loading })
+});
+
+const graphBlocker = ({ graph, path }: Omit<ModeBlockersArgs, 'flow' | 'loading'>): ModeBlockers => {
   if (!graph) return { graph: 'Building the graph…' };
   if (graph.nodes.some((node) => node.path === path)) return {};
   return { graph: 'This skill names no other, and none names it' };
+};
+
+const flowBlocker = ({ flow, loading }: Omit<ModeBlockersArgs, 'graph' | 'path'>): ModeBlockers => {
+  if (loading) return { flow: 'Reading SKILL.md…' };
+  if (flow) return {};
+  return { flow: "This skill isn't written as a sequence of steps" };
 };
 
 const Empty = () => (

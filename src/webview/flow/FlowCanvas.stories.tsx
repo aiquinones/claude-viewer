@@ -15,10 +15,9 @@ const meta: Meta<typeof FlowCanvas> = {
   args: { flow: stepFlow },
   decorators: [
     (Story) => (
-      <div
-        className="h-[36rem] rounded-lg border border-border"
-        style={{ '--surface-accent': surfaceAccent('skills') } as CSSProperties}
-      >
+      // The canvas sizes itself, the way GraphView does — the decorator only sets the accent and
+      // the padding it sits in.
+      <div className="p-5" style={{ '--surface-accent': surfaceAccent('skills') } as CSSProperties}>
         <Story />
       </div>
     )
