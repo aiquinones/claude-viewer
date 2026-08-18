@@ -364,6 +364,13 @@
   to     { rotate: 360deg; }
 }
 
+/* One skill's share on the usage surface. Same deal as the loading bar below: the accent when a
+   surface sets one, and something visible when nothing does — a Tailwind `bg-[var(--surface-accent)]`
+   has no fallback, so the bar renders empty outside the view that sets the variable. */
+.usage-fill {
+  background: var(--surface-accent, var(--foreground));
+}
+
 /* The loading bar. Takes the accent of whichever surface is waiting, where one is set. */
 .progress-fill,
 .progress-sweep {

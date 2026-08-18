@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DEFAULT_SETTINGS, ViewerSettings } from '../model/settings/settings';
 import { AgentColor, AgentColors, AgentSession, ConfigSnapshot, Reveal } from '../model/types';
+import { UsageCostBasis, UsageMetric, UsageReport, UsageScope } from '../model/usage/types';
 import { vscode } from './vscodeApi';
 
 // The single bridge to the extension host. The host owns the filesystem and pushes a whole
@@ -16,6 +17,9 @@ export const useSnapshot = () => {
   // Rows nobody has coloured, until the host says which ones have been.
   const [agentColors, setAgentColors] = useState<AgentColors>({});
   const [reveal, setReveal] = useState<Reveal | undefined>(undefined);
+  // Undefined until the first scan lands, which is later than everything else here — it reads every
+  // session log on the machine, so the host starts it in the background and posts it when it's done.
+  const [usage, setUsage] = useState<UsageReport | undefined>(undefined);
 
   useEffect(() => {
     const onMessage = (event: MessageEvent): void => {
@@ -26,6 +30,7 @@ export const useSnapshot = () => {
       if (message?.type === 'agents') setAgents(message.agents as AgentSession[]);
       if (message?.type === 'settings') setSettings(message.settings as ViewerSettings);
       if (message?.type === 'agentColors') setAgentColors(message.colors as AgentColors);
+      if (message?.type === 'usage') setUsage(message.report as UsageReport);
       // A fresh object every time, so an effect keyed on it re-runs for a repeated reveal.
       if (message?.type === 'reveal') setReveal({ path: message.path, nonce: message.nonce });
     };
@@ -50,6 +55,14 @@ export const useSnapshot = () => {
   // Asks for the Settings UI. The host owns which keys it opens on.
   const openSettings = (): void => vscode.postMessage({ type: 'openSettings' });
 
+  // The usage surface's toggles. The host writes the setting and posts the whole settings object
+  // back, so nothing here guesses at what it wrote.
+  const changeUsage = (change: {
+    metric?: UsageMetric;
+    scope?: UsageScope;
+    costBasis?: UsageCostBasis;
+  }): void => vscode.postMessage({ type: 'setUsage', ...change });
+
   // One row's colour. The host stores it and posts the whole map back, so nothing here guesses at
   // what it wrote.
   const setAgentColor = (args: { sessionId: string; color?: AgentColor }): void =>
@@ -58,6 +71,8 @@ export const useSnapshot = () => {
   return {
     snapshot,
     agents,
+    usage,
+    changeUsage,
     settings,
     agentColors,
     setAgentColor,

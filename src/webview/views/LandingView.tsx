@@ -1,4 +1,5 @@
 import { AgentSession, ConfigSnapshot } from '../../model/types';
+import { UsageReport } from '../../model/usage/types';
 import { PanelActions } from '../PanelActions';
 import { SurfaceCard } from '../SurfaceCard';
 import { SURFACES, Surface, SurfaceId, getDetailForSurface } from '../surfaces';
@@ -7,6 +8,8 @@ interface LandingViewProps {
   snapshot: ConfigSnapshot;
   // Separate from the snapshot, so a card can count live agents without the config being re-read.
   agents: AgentSession[];
+  // Same again, and this one arrives after the page is already up.
+  usage: UsageReport | undefined;
   onOpenSurface: (id: SurfaceId) => void;
   // A surface with no view yet. The host answers with a VS Code notification.
   onUnavailableSurface: (title: string) => void;
@@ -18,6 +21,7 @@ interface LandingViewProps {
 export const LandingView = ({
   snapshot,
   agents,
+  usage,
   onOpenSurface,
   onUnavailableSurface,
   onSearch,
@@ -44,7 +48,7 @@ export const LandingView = ({
           <SurfaceCard
             key={surface.id}
             surface={surface}
-            detail={getDetailForSurface({ surface, snapshot, agents })}
+            detail={getDetailForSurface({ surface, snapshot, agents, usage })}
             onOpen={open}
           />
         ))}

@@ -60,6 +60,65 @@ export const readFileTail = async ({
   }
 };
 
+export interface FileSince {
+  text: string;
+  // Where the file ends now. A caller that consumed whole lines stores its own smaller offset.
+  size: number;
+  mtimeMs: number;
+  // The file is shorter than the offset asked for, so it was replaced rather than appended to and
+  // the caller's cached work for it is stale.
+  rewound: boolean;
+}
+
+interface ReadFileSinceArgs {
+  path: string;
+  // Byte offset to read from. 0 reads the whole file.
+  offset: number;
+  // Ceiling on one read, so a file that grew by a lot between passes can't be pulled into memory
+  // whole. The caller reads again from the new offset.
+  maxBytes: number;
+}
+
+// Everything appended since `offset`. Transcripts and event logs only ever grow, so re-reading one
+// from the top on every poll is the whole cost this avoids.
+export const readFileSince = async ({
+  path,
+  offset,
+  maxBytes
+}: ReadFileSinceArgs): Promise<Result<FileSince, ConfigError>> => {
+  let handle: FileHandle | undefined;
+  try {
+    handle = await fs.open(path, 'r');
+    const stats: Stats = await handle.stat();
+
+    const rewound: boolean = stats.size < offset;
+    const start: number = rewound ? 0 : offset;
+    const length: number = Math.min(stats.size - start, maxBytes);
+
+    if (length <= 0) {
+      return ok({ text: '', size: stats.size, mtimeMs: stats.mtimeMs, rewound });
+    }
+
+    const buffer: Buffer = Buffer.alloc(length);
+    await handle.read(buffer, 0, length, start);
+
+    return ok({
+      text: buffer.toString('utf8'),
+      size: start + length,
+      mtimeMs: stats.mtimeMs,
+      rewound
+    });
+  } catch (caught) {
+    const code: string | undefined = (caught as NodeJS.ErrnoException).code;
+    if (code === 'ENOENT') {
+      return err({ kind: 'not-found', path, message: 'file does not exist' });
+    }
+    return err({ kind: 'unreadable', path, message: String((caught as Error).message ?? caught) });
+  } finally {
+    await handle?.close();
+  }
+};
+
 export interface FileHead {
   text: string;
   // The whole file fit in the window, so the last line is a whole line.
@@ -92,6 +151,23 @@ export const readFileHead = async ({
     return err({ kind: 'unreadable', path, message: String((caught as Error).message ?? caught) });
   } finally {
     await handle?.close();
+  }
+};
+
+export interface FileStats {
+  size: number;
+  mtimeMs: number;
+}
+
+// Size and last-write time, without opening the file. Undefined for anything that can't be stat'd,
+// which callers read as "skip this one" — a file that vanished between the listing and here is a
+// normal outcome when the thing writing it is a live agent.
+export const fileStats = async (path: string): Promise<FileStats | undefined> => {
+  try {
+    const stats: Stats = await fs.stat(path);
+    return { size: stats.size, mtimeMs: stats.mtimeMs };
+  } catch {
+    return undefined;
   }
 };
 

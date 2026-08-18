@@ -66,6 +66,45 @@
             },
             "additionalProperties": false
           }
+        },
+        "claudeViewer.usage.metric": {
+          "type": "string",
+          "enum": [
+            "output-tokens",
+            "cost"
+          ],
+          "enumDescriptions": [
+            "Output tokens per skill. Measured by both CLIs, and the number Claude Code's own /usage reports.",
+            "What the turns cost: US dollars for Claude Code, priced from a table, and AIU for Copilot CLI, which records its own billed figure."
+          ],
+          "default": "output-tokens",
+          "markdownDescription": "Which number the **Usage** surface reads. `output-tokens` is the only one with a single total across both CLIs — dollars and AIU are different units, so `cost` totals each CLI separately."
+        },
+        "claudeViewer.usage.scope": {
+          "type": "string",
+          "enum": [
+            "all",
+            "workspace"
+          ],
+          "enumDescriptions": [
+            "Every session on this machine, which is what usage limits are counted against.",
+            "Only sessions working under the open folder. A worktree under it counts as this workspace."
+          ],
+          "default": "all",
+          "markdownDescription": "Which sessions the **Usage** surface counts."
+        },
+        "claudeViewer.usage.costBasis": {
+          "type": "string",
+          "enum": [
+            "all",
+            "output"
+          ],
+          "enumDescriptions": [
+            "Every billed token: input, cache reads, cache writes and output. What the API charges.",
+            "Output tokens only, the way Claude Code's /usage weights a skill's share."
+          ],
+          "default": "all",
+          "markdownDescription": "Which tokens the Claude Code dollar figure counts. `all` is the invoice; `output` prices what the model wrote and leaves out the context re-reads, which are usually most of the total. Copilot CLI is unaffected — it records its own billed AIU."
         }
       }
     },

@@ -7,6 +7,7 @@ import { startWatching, stopWatching } from './host/config-store';
 import { LAUNCH_COMMAND, openPanel } from './host/panel';
 import { startWatchingSettings } from './host/settings-store';
 import { registerTree } from './host/tree/register-tree';
+import { stopWatchingUsage } from './host/usage-store';
 
 // Wiring only. Every entry point's body lives under commands/ or host/, so what a user can invoke
 // is readable from this one screen.
@@ -32,4 +33,6 @@ export const activate = (context: vscode.ExtensionContext): void => {
 export const deactivate = (): void => {
   stopWatching();
   stopWatchingAgents();
+  // Nothing to unwatch — usage has no watchers — but its poll outlives the panel if nothing stops it.
+  stopWatchingUsage();
 };
