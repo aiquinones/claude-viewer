@@ -21,20 +21,18 @@ export const WorkingRobot = () => (
     }
     aside={
       <>
-        {/* The next sheet, drawn twice, because the page in front of it is an outline with nothing
-            inside — whatever is behind shows straight through it. So only one of these is ever up:
-            the two edges that stick out past the page while it's on the pad, and the whole rectangle
-            once the page has lifted and there is nothing left to show through.
+        {/* The next sheet. Invisible while there's a page in front of it, and fading up as that
+            page lifts away — because the page is an outline with nothing inside, so anything drawn
+            behind it shows straight through the writing. Nothing is behind it until there's nothing
+            in front, which means there is only ever one sheet on screen at a time.
 
-            The alternative is filling the page, and the fill would have to be whatever is behind the
-            robot — the panel, or the row's tint, or the hover on either. Two shapes and a swap beats
-            four rules that have to track the row.
+            It sits exactly where the page starts its cycle, so when the page comes back it lands on
+            this rectangle and the two are the same outline going from 0.45 to full.
 
             The page's bottom edge stops at 16, which is as low as it goes: the right ear's stroke
             reaches y=19 from its centre line at 18, and the two were touching at 17.5. */}
-        <path className="bot-stack bot-stack--peek" strokeWidth={1.2} d="M26.3 6.7H33.3V15.3" />
         <rect
-          className="bot-stack bot-stack--full"
+          className="bot-stack"
           strokeWidth={1.2}
           x={26.3}
           y={6.7}

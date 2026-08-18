@@ -476,40 +476,25 @@
   animation: robot-page calc(var(--robot-tick, 1s) * 4) ease-in-out infinite;
 }
 
-/* The next sheet, quieter than the one in front, and drawn as two shapes with only one of them up
-   at a time. The page is an outline with no fill, so a whole rectangle behind it puts its left and
-   bottom edges straight through the writing — while the page is on the pad, all that may show is
-   the L those edges make outside it.
+/* The next sheet. It is a whole rectangle and it is behind an outline with nothing inside, so for
+   as long as there is a page in front of it, its left and bottom edges would run straight through
+   the writing. It is therefore invisible for exactly that long, and fades up as the page lifts —
+   one sheet on screen at any moment, and a whole one the instant there is nothing in front.
 
-   `steps(1, end)`, so neither ever half-fades into the other. They swap at 88%, by which point the
-   page has left the box. The full sheet is hidden in the stylesheet rather than only by a keyframe,
-   which is what makes the peek the one a stopped animation falls back to. */
+   It also sits exactly where the page starts its cycle. So the jump from 0.45 back to 0 at the loop
+   point happens under a page arriving at full strength on the same outline, and reads as the next
+   sheet becoming the live one rather than as anything appearing or going out. */
 .bot-stack {
-  opacity: 0.45;
-}
-
-.bot-stack--full {
   opacity: 0;
 }
 
-.agent-robot--working .bot-stack--peek {
-  animation: robot-stack-peek calc(var(--robot-tick, 1s) * 4) steps(1, end) infinite;
+.agent-robot--working .bot-stack {
+  animation: robot-stack calc(var(--robot-tick, 1s) * 4) ease-in-out infinite;
 }
 
-.agent-robot--working .bot-stack--full {
-  animation: robot-stack-full calc(var(--robot-tick, 1s) * 4) steps(1, end) infinite;
-}
-
-@keyframes robot-stack-peek {
-  0%   { opacity: 0.45; }
-  88%  { opacity: 0; }
-  100% { opacity: 0; }
-}
-
-@keyframes robot-stack-full {
-  0%   { opacity: 0; }
-  88%  { opacity: 0.45; }
-  100% { opacity: 0.45; }
+@keyframes robot-stack {
+  0%, 76%   { opacity: 0; }
+  92%, 100% { opacity: 0.45; }
 }
 
 /* Normalised by `pathLength={1}` on the path, so one dash length covers any of the three. */
