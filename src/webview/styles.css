@@ -349,9 +349,19 @@
   animation: activity-pulse 1.8s ease-in-out infinite;
 }
 
+/* Refresh button rotation. Triggered when the refresh icon is clicked, rotates the icon 360°. */
+.refresh-rotating {
+  animation: refresh-spin 600ms linear;
+}
+
 @keyframes activity-pulse {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.35; }
+}
+
+@keyframes refresh-spin {
+  from   { rotate: 0deg; }
+  to     { rotate: 360deg; }
 }
 
 /* The loading bar. Takes the accent of whichever surface is waiting, where one is set. */
@@ -391,6 +401,11 @@
     animation: none;
     width: 100%;
     opacity: 0.5;
+  }
+
+  /* Respect motion preferences for the refresh icon rotation. */
+  .refresh-rotating {
+    animation: none;
   }
 }
 
