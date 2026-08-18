@@ -78,8 +78,11 @@ export const BudgetInfo = ({ skill }: BudgetInfoProps) => {
           </dl>
           {/* The rules the paragraphs lean on are Claude Code's and move on its release schedule,
               so the card points at them rather than restating them and going stale. The border is
-              on the wrapper because `self-start` on a bordered anchor rules only the words. */}
-          <div className="border-t border-border pt-2">
+              on the wrapper because `self-start` on a bordered anchor rules only the words. `pt-3`
+              against the card's own `gap-2` above the rule, rather than matching it: the paragraph
+              above ends on a line box with descender space under it, so equal padding reads as the
+              link sitting closer to the rule than the prose does. */}
+          <div className="border-t border-border pt-3">
             <a
               href={SKILL_DOCS_URL}
               target="_blank"
