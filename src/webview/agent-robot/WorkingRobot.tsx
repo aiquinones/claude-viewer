@@ -1,4 +1,4 @@
-import { OpenEyes } from './Eyes';
+import { LoweredEyes } from './Eyes';
 import { RobotHead } from './RobotHead';
 
 // Heads down and frowning at it, with a pad beside the head filling up. Three lines of scribble draw
@@ -6,17 +6,14 @@ import { RobotHead } from './RobotHead';
 // already there underneath. The only mood whose aside changes rather than just pulsing, which is
 // right — it's the only one producing anything.
 //
-// The frown is a brow over the icon's own eye, which is the part that blinks. The eyes sit exactly
-// where every other mood puts them and the brows come down to meet them — a brow crosses its eye's x
-// at y=15.3, so its lower edge is 16.1 against an eye whose cap reaches 16. One slanted stroke doing
-// both jobs was the earlier version, and it read as a single V by the time the row was 8px tall.
+// No brows and no slant: the face is the icon's own eyes shortened and dropped a unit — heads down,
+// looking at the page rather than out at you. The page beside it is what says working; the eyes only
+// have to not contradict it. Every alternative tried is still in the Working eyes story.
 export const WorkingRobot = () => (
   <RobotHead
     face={
       <>
-        <path className="bot-brow" strokeWidth={1.6} d="M11.8 14.9 14.2 15.7" />
-        <path className="bot-brow" strokeWidth={1.6} d="M20.2 14.9 17.8 15.7" />
-        <OpenEyes />
+        <LoweredEyes />
       </>
     }
     aside={

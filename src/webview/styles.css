@@ -425,7 +425,6 @@
 
 .bot-head,
 .bot-eye,
-.bot-brow,
 .bot-page,
 .bot-ask,
 .bot-z,
@@ -466,11 +465,11 @@
     robot-scan calc(var(--robot-tick, 1s) * 1.2) ease-in-out infinite;
 }
 
-/* The brows track across with the eyes but never blink — a brow that shut with the eye under it
-   would be a face closing rather than an eye. */
-.agent-robot--working .bot-brow {
-  animation: robot-scan calc(var(--robot-tick, 1s) * 1.2) ease-in-out infinite;
-}
+/* Working's eyes are dropped a unit, and a blink is a scale about an eye's own middle — so both
+   origins move down with them. Left at 18 the eye would scale towards a point above itself and
+   climb as it shut. */
+.agent-robot--working .bot-eye-left  { transform-origin: 13px 19px; }
+.agent-robot--working .bot-eye-right { transform-origin: 19px 19px; }
 
 .bot-page {
   animation: robot-page calc(var(--robot-tick, 1s) * 4) ease-in-out infinite;

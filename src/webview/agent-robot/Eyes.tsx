@@ -38,3 +38,14 @@ export const ShutEyes = ({ className = '' }: EyesProps) => (
     />
   </>
 );
+
+// The icon's eyes, shorter and dropped a unit — heads down, looking at the work rather than out at
+// you. Their middle is y=19 where every other pair's is 18, so whichever mood uses these has to move
+// the blink's `transform-origin` down with them, or the eye scales about a point above itself and
+// climbs as it shuts.
+export const LoweredEyes = ({ className = '' }: EyesProps) => (
+  <>
+    <path className={`bot-eye bot-eye-left ${className}`} d="M13 18.2v1.6" />
+    <path className={`bot-eye bot-eye-right ${className}`} d="M19 18.2v1.6" />
+  </>
+);
