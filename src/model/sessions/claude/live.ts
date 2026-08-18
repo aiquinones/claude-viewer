@@ -1,8 +1,8 @@
 import { join } from 'node:path';
-import { sessionsDir } from '../../config/paths';
-import { listFiles, readTextFile } from '../../config/read';
-import { ConfigError, Result } from '../../config/result';
-import { isRunning } from './is-running';
+import { sessionsDir } from '../../../config/paths';
+import { listFiles, readTextFile } from '../../../config/read';
+import { ConfigError, Result } from '../../../config/result';
+import { isRunning } from '../is-running';
 import { SessionFile, parseSessionFile } from './session-schema';
 
 // The Claude Code sessions running right now. A session file is written at startup and named

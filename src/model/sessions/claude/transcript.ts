@@ -1,6 +1,6 @@
-import { FileHead, FileTail, readFileHead, readFileTail } from '../../config/read';
-import { ConfigError, Result } from '../../config/result';
-import { AgentPullRequest, ConfigIssue, TranscriptTail } from '../types';
+import { FileHead, FileTail, readFileHead, readFileTail } from '../../../config/read';
+import { ConfigError, Result } from '../../../config/result';
+import { AgentPullRequest, ConfigIssue, TranscriptTail } from '../../types';
 import { ContentBlock, TranscriptLine, parseTranscriptLine } from './transcript-schema';
 
 // How much of the end of a transcript is read. They reach megabytes; the last prompt, the PR link
