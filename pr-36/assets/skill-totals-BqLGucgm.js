@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";var t;function n(){return(n=e((()=>{t=e=>e.reduce((e,t)=>({skills:e.skills+1,chars:e.chars+t.listingChars,estimatedTokens:e.estimatedTokens+t.listingEstimatedTokens}),{skills:0,chars:0,estimatedTokens:0})})))()}export{t as n,n as t};
