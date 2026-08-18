@@ -1,35 +1,48 @@
 import { RobotHead } from './RobotHead';
 
-// Heads down and frowning at it, with a page beside the head filling up. Three lines of scribble
-// draw themselves one after another; once the third is down the sheet slides away and a blank one
-// drops in from the stack behind, and it starts again. The only mood where something is actually
-// being produced, so it's the only one whose aside changes rather than just pulsing.
+// Heads down and frowning at it, with a pad beside the head filling up. Three lines of scribble draw
+// themselves on one after another; once the third is down the sheet lifts away and the next one is
+// already there underneath. The only mood whose aside changes rather than just pulsing, which is
+// right — it's the only one producing anything.
 //
-// The eyes lean towards each other — the frown — and blink on the same clock as everyone else's.
-// This is the pair that fuses into a single V by the time the row is 8px tall; see the Working eyes
-// story, which keeps the alternatives around to look at.
+// The frown is two strokes a side, not one: a brow, shallow and angled down towards the middle, and
+// under it the icon's own vertical eye, which is the part that blinks. One slanted stroke doing both
+// jobs was the earlier version, and it read as a single V by the time the row was 8px tall.
 export const WorkingRobot = () => (
   <RobotHead
     face={
       <>
-        <path className="bot-eye bot-eye-left" d="M12.6 16.6 13.8 19" />
-        <path className="bot-eye bot-eye-right" d="M19.4 16.6 18.2 19" />
+        {/* A unit of clear air between a brow's inner end and the cap of the eye under it. At 0.3
+            the two merged into one mark and the frown stopped reading as a frown. */}
+        <path className="bot-brow" strokeWidth={1.6} d="M11.8 14.2 14.2 15" />
+        <path className="bot-brow" strokeWidth={1.6} d="M20.2 14.2 17.8 15" />
+        <path className="bot-eye bot-eye-left" d="M13 17.8v1.6" />
+        <path className="bot-eye bot-eye-right" d="M19 17.8v1.6" />
       </>
     }
     aside={
       <>
-        {/* The next sheet, showing as two edges behind the top right corner of the current one.
-            Drawn first so it stays behind, and it never moves — it's the stack, not a page.
+        {/* The next sheet: a whole rectangle, offset up and right, drawn first so it stays behind.
+            It used to be two edges, and that was the bug — when the written sheet lifted away, what
+            it left behind was an L rather than a page.
 
             The page's bottom edge stops at 16, which is as low as it goes: the right ear's stroke
             reaches y=19 from its centre line at 18, and the two were touching at 17.5. */}
-        <path className="bot-stack" strokeWidth={1.2} d="M26.1 6.9H33.4V15.5" />
+        <rect
+          className="bot-stack"
+          strokeWidth={1.2}
+          x={26.3}
+          y={6.7}
+          width={7}
+          height={8.6}
+          rx={0.6}
+        />
 
         <g className="bot-page">
-          <rect strokeWidth={1.2} x={25.6} y={7.4} width={7.6} height={8.6} rx={0.6} />
-          <Scribble className="bot-scribble bot-scribble--1" top={8.9} bottom={10.3} />
-          <Scribble className="bot-scribble bot-scribble--2" top={11.3} bottom={12.7} />
-          <Scribble className="bot-scribble bot-scribble--3" top={13.7} bottom={15.1} />
+          <rect strokeWidth={1.2} x={25.6} y={7.4} width={7} height={8.6} rx={0.6} />
+          <Scribble className="bot-scribble bot-scribble--1" top={9.2} bottom={10.4} />
+          <Scribble className="bot-scribble bot-scribble--2" top={11.3} bottom={12.5} />
+          <Scribble className="bot-scribble bot-scribble--3" top={13.4} bottom={14.6} />
         </g>
       </>
     }
@@ -47,14 +60,16 @@ interface ScribbleProps {
   bottom: number;
 }
 
-// One line of handwriting: four strokes of a W across the page. `pathLength={1}` normalises it, so
-// the stylesheet can draw it on with a `stroke-dashoffset` from 1 to 0 without knowing how long the
-// path actually is — and all three lines use the same numbers despite being different lengths.
+// One line of handwriting: four strokes of a W across the page, inset far enough that it never
+// touches the sheet's own edge — 0.7 of margin inside a border that is itself 1.2 thick.
+//
+// `pathLength={1}` normalises it, so the stylesheet can draw it on with a `stroke-dashoffset` from 1
+// to 0 without knowing how long the path actually is.
 const Scribble = ({ className, top, bottom }: ScribbleProps) => (
   <path
     className={className}
     pathLength={1}
     strokeWidth={0.7}
-    d={`M26.4 ${bottom} 27.9 ${top} 29.4 ${bottom} 30.9 ${top} 32.4 ${bottom}`}
+    d={`M26.9 ${bottom} 28 ${top} 29.1 ${bottom} 30.2 ${top} 31.3 ${bottom}`}
   />
 );

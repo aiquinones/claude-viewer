@@ -425,6 +425,7 @@
 
 .bot-head,
 .bot-eye,
+.bot-brow,
 .bot-page,
 .bot-ask,
 .bot-z,
@@ -465,12 +466,19 @@
     robot-scan calc(var(--robot-tick, 1s) * 1.2) ease-in-out infinite;
 }
 
+/* The brows track across with the eyes but never blink — a brow that shut with the eye under it
+   would be a face closing rather than an eye. */
+.agent-robot--working .bot-brow {
+  animation: robot-scan calc(var(--robot-tick, 1s) * 1.2) ease-in-out infinite;
+}
+
 .bot-page {
   animation: robot-page calc(var(--robot-tick, 1s) * 4) ease-in-out infinite;
 }
 
-/* The stack behind is quieter than the sheet in front, which is the whole of what puts it behind —
-   it never moves, and nothing is ever drawn on it. */
+/* The stack behind is quieter than the sheet in front, which is most of what puts it behind — that
+   and the offset, which the incoming page starts at so it looks peeled off rather than faded in.
+   It never moves, and nothing is ever drawn on it. */
 .bot-stack {
   opacity: 0.45;
 }
@@ -505,13 +513,17 @@
   85%, 100% { translate: -0.9px 0; }
 }
 
-/* In from the stack, held while it's written on, then away downwards once it's full. Both ends are
-   at zero opacity, so the jump from the bottom of one cycle back to the top of the next is never
-   on screen. */
+/* It appears already sitting on the stack — same offset, same place — and only then slides down
+   into the writing position, so the beat reads as taking the next sheet off the pad rather than as
+   one fading in over another. Then away downwards once it's full.
+
+   Both ends are at zero opacity, so the jump from the bottom of one cycle to the top of the next is
+   never on screen. */
 @keyframes robot-page {
-  0%, 4%    { translate: 0 -1.4px; opacity: 0; }
-  12%, 78%  { translate: 0 0; opacity: 1; }
-  90%, 100% { translate: 0 2.6px; opacity: 0; }
+  0%        { translate: 0.7px -0.7px; opacity: 0; }
+  8%        { translate: 0.7px -0.7px; opacity: 1; }
+  16%, 76%  { translate: 0 0; opacity: 1; }
+  88%, 100% { translate: 0 2.6px; opacity: 0; }
 }
 
 /* Three keyframes rather than one with three delays. A delay shifts a line's reset along with its
@@ -519,18 +531,18 @@
    fresh sheet would arrive with its last line already written on it. Written out, every line clears
    at 0%, which is where the page is invisible. */
 @keyframes robot-scribble-1 {
-  0%, 12%   { stroke-dashoffset: 1; }
-  26%, 100% { stroke-dashoffset: 0; }
+  0%, 18%   { stroke-dashoffset: 1; }
+  32%, 100% { stroke-dashoffset: 0; }
 }
 
 @keyframes robot-scribble-2 {
-  0%, 30%   { stroke-dashoffset: 1; }
-  44%, 100% { stroke-dashoffset: 0; }
+  0%, 36%   { stroke-dashoffset: 1; }
+  50%, 100% { stroke-dashoffset: 0; }
 }
 
 @keyframes robot-scribble-3 {
-  0%, 48%   { stroke-dashoffset: 1; }
-  62%, 100% { stroke-dashoffset: 0; }
+  0%, 54%   { stroke-dashoffset: 1; }
+  68%, 100% { stroke-dashoffset: 0; }
 }
 
 /* Waiting: no pose of its own. The head is the icon doing exactly what the icon does — one gesture
