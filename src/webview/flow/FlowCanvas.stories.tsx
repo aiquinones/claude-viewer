@@ -1,6 +1,6 @@
 import { CSSProperties } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { sectionFlow, stepFlow } from '../fixtures';
+import { longFlow, sectionFlow, stepFlow } from '../fixtures';
 import { surfaceAccent } from '../surfaces';
 import { FlowCanvas } from './FlowCanvas';
 
@@ -15,9 +15,12 @@ const meta: Meta<typeof FlowCanvas> = {
   args: { flow: stepFlow },
   decorators: [
     (Story) => (
-      // The canvas sizes itself, the way GraphView does — the decorator only sets the accent and
-      // the padding it sits in.
-      <div className="p-5" style={{ '--surface-accent': surfaceAccent('skills') } as CSSProperties}>
+      // A pane the height of the panel, scrolling. The canvas is as tall as its flow and scrolls
+      // nothing itself, so a decorator that only padded it would hide the thing worth looking at.
+      <div
+        className="h-screen overflow-y-auto overflow-x-clip p-5"
+        style={{ '--surface-accent': surfaceAccent('skills') } as CSSProperties}
+      >
         <Story />
       </div>
     )
@@ -33,6 +36,10 @@ export const Default: Story = {};
 // A SKILL.md with no numbering at all — the steps are the sections one level under its `#` title,
 // and one of them is long enough to have to truncate on the card.
 export const UnnumberedSections: Story = { args: { flow: sectionFlow } };
+
+// Twelve steps: the box is taller than the pane, so the pane scrolls it, the hint and the reset
+// button ride the bottom edge, and the light stays in the middle of what you're looking at.
+export const LongFlow: Story = { args: { flow: longFlow } };
 
 // The panel in a split editor group: the 11rem rail and the detail pane have to share ~32rem.
 export const NarrowPanel: Story = {

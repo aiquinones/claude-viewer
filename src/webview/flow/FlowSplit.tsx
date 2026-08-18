@@ -13,13 +13,14 @@ interface FlowSplitProps {
 // tracks of the same type, and the two states here are "all of it" and "11rem" — `1fr` and a
 // length don't interpolate, so the columns would snap. `100%` → `11rem` are both lengths and do.
 //
-// The flow pane still needs `min-w-0`, or it refuses to shrink below its widest card. Scrolling
-// belongs to whatever each pane holds — the column scrolls, the canvas pans.
-// The height is here rather than on whatever renders it, the same way `GraphView` owns
-// `graph-box` — the panel and a story would otherwise each have to remember, and one of them
-// wouldn't.
+// The flow pane still needs `min-w-0`, or it refuses to shrink below its widest card.
+//
+// No height on the box: a flow is a column and its length is what it costs to read, so the box is
+// as tall as its steps and the panel does the scrolling. Flex stretches both panes, so an open step
+// makes the box whichever side is taller — and the floor belongs to the pane that draws the ground,
+// which is why there's no `min-h` here either.
 export const FlowSplit = ({ focused, flow, detail }: FlowSplitProps) => (
-  <div className="flex h-[min(70vh,32rem)] min-h-72 w-full overflow-clip rounded-lg border border-border">
+  <div className="flex w-full overflow-clip rounded-lg border border-border">
     <div className="flow-pane min-w-0 shrink-0 overflow-clip" data-focused={focused}>
       {flow}
     </div>

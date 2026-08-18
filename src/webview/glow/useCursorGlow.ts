@@ -62,7 +62,11 @@ export const useCursorGlow = <Card extends HTMLElement>(): CursorGlow<Card> => {
     };
 
     const follow = (event: PointerEvent): void => {
-      const bounds: DOMRect = card.getBoundingClientRect();
+      // Measured from whatever the glow is positioned against, which is the card on the landing
+      // page and a sticky layer inside it on the flow canvas — a layer that moves while the card
+      // stays put, so the card's own rect is the wrong origin there.
+      const anchor: Element = glow.offsetParent ?? card;
+      const bounds: DOMRect = anchor.getBoundingClientRect();
       // offsetLeft/offsetTop are layout, untouched by the translate above — so the resting center
       // stays whatever the utility classes on the glow say it is.
       target.current = {

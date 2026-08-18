@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { ChevronRight, X } from 'lucide-react';
 import { plural } from '../format-size';
 import { Blocks } from '../markdown/Blocks';
@@ -26,11 +27,20 @@ export const StepDetail = ({
   onClose,
   onOpenSkill
 }: StepDetailProps) => {
+  const rootRef = useRef<HTMLDivElement>(null);
   const node: FlowNode | undefined = trail[trail.length - 1];
+
+  // The box is as tall as the flow, so opening step 9 puts this pane's top well above the pane —
+  // and ↑ ↓ change what's in here rather than moving it. `nearest` stays put when it's already on
+  // screen; the scroll margin clears the Content heading pinned over the top of the pane.
+  useEffect(() => {
+    rootRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [node?.id]);
+
   if (!node) return null;
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    <div ref={rootRef} className="flex scroll-mt-16 flex-col">
       <div className="flex items-start gap-2 border-b border-border px-3 py-2">
         <Trail trail={trail} stepIndex={stepIndex} onGoTo={onGoTo} />
         <button
@@ -43,7 +53,9 @@ export const StepDetail = ({
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-clip px-3 py-3">
+      {/* No scroller of its own: the split is as tall as its taller side, so a long step lengthens
+          the box and the panel scrolls it. */}
+      <div className="px-3 py-3">
         <h3 className="text-sm font-semibold">{node.label}</h3>
 
         {node.skills.length > 0 && (
