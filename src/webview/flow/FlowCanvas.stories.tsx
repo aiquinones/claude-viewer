@@ -4,13 +4,13 @@ import { sectionFlow, stepFlow } from '../fixtures';
 import { surfaceAccent } from '../surfaces';
 import { FlowCanvas } from './FlowCanvas';
 
-// Variant B of three — the graph's vibe. Drag the background to pan, ⌘/ctrl + scroll to zoom,
-// the corner button resets. Clicking a card still opens it beside the canvas.
+// The flow view. Move the pointer around the canvas and the light follows it on a spring; click a
+// step and the column shrinks to a rail with the step open beside it; ↑ and ↓ then walk the
+// sequence and Escape closes it. ⌘/ctrl + scroll zooms, and the reset button appears once you have.
 //
-// A press that lands on a card doesn't pan, or dragging from one would move the view and open the
-// card on release.
+// The accent is set by SkillView in the panel, so a story has to set it itself.
 const meta: Meta<typeof FlowCanvas> = {
-  title: 'Skills/Flow/B · Canvas',
+  title: 'Skills/Flow/Canvas',
   component: FlowCanvas,
   args: { flow: stepFlow },
   decorators: [
@@ -31,10 +31,16 @@ type Story = StoryObj<typeof FlowCanvas>;
 
 export const Default: Story = {};
 
-// The unnumbered fallback, on a canvas that can be panned away from it.
+// A SKILL.md with no numbering at all — the steps are the sections one level under its `#` title,
+// and one of them is long enough to have to truncate on the card.
 export const UnnumberedSections: Story = { args: { flow: sectionFlow } };
 
-// Where this variant costs the most: the canvas keeps its full chrome in a rail 11rem wide.
+// The panel in a split editor group: the 11rem rail and the detail pane have to share ~32rem.
 export const NarrowPanel: Story = {
   globals: { viewport: { value: 'narrowPanel' } }
+};
+
+// The panel maximised, which is where the canvas has room to be a canvas.
+export const WidePanel: Story = {
+  globals: { viewport: { value: 'widePanel' } }
 };

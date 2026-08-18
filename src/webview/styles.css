@@ -418,10 +418,18 @@
   background: color-mix(in srgb, var(--foreground) 3%, var(--background));
 }
 
-/* `translate` and `scale` are written by useCanvasPan on every pointer move, so neither may carry
-   a transition here — a transition and a loop can't share a property. */
-.flow-surface {
-  transform-origin: 50% 0;
+/* The light the cursor pulls around, on the same spring the landing cards use. `translate` is
+   written every frame by useCursorGlow, so nothing here may transition it — and the blob is placed
+   by margins in the markup rather than a `-translate-x-1/2` utility, which in Tailwind v4 would be
+   writing that same property. Reduced motion leaves it parked in the middle, which is exactly
+   where these rules already put it. */
+.flow-glow {
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle closest-side at 50% 50%,
+    color-mix(in srgb, var(--surface-accent, var(--foreground)) 22%, transparent),
+    transparent
+  );
 }
 
 .step-card {
@@ -460,10 +468,6 @@
 .step-badge {
   background: color-mix(in srgb, var(--foreground) 10%, transparent);
   color: var(--muted-foreground);
-}
-
-.step-skill-count {
-  color: color-mix(in srgb, var(--surface-accent, var(--foreground)) 80%, var(--foreground));
 }
 
 .step-connector line {

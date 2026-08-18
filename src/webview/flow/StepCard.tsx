@@ -10,80 +10,72 @@ interface StepCardProps {
   // `label` has its ordinal stripped.
   index: number;
   state: StepState;
-  // The rail the flow shrinks to once a step is open: the badge, and the label if it fits.
+  // The rail the flow shrinks to once a step is open: one line, badge and whatever label fits.
   compact?: boolean;
   onOpen: () => void;
 }
 
-// One step. The same card in all three variants — what differs between them is where it sits and
-// what happens around it when you click.
+// One step. Two lines and a narrow box on purpose — a single-line card stretched to the pane's
+// width reads as a list row, and the point of the canvas is that these are nodes.
 export const StepCard = ({ node, index, state, compact = false, onOpen }: StepCardProps) => (
   <div className="group relative flex w-full justify-center">
     <button
       type="button"
       aria-current={state === 'active'}
       onClick={onOpen}
-      className={`step-card step-card-${state} flex ${
-        compact ? 'w-full gap-2 px-2 py-2' : 'w-full max-w-sm gap-2.5 px-3 py-2.5'
-      } cursor-pointer items-center rounded-lg border text-left`}
+      className={`step-card step-card-${state} flex w-full cursor-pointer gap-2.5 rounded-lg border text-left ${
+        compact ? 'items-center px-2 py-2' : 'max-w-[15rem] items-start px-3 py-3'
+      }`}
     >
       <span className="step-badge mono flex size-5 shrink-0 items-center justify-center rounded-md text-[0.625rem] font-semibold">
         {index + 1}
       </span>
-      <span className={`min-w-0 flex-1 truncate ${compact ? 'text-[0.6875rem]' : 'text-xs'}`}>
-        {node.label}
-      </span>
-      {!compact && <Counts node={node} />}
+
+      {compact ? (
+        <span className="min-w-0 flex-1 truncate text-[0.6875rem]">{node.label}</span>
+      ) : (
+        <span className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="truncate text-xs font-medium leading-snug">{node.label}</span>
+          {/* Always drawn, so every card is the same height and the column reads as a column. */}
+          <span className="truncate text-[0.625rem] leading-none text-muted-foreground">
+            {summary(node)}
+          </span>
+        </span>
+      )}
     </button>
 
-    <Summary node={node} />
+    <Mentions node={node} />
   </div>
 );
 
-interface CountsProps {
-  node: FlowNode;
-}
+// What's inside the step, spelled out. The two numbers were `§2 ◆1` on one line before, which is
+// the sort of thing you have to be told how to read.
+const summary = (node: FlowNode): string => {
+  const parts: string[] = [];
+  if (node.descendantCount > 0) parts.push(plural(node.descendantCount, 'sub-section'));
+  if (node.skills.length > 0) parts.push(plural(node.skills.length, 'skill'));
 
-// The two numbers on the card itself, so the shape of a step is readable without hovering. Dots
-// rather than words — the popup spells them out.
-const Counts = ({ node }: CountsProps) => {
-  if (node.descendantCount === 0 && node.skills.length === 0) return null;
-
-  return (
-    <span className="mono flex shrink-0 items-center gap-1.5 text-[0.625rem] text-muted-foreground">
-      {node.descendantCount > 0 && <span>§{node.descendantCount}</span>}
-      {node.skills.length > 0 && (
-        <span className="step-skill-count">◆{node.skills.length}</span>
-      )}
-    </span>
-  );
+  return parts.length > 0 ? parts.join(' · ') : 'no sub-sections';
 };
 
-interface SummaryProps {
+interface MentionsProps {
   node: FlowNode;
 }
 
-// What's inside, on hover. A step with neither sub-sections nor references has nothing to preview,
-// so it gets no popup rather than an empty one.
-const Summary = ({ node }: SummaryProps) => {
-  if (node.descendantCount === 0 && node.skills.length === 0) return null;
+// Which skills, on hover. The counts are on the card now, so this is only the part that wouldn't
+// fit — a step that names nothing gets no popup rather than an empty one.
+const Mentions = ({ node }: MentionsProps) => {
+  if (node.skills.length === 0) return null;
 
   return (
     <span
       role="tooltip"
-      className="pointer-events-none absolute left-full top-1 z-30 ml-2 hidden w-max max-w-56 rounded-md border border-border bg-popover px-2 py-1.5 text-[0.6875rem] leading-relaxed text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 lg:block"
+      className="pointer-events-none absolute left-full top-1 z-30 ml-2 hidden w-max max-w-52 rounded-md border border-border bg-popover px-2 py-1.5 text-[0.6875rem] leading-relaxed text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 lg:block"
     >
-      <span className="block text-muted-foreground">
-        {plural(node.descendantCount, 'sub-section')}
+      <span className="block text-muted-foreground">names</span>
+      <span className="mono block text-foreground">
+        {node.skills.map((reference) => reference.skill.name).join(', ')}
       </span>
-      <span className="block text-muted-foreground">
-        {plural(node.skills.length, 'skill')} mentioned
-      </span>
-      {node.skills.length > 0 && (
-        <span className="mono mt-1 block truncate text-foreground">
-          {node.skills.map((reference) => reference.skill.name).join(', ')}
-        </span>
-      )}
     </span>
   );
 };
