@@ -81,9 +81,13 @@ interface WriteUsageArgs {
   costBasis?: UsageCostBasis;
 }
 
-// The usage surface's toggles write these two keys. This is the extension's own configuration, not
+// The usage surface's toggles write these three keys. This is the extension's own configuration, not
 // Claude's — `~/.claude` is still never written — and it goes to the global layer because which
 // number you want to look at is a preference rather than a property of the repo.
+//
+// A write that fails is reported rather than thrown. The toggle draws the value settings.json holds,
+// so a rejection nobody catches leaves a control that reads as dead: you press it, nothing moves,
+// and there's nothing on screen saying why.
 export const writeUsageSettings = async ({
   metric,
   scope,
@@ -91,10 +95,42 @@ export const writeUsageSettings = async ({
 }: WriteUsageArgs): Promise<void> => {
   const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(SECTION);
 
-  if (metric) await config.update(USAGE_METRIC_KEY, metric, vscode.ConfigurationTarget.Global);
-  if (scope) await config.update(USAGE_SCOPE_KEY, scope, vscode.ConfigurationTarget.Global);
-  if (costBasis) {
-    await config.update(USAGE_COST_BASIS_KEY, costBasis, vscode.ConfigurationTarget.Global);
+  try {
+    if (metric) await config.update(USAGE_METRIC_KEY, metric, vscode.ConfigurationTarget.Global);
+    if (scope) await config.update(USAGE_SCOPE_KEY, scope, vscode.ConfigurationTarget.Global);
+    if (costBasis) {
+      await config.update(USAGE_COST_BASIS_KEY, costBasis, vscode.ConfigurationTarget.Global);
+    }
+  } catch (error) {
+    await reportWriteFailure(error);
+  }
+};
+
+// What VS Code says when the running window's configuration registry predates the code asking to
+// write. It's matched on rather than typed: the failure arrives as a plain Error, and this is the
+// one cause with an answer worth offering.
+const UNREGISTERED: string = 'is not a registered configuration';
+
+const RELOAD_ACTION: string = 'Reload Window';
+
+// A window registers the keys from package.json when it loads its extensions, and an auto-update
+// swaps the code under it without reloading — so the new build's toggles write against the old
+// build's registry, which has never heard of them, and every write is refused. That state ends at a
+// reload and at nothing else, so the notification offers one rather than describing it.
+const reportWriteFailure = async (error: unknown): Promise<void> => {
+  const message: string = error instanceof Error ? error.message : String(error);
+
+  if (!message.includes(UNREGISTERED)) {
+    await vscode.window.showWarningMessage(`Claude Viewer couldn't save that setting. ${message}`);
+    return;
+  }
+
+  const picked: string | undefined = await vscode.window.showWarningMessage(
+    'Claude Viewer was updated while this window was open, so its settings aren’t registered yet — the Usage toggles can’t save until the window reloads.',
+    RELOAD_ACTION
+  );
+  if (picked === RELOAD_ACTION) {
+    await vscode.commands.executeCommand('workbench.action.reloadWindow');
   }
 };
 
