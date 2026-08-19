@@ -93,13 +93,28 @@ interface OpenPanelArgs {
   revealSection?: string;
 }
 
+// Where the panel opens: an empty editor group right of the focused one if there is one, else the
+// focused group itself — which is column One when nothing is open at all. Not `Beside`, which means
+// "a new column right of the active one" rather than "next to the editor", so two columns always
+// became three.
+const _panelColumn = (): vscode.ViewColumn => {
+  const active: vscode.ViewColumn = vscode.window.tabGroups.activeTabGroup.viewColumn;
+  const empty: vscode.TabGroup | undefined = vscode.window.tabGroups.all
+    .filter((group) => group.viewColumn > active && group.tabs.length === 0)
+    .sort((one, other) => one.viewColumn - other.viewColumn)[0];
+
+  return empty?.viewColumn ?? vscode.ViewColumn.Active;
+};
+
 export const openPanel = ({ context, revealPath, revealSection }: OpenPanelArgs): void => {
   const asked: PendingReveal | undefined = revealPath
     ? { path: revealPath, section: revealSection }
     : undefined;
 
   if (panel) {
-    panel.reveal(vscode.ViewColumn.Beside);
+    // No column: reveal it where it already is. Passing one *moves* the panel, so `Beside` walked
+    // it one column right every time the command ran.
+    panel.reveal();
     if (asked) void _reveal(asked);
     return;
   }
@@ -110,7 +125,7 @@ export const openPanel = ({ context, revealPath, revealSection }: OpenPanelArgs)
   panel = vscode.window.createWebviewPanel(
     PANEL_VIEW_TYPE,
     PANEL_TITLE,
-    vscode.ViewColumn.Beside,
+    _panelColumn(),
     {
       enableScripts: true,
       retainContextWhenHidden: true,
@@ -338,8 +353,14 @@ const _openFile = async (path: string): Promise<void> => {
 
   const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(vscode.Uri.file(path));
   await vscode.window.showTextDocument(doc, {
-    viewColumn: vscode.ViewColumn.One,
+    viewColumn: _fileColumn(),
     preview: true,
     selection: new vscode.Range(0, 0, 0, 0)
   });
 };
+
+// Where a file opens: any column but the panel's, so opening one doesn't bury the panel that
+// asked for it. Not `Beside` — clicking inside the panel makes the panel's column the active one,
+// so Beside would open a new column to its right, which is the bug this pair of rules avoids.
+const _fileColumn = (): vscode.ViewColumn =>
+  panel?.viewColumn === vscode.ViewColumn.One ? vscode.ViewColumn.Two : vscode.ViewColumn.One;
