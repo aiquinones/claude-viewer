@@ -1,6 +1,6 @@
 import { RefObject, useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
 import { SystemPromptFile } from '../model/types';
+import { CollapsibleHeading } from './CollapsibleHeading';
 import { PromptFileRow } from './PromptFileRow';
 import { formatTokens, plural } from './format-size';
 import { alwaysLoads, conditional, totals } from './prompt-totals';
@@ -101,23 +101,12 @@ const PromptSection = ({
   return (
     <section className="flex flex-col gap-1">
       {/* The subtotal stays in the heading, so a collapsed section still says what it costs. */}
-      <h2>
-        <button
-          type="button"
-          onClick={() => onToggle(id)}
-          aria-expanded={!collapsed}
-          className="flex w-full items-center gap-1 rounded-md px-3 py-1 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground cursor-pointer hover:bg-accent"
-        >
-          {collapsed ? (
-            <ChevronRight className="size-3.5 shrink-0" />
-          ) : (
-            <ChevronDown className="size-3.5 shrink-0" />
-          )}
-          <span>
-            {title} <span className="normal-case font-normal">· {note}</span>
-          </span>
-        </button>
-      </h2>
+      <CollapsibleHeading
+        title={title}
+        note={note}
+        collapsed={collapsed}
+        onToggle={() => onToggle(id)}
+      />
 
       {!collapsed &&
         files.map((file) => (

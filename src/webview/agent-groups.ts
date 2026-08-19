@@ -10,6 +10,10 @@ export interface AgentGroups {
   elsewhere: AgentSession[];
 }
 
+// Which group a fold is remembered against. Derived from the shape rather than written out, so a
+// third group can't be added without the collapsed state seeing it.
+export type AgentGroupId = keyof AgentGroups;
+
 // Split by where each agent is working. A worktree counts as this workspace — it sits under
 // `<root>/.claude/worktrees/` — which is the case worth getting right: a worktree session gets its
 // own transcript directory and would otherwise read as somewhere else entirely.

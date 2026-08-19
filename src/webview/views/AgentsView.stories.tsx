@@ -55,6 +55,26 @@ export const NoSessions: Story = {
   args: { agents: [], snapshot: snapshot({ skills: allSkills }) }
 };
 
+// One group folded. The count stays in the heading, so a folded group still says how many agents
+// it's hiding — which is the state to check when the elsewhere list is the long one.
+export const Collapsed: Story = {
+  args: {
+    agents: allAgents,
+    snapshot: snapshot({ skills: allSkills }),
+    initialCollapsed: ['elsewhere']
+  }
+};
+
+// Both folded: the surface reduces to its two headings, and the header's own count is the only
+// thing still saying what's running.
+export const AllCollapsed: Story = {
+  args: {
+    agents: allAgents,
+    snapshot: snapshot({ skills: allSkills }),
+    initialCollapsed: ['here', 'elsewhere']
+  }
+};
+
 // One agent, in this folder, mid-turn. The dot is the only thing on the surface that moves.
 export const OneWorking: Story = {
   args: { agents: [workingAgent], snapshot: snapshot({ skills: allSkills }) }
@@ -66,6 +86,16 @@ export const NoWorkspace: Story = {
   args: {
     agents: remoteAgents,
     snapshot: { ...snapshot({ skills: allSkills }), workspaceRoot: undefined }
+  }
+};
+
+// No folder open, with that group marked collapsed anyway. It has no heading, so there's no
+// control to fold it with and the rows stay — the flag is ignored rather than hiding everything.
+export const NoWorkspaceCollapsed: Story = {
+  args: {
+    agents: remoteAgents,
+    snapshot: { ...snapshot({ skills: allSkills }), workspaceRoot: undefined },
+    initialCollapsed: ['elsewhere']
   }
 };
 

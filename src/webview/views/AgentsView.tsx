@@ -7,7 +7,7 @@ import { AGENT_VIEW_MODES, AgentViewMode, DEFAULT_AGENT_VIEW_MODE } from '../age
 import { PanelActions } from '../PanelActions';
 import { ViewModeToggle } from '../ViewModeToggle';
 import { activityOf } from '../agent-activity';
-import { AgentGroups, groupByWorkspace } from '../agent-groups';
+import { AgentGroupId, AgentGroups, groupByWorkspace } from '../agent-groups';
 import { plural } from '../format-size';
 import { surfaceAccent } from '../surfaces';
 import { useNow } from '../useNow';
@@ -29,6 +29,8 @@ interface AgentsViewProps {
   // Which list the toggle opens on. The panel never passes it — it's here so a story can open on
   // either one, since the mode is state and nothing outside can reach in and set it.
   initialMode?: AgentViewMode;
+  // Which groups start folded, for the same reason and on the same terms as initialMode.
+  initialCollapsed?: AgentGroupId[];
   // Two different destinations for one row: the agent itself, and the log it's writing. The host
   // decides what "the agent itself" resolves to, so this carries a session id and nothing more.
   onOpenAgent: (sessionId: string) => void;
@@ -45,6 +47,7 @@ export const AgentsView = ({
   agents,
   snapshot,
   initialMode = DEFAULT_AGENT_VIEW_MODE,
+  initialCollapsed = [],
   onOpenAgent,
   onOpenFile,
   onSearch,
@@ -55,10 +58,20 @@ export const AgentsView = ({
   // Which of the two lists is up. React state, like the skills toggle: it survives a round trip to
   // the landing page and nothing more.
   const [mode, setMode] = useState<AgentViewMode>(initialMode);
+  // Which groups are folded, keyed so folding one doesn't have to know about the other. Survives a
+  // round trip to the landing page and nothing more, same as the mode.
+  const [collapsed, setCollapsed] = useState<AgentGroupId[]>(initialCollapsed);
   const { here, elsewhere }: AgentGroups = groupByWorkspace({
     agents,
     workspaceRoot: snapshot.workspaceRoot
   });
+
+  const toggle = (group: AgentGroupId): void =>
+    setCollapsed((previous) =>
+      previous.includes(group)
+        ? previous.filter((entry) => entry !== group)
+        : [...previous, group]
+    );
 
   // Every agent listed is a live process; this is how many are mid-turn rather than waiting on you.
   const busy: number = agents.filter((agent) => activityOf({ agent, now }) !== 'idle').length;
@@ -95,6 +108,8 @@ export const AgentsView = ({
               mode={mode}
               now={now}
               workspaceRoot={snapshot.workspaceRoot}
+              collapsed={collapsed.includes('here')}
+              onToggle={() => toggle('here')}
               onOpen={(agent) => onOpenAgent(agent.sessionId)}
               onOpenLog={(agent) => onOpenFile(agent.transcriptPath)}
             />
@@ -104,6 +119,8 @@ export const AgentsView = ({
               mode={mode}
               now={now}
               workspaceRoot={snapshot.workspaceRoot}
+              collapsed={collapsed.includes('elsewhere')}
+              onToggle={() => toggle('elsewhere')}
               onOpen={(agent) => onOpenAgent(agent.sessionId)}
               onOpenLog={(agent) => onOpenFile(agent.transcriptPath)}
             />

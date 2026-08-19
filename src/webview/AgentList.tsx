@@ -2,6 +2,7 @@ import { AgentSession } from '../model/types';
 import { AgentRobotRow } from './AgentRobotRow';
 import { AgentRow } from './AgentRow';
 import { AgentViewMode } from './agent-view-modes';
+import { CollapsibleHeading } from './CollapsibleHeading';
 import { plural } from './format-size';
 
 interface AgentListProps {
@@ -12,12 +13,16 @@ interface AgentListProps {
   mode: AgentViewMode;
   now: number;
   workspaceRoot: string | undefined;
+  // Ignored without a title: the heading is the control, so a group that has no heading has
+  // nothing to fold from and stays open.
+  collapsed: boolean;
+  onToggle: () => void;
   onOpen: (agent: AgentSession) => void;
   onOpenLog: (agent: AgentSession) => void;
 }
 
-// One group of agents under its heading. No folding: the whole surface is usually four rows, and
-// there's nothing here to fold away from.
+// One group of agents under its heading, folding from it. The count stays in the heading, so a
+// folded group still says how many agents are in it.
 //
 // The mode picks a row component and changes nothing else — both draw the same sessions, in the
 // same order, under the same headings.
@@ -27,31 +32,38 @@ export const AgentList = ({
   mode,
   now,
   workspaceRoot,
+  collapsed,
+  onToggle,
   onOpen,
   onOpenLog
 }: AgentListProps) => {
   if (agents.length === 0) return null;
 
   const Row = mode === 'robots' ? AgentRobotRow : AgentRow;
+  const hidden: boolean = Boolean(title) && collapsed;
 
   return (
     <section className="flex flex-col gap-1">
       {title && (
-        <h2 className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {title} <span className="normal-case font-normal">· {plural(agents.length, 'agent')}</span>
-        </h2>
+        <CollapsibleHeading
+          title={title}
+          note={plural(agents.length, 'agent')}
+          collapsed={collapsed}
+          onToggle={onToggle}
+        />
       )}
 
-      {agents.map((agent) => (
-        <Row
-          key={agent.sessionId}
-          agent={agent}
-          now={now}
-          workspaceRoot={workspaceRoot}
-          onOpen={onOpen}
-          onOpenLog={onOpenLog}
-        />
-      ))}
+      {!hidden &&
+        agents.map((agent) => (
+          <Row
+            key={agent.sessionId}
+            agent={agent}
+            now={now}
+            workspaceRoot={workspaceRoot}
+            onOpen={onOpen}
+            onOpenLog={onOpenLog}
+          />
+        ))}
     </section>
   );
 };
