@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { DEFAULT_SETTINGS, ViewerSettings } from '../model/settings/settings';
+import { DEFAULT_SETTINGS, SettingsSection, ViewerSettings } from '../model/settings/settings';
 import { AgentColor, AgentColors, AgentSession, ConfigSnapshot, Reveal } from '../model/types';
 import { UsageCostBasis, UsageMetric, UsageReport, UsageScope } from '../model/usage/types';
 import { vscode } from './vscodeApi';
@@ -54,8 +54,10 @@ export const useSnapshot = () => {
   const reportUnavailable = (title: string): void =>
     vscode.postMessage({ type: 'surfaceUnavailable', title });
 
-  // Asks for the Settings UI. The host owns which keys it opens on.
-  const openSettings = (): void => vscode.postMessage({ type: 'openSettings' });
+  // Asks for the Settings UI, filtered to the section the caller came from. The host turns the
+  // section into the query.
+  const openSettings = (section: SettingsSection): void =>
+    vscode.postMessage({ type: 'openSettings', section });
 
   // The usage surface's toggles. The host writes the setting and posts the whole settings object
   // back, so nothing here guesses at what it wrote.

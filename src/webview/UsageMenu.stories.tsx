@@ -21,14 +21,15 @@ const WithBasis = ({ basis, source, children }: WithBasisArgs) => {
   return <SettingsProvider settings={settings}>{children}</SettingsProvider>;
 };
 
-// Click to open — a hover menu closes under the pointer on the way to an item. It opens upward,
-// since on the surface it sits at the bottom of the page.
+// Click to open — a hover menu closes under the pointer on the way to an item. It opens down and to
+// the left, since on the surface it sits at the top-right of the summary card. The decorator gives
+// it that corner so the menu is drawn where the surface draws it.
 const meta: Meta<typeof UsageMenu> = {
   title: 'Usage/UsageMenu',
   component: UsageMenu,
   decorators: [
     (Story) => (
-      <div className="p-6 pt-72">
+      <div className="flex h-96 justify-end p-6">
         <Story />
       </div>
     )

@@ -5,6 +5,7 @@ import { plural } from './format-size';
 import { formatAiu, formatTotal, formatUsd, METRIC_LABEL } from './usage-format';
 import { METRIC_OPTIONS, SCOPE_OPTIONS } from './usage-options';
 import { UsageChoice } from './UsageChoice';
+import { UsageMenu } from './UsageMenu';
 
 interface UsageSummaryProps {
   breakdown: UsageBreakdown;
@@ -14,9 +15,10 @@ interface UsageSummaryProps {
   onScope: (scope: UsageScope) => void;
 }
 
-// The headline, and the two controls that say what it's the headline of. Both write settings rather
-// than component state: which number you're reading is part of how you read the surface, and it
-// should still be that number tomorrow.
+// The headline, and the controls that say what it's the headline of. The two toggles write settings
+// rather than component state: which number you're reading is part of how you read the surface, and
+// it should still be that number tomorrow. The `...` is here rather than down by the cost note
+// because it changes these figures, and because down there it was unreachable in Tokens mode.
 export const UsageSummary = ({
   breakdown,
   metric,
@@ -25,17 +27,25 @@ export const UsageSummary = ({
   onScope
 }: UsageSummaryProps) => (
   <section className="flex flex-col gap-3 rounded-lg border border-border p-4">
-    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-      {metric === 'cost' ? (
-        <CostTotals breakdown={breakdown} />
-      ) : (
-        <span className="text-2xl font-semibold tabular-nums">
-          {formatTotal(breakdown.total, metric)}
+    {/* The figures wrap inside their own box rather than being flex items beside the menu, so a
+        panel too narrow for them wraps the numbers and leaves the `...` in the corner — as siblings
+        the menu was laid out against the whole group and dropped onto a line of its own. */}
+    <div className="flex items-start gap-3">
+      <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
+        {metric === 'cost' ? (
+          <CostTotals breakdown={breakdown} />
+        ) : (
+          <span className="text-2xl font-semibold tabular-nums">
+            {formatTotal(breakdown.total, metric)}
+          </span>
+        )}
+        <span className="text-xs text-muted-foreground">
+          {METRIC_LABEL[metric].toLowerCase()} · {plural(breakdown.total.turns, 'request')}
         </span>
-      )}
-      <span className="text-xs text-muted-foreground">
-        {METRIC_LABEL[metric].toLowerCase()} · {plural(breakdown.total.turns, 'request')}
-      </span>
+      </div>
+      {/* `mt-1` centres the 24px button against the headline's first line, which is 32px tall —
+          `items-start` alone would pin it to the top of the box instead. */}
+      <UsageMenu className="ml-auto mt-1 shrink-0" />
     </div>
 
     <div className="flex flex-wrap items-center gap-2">

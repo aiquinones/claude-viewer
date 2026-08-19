@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext } from 'react';
-import { DEFAULT_SETTINGS, ViewerSettings } from '../../model/settings/settings';
+import { DEFAULT_SETTINGS, SettingsSection, ViewerSettings } from '../../model/settings/settings';
 import { UsageCostBasis, UsageMetric, UsageScope } from '../../model/usage/types';
 
 // The usage surface's toggles write settings back. Every other setting here is read-only to the
@@ -16,7 +16,7 @@ export interface UsageSettingsChange {
 // parents down from App — and threading it would mean every component in between knowing.
 interface SettingsBridge {
   settings: ViewerSettings;
-  openSettings: () => void;
+  openSettings: (section: SettingsSection) => void;
   setUsage: (change: UsageSettingsChange) => void;
 }
 
@@ -46,7 +46,8 @@ export const SettingsProvider = ({
 
 export const useSettings = (): ViewerSettings => useContext(SettingsContext).settings;
 
-export const useOpenSettings = (): (() => void) => useContext(SettingsContext).openSettings;
+export const useOpenSettings = (): ((section: SettingsSection) => void) =>
+  useContext(SettingsContext).openSettings;
 
 export const useSetUsage = (): ((change: UsageSettingsChange) => void) =>
   useContext(SettingsContext).setUsage;

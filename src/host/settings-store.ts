@@ -11,6 +11,7 @@ import {
   parseUsageCostBasis,
   parseUsageMetric,
   parseUsageScope,
+  SettingsSection,
   SettingValue,
   ViewerSettings
 } from '../model/settings/settings';
@@ -28,7 +29,7 @@ const USAGE_COST_BASIS_KEY: string = 'usage.costBasis';
 
 // What the Settings UI opens filtered to. A plain query rather than `@ext:`, so it doesn't carry a
 // second copy of the publisher id.
-const SETTINGS_QUERY: string = `${SECTION}.budgets`;
+const settingsQuery = (section: SettingsSection): string => `${SECTION}.${section}`;
 
 const changeEmitter: vscode.EventEmitter<ViewerSettings> = new vscode.EventEmitter();
 
@@ -140,9 +141,11 @@ export const startWatchingSettings = (): vscode.Disposable =>
     changeEmitter.fire(currentSettings());
   });
 
-// Opens the Settings UI on this extension's budgets. The webview asks; the host knows the query.
-export const revealSettings = async (): Promise<void> => {
-  await vscode.commands.executeCommand('workbench.action.openSettings', SETTINGS_QUERY);
+// Opens the Settings UI on one part of this extension's settings. The webview names the section
+// it came from, so a card's CTA lands on the keys it was just explaining rather than on a fixed
+// one — the usage menu and the budgets card ask for different halves of the same configuration.
+export const revealSettings = async (section: SettingsSection): Promise<void> => {
+  await vscode.commands.executeCommand('workbench.action.openSettings', settingsQuery(section));
 };
 
 interface ReadBudgetArgs {

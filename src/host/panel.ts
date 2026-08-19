@@ -187,7 +187,7 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'requestGraph') return _sendGraph();
   if (message.type === 'surfaceUnavailable') return _surfaceUnavailable(message.title);
   if (message.type === 'surfaceChanged') return _onSurfaceChanged(message.surface);
-  if (message.type === 'openSettings') return revealSettings();
+  if (message.type === 'openSettings') return revealSettings(message.section);
   if (message.type === 'setUsage') {
     return writeUsageSettings({
       metric: message.metric,
