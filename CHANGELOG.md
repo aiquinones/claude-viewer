@@ -2,6 +2,62 @@
 
 Notable changes to Claude Viewer, newest first.
 
+## 0.16.0 - 2026-08-19
+
+### Added
+
+- **How full an agent's context is**, as a bar on every Claude row of the Active Agents surface. The
+  fill is how much of the model's window is used; the colour comes from two absolute thresholds —
+  200k and 300k by default — because a conversation degrades at a token count rather than at a share
+  of whatever room is left. Those two come apart visibly, so the track carries a hairline tick where
+  each threshold falls. Hovering the bar names both numbers, says where each came from, and links
+  the settings that change them. The used figure is read off the transcript; the window size is
+  recorded in no file Claude Code writes, so it comes from a table with a per-model override and a
+  settable fallback. Copilot records no context size at all, so those rows have no bar rather than
+  an invented one.
+- **A link can name a section inside a skill**, not just the skill —
+  `vscode://canoq.claude-viewer/skill/dev-feature#7-release-the-worktree`, and `#7`, and
+  `#release-the-worktree`, all land on the same heading. Which mode it opens in is a question about
+  what the link named: a heading that's a step opens the flow already on it, since the column around
+  it is what says where in the sequence you are; a heading that isn't in the sequence lights up in
+  the text instead and stays lit until you click elsewhere. The `?section=` form is read too.
+- **The agent groups fold from their headings**, the way the skill scopes and the system prompt
+  sections already do. The count stays in the heading, so a folded group still says how many agents
+  it's hiding — which is the point when Elsewhere is the long list and your own folder is the one
+  you came to read.
+- **An agent row's two icon buttons say what they are** on hover. They're invisible until you hover
+  the row, so the moment they appear is the moment they have to be labelled, and the panel's own
+  tooltip is faster to arrive than the native one.
+
+### Changed
+
+- **Clicking an agent row goes to the agent, not to its log.** The transcript is the consolation
+  prize — what you want is the tab you left mid-turn, or the terminal sitting at a permission
+  prompt. Both are reached by walking the agent's process chain. An agent that's out of reach —
+  another window, another terminal app — still opens its transcript, which is what every row did
+  before.
+- **The viewer opens in the column you're in** instead of always taking a new one. An empty editor
+  group to the right is taken first, since a group with no tabs is a column someone opened to put
+  something in; otherwise the panel lands in the focused group. Re-launching reveals the panel where
+  it is rather than walking it one column right each time, and opening a config file from inside the
+  panel no longer buries the panel that asked for it.
+- **The usage menu sits with the numbers it changes**, at the top-right of the summary card, and
+  renders under either metric. It used to be inline in the cost note, which only renders in Cost
+  mode — so the menu was unreachable in Tokens. "All usage settings" now lands on the usage settings
+  rather than on the budgets.
+- **The usage surface says what each number is in fewer words.** The toggle hints carried their whole
+  justification inline and now say what the option is and stop, and two of them hedge where the code
+  is inferring rather than reading. The empty state names the window it's empty for.
+
+### Fixed
+
+- **A usage toggle that can't save now says so**, and offers Reload Window. An auto-update swaps in
+  new code without reloading the window, so a window that started on an older build runs the new
+  Usage surface against a settings registry that has never heard of its keys. Every write was
+  refused and the rejection was dropped, so the toggle drew whatever `settings.json` already held
+  and pressing it did nothing at all.
+- The row picker's labels spell it **color**, not colour.
+
 ## 0.14.0 - 2026-08-18
 
 ### Added 
