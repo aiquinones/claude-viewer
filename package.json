@@ -67,6 +67,33 @@
             "additionalProperties": false
           }
         },
+        "claudeViewer.context.warnAt": {
+          "type": "number",
+          "default": 200000,
+          "minimum": 0,
+          "markdownDescription": "Context size, in tokens, at which an agent's bar on the **Active Agents** surface turns yellow. An absolute count, not a share of the window — a 200k conversation is the same conversation whether the model holds 200k or 1M. Set to `0` to turn the warning off."
+        },
+        "claudeViewer.context.errorAt": {
+          "type": "number",
+          "default": 300000,
+          "minimum": 0,
+          "markdownDescription": "Context size, in tokens, at which the bar turns red. Set to `0` to turn it off."
+        },
+        "claudeViewer.context.windowFallback": {
+          "type": "number",
+          "default": 200000,
+          "minimum": 1,
+          "markdownDescription": "The context window assumed for a model Claude Viewer doesn't have a figure for. Windows aren't recorded in any file Claude Code writes, so they come from a small built-in table — this is what's used when the model isn't in it."
+        },
+        "claudeViewer.context.window": {
+          "type": "object",
+          "default": {},
+          "markdownDescription": "Context window per model, keyed by the model id in the transcript. Overrules the built-in table, which is the way to correct an entry that's gone stale.\n\n```json\n{ \"claude-opus-5\": 1000000 }\n```",
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
         "claudeViewer.usage.metric": {
           "type": "string",
           "enum": [

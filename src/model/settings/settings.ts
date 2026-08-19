@@ -15,7 +15,7 @@ import {
 // into the query it filters by, so a section that isn't listed here can't be asked for.
 //
 // Deliberately not annotated: a type here would erase the literals `SettingsSection` derives from.
-export const SETTINGS_SECTIONS = ['budgets', 'usage'] as const;
+export const SETTINGS_SECTIONS = ['budgets', 'usage', 'context'] as const;
 
 export type SettingsSection = (typeof SETTINGS_SECTIONS)[number];
 
@@ -75,9 +75,23 @@ export interface UsageSettings {
   costBasis: SettingValue<UsageCostBasis>;
 }
 
+// What the context bar on an agent row reads. The two thresholds are absolute token counts rather
+// than shares of the window, because that's what they mean: a 200k conversation is the same
+// conversation whether the window is 200k or 1M, and it's the conversation that makes a model worse.
+export interface ContextSettings {
+  warnAt: SettingValue<number>;
+  errorAt: SettingValue<number>;
+  // The window for a model `context-window.ts` doesn't know.
+  windowFallback: SettingValue<number>;
+  // Per-model windows, keyed by the model id the transcript records. Overrules the table — it's the
+  // only way to correct an entry that's gone stale between releases.
+  windows: Record<string, number>;
+}
+
 export interface ViewerSettings {
   budgets: Budgets;
   usage: UsageSettings;
+  context: ContextSettings;
 }
 
 // Measured against real skills. Anthropic's 17 official ones run ~55 to ~235 est. tokens per
@@ -99,6 +113,17 @@ export const DEFAULT_USAGE_SCOPE: UsageScope = 'all';
 // re-reads, which is not what most people mean when they ask what a skill cost.
 export const DEFAULT_USAGE_COST_BASIS: UsageCostBasis = 'all';
 
+// Where a conversation starts being long enough to matter, and where it's long enough to stop
+// trusting. Not derived from any window: they're sizes at which a model gets worse, and that
+// happens at a token count rather than at a share of whatever room is left.
+export const DEFAULT_CONTEXT_WARN_AT: number = 200_000;
+export const DEFAULT_CONTEXT_ERROR_AT: number = 300_000;
+
+// The window assumed for a model the table has never heard of. 200k is the floor every Claude model
+// has had, so an unknown model reads as full sooner rather than later — a bar that overstates the
+// room left is the one failure worth avoiding here.
+export const DEFAULT_CONTEXT_WINDOW_FALLBACK: number = 200_000;
+
 export const DEFAULT_SETTINGS: ViewerSettings = {
   budgets: {
     skills: {
@@ -111,6 +136,12 @@ export const DEFAULT_SETTINGS: ViewerSettings = {
     metric: { value: DEFAULT_USAGE_METRIC, source: 'default' },
     scope: { value: DEFAULT_USAGE_SCOPE, source: 'default' },
     costBasis: { value: DEFAULT_USAGE_COST_BASIS, source: 'default' }
+  },
+  context: {
+    warnAt: { value: DEFAULT_CONTEXT_WARN_AT, source: 'default' },
+    errorAt: { value: DEFAULT_CONTEXT_ERROR_AT, source: 'default' },
+    windowFallback: { value: DEFAULT_CONTEXT_WINDOW_FALLBACK, source: 'default' },
+    windows: {}
   }
 };
 
@@ -140,6 +171,25 @@ export const parseOverrides = (raw: unknown): Record<string, SkillBudgetOverride
     if (entry.success) overrides[name] = entry.data;
   }
   return overrides;
+};
+
+// The same non-negative number a budget is, under a name that says what it's for — these are token
+// counts too, and anything else in the key falls through to the next layer.
+export const parseContextTokens = (raw: unknown): number | undefined => parseBudgetTokens(raw);
+
+// Per-model windows. One bad entry drops itself rather than the whole map, so a typo against one
+// model doesn't quietly return every other model to the table.
+export const parseContextWindows = (raw: unknown): Record<string, number> => {
+  const record = z.record(z.unknown()).safeParse(raw);
+  if (!record.success) return {};
+
+  const windows: Record<string, number> = {};
+  for (const [model, value] of Object.entries(record.data)) {
+    // A window of 0 would divide by nothing. Unlike a budget, there's no "off" to mean here.
+    const parsed = budgetTokensSchema.positive().safeParse(value);
+    if (parsed.success) windows[model] = parsed.data;
+  }
+  return windows;
 };
 
 // A settings.json that names a metric this version doesn't have falls through to the next layer

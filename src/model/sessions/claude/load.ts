@@ -28,6 +28,7 @@ const toEntry = async (session: SessionFile): Promise<AgentSession> => {
     lastPrompt: summary.lastPrompt,
     tail: summary.tail,
     pendingTool: summary.pendingTool,
+    context: summary.context,
     // A session that has written no transcript yet is as old as the process.
     lastActivityAt: summary.lastActivityAt || startedAt,
     startedAt,

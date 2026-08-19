@@ -1,6 +1,6 @@
 import { FileHead, FileTail, readFileHead, readFileTail } from '../../../config/read';
 import { ConfigError, Result } from '../../../config/result';
-import { AgentPullRequest, ConfigIssue, TranscriptTail } from '../../types';
+import { AgentContext, AgentPullRequest, ConfigIssue, TranscriptTail } from '../../types';
 import { ContentBlock, TranscriptLine, parseTranscriptLine } from './transcript-schema';
 
 // How much of the end of a transcript is read. They reach megabytes; the last prompt, the PR link
@@ -18,12 +18,22 @@ const TITLE_WINDOWS: readonly number[] = [32 * 1024, 128 * 1024, 512 * 1024];
 // reading the literal last line calls an idle session busy.
 const MESSAGE_TYPES: readonly string[] = ['user', 'assistant'];
 
+// The model on a line the CLI wrote itself rather than asked for — a session-limit notice, an
+// expired token. They're `assistant` lines with an all-zero usage block, so nothing but the name
+// tells them apart from a request that happened to be cheap. `usage/claude/scan.ts` skips them for
+// the same reason: four of the transcripts measured here end on one, and taking it as the latest
+// reading calls a 235k session empty.
+const SYNTHETIC_MODEL: string = '<synthetic>';
+
 export interface TranscriptSummary {
   title?: string;
   lastPrompt?: string;
   pullRequest?: AgentPullRequest;
   tail: TranscriptTail;
   pendingTool?: string;
+  // How full the model's context was on the last real request. Absent when the window holds no such
+  // request — a session that hasn't finished an assistant turn has nothing to measure.
+  context?: AgentContext;
   // File mtime, or 0 when the file couldn't be read.
   lastActivityAt: number;
   issues: ConfigIssue[];
@@ -46,6 +56,7 @@ export const readTranscript = async (path: string): Promise<TranscriptSummary> =
 
   return {
     ...lastTurn(lines),
+    context: lastContext(lines),
     title: await firstTitle(path),
     // Rewritten through the session, so the last one in the window is the current one. Both stay
     // near the end: a PR link is repeated every few thousand lines after it's opened.
@@ -150,6 +161,37 @@ const lastTurn = (lines: TranscriptLine[]): Pick<TranscriptSummary, 'tail' | 'pe
 
   // Nothing but metadata in the window — no turn to read, so nothing is claimed about one.
   return { tail: 'settled' };
+};
+
+// How full the context was on the most recent real request. The three input figures add up because
+// every turn re-reads the whole conversation — which part of it was cached is a billing question,
+// not a size one. Output isn't in it: what the model wrote this turn is counted in the next
+// request's input.
+//
+// Its own walk rather than a field on `lastTurn`: the last message line is often a `user` one, and
+// the last assistant line is often synthetic. Measured over 77 recent transcripts, 72 carry a
+// reading inside the 64KB window — the five that don't are sessions with no finished assistant turn.
+//
+// A compacted session needs no special case. The last request's input *is* the current context, so
+// the smaller number appears by itself on the next turn.
+const lastContext = (lines: TranscriptLine[]): AgentContext | undefined => {
+  for (let index = lines.length - 1; index >= 0; index -= 1) {
+    const line: TranscriptLine = lines[index];
+    if (line.type !== 'assistant') continue;
+
+    const usage = line.message?.usage;
+    if (!usage || line.message?.model === SYNTHETIC_MODEL) continue;
+
+    const tokens: number =
+      (usage.input_tokens ?? 0) +
+      (usage.cache_read_input_tokens ?? 0) +
+      (usage.cache_creation_input_tokens ?? 0);
+    if (tokens <= 0) continue;
+
+    return { tokens, model: line.message?.model ?? '' };
+  }
+
+  return undefined;
 };
 
 // `content` is an array of blocks, except on the handful of lines where it's a bare string.

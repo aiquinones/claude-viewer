@@ -137,6 +137,20 @@ export type AgentColor = (typeof AGENT_COLORS)[number];
 // as long as the choice is worth keeping — the host prunes the map to what's still running.
 export type AgentColors = Record<string, AgentColor>;
 
+// How full a session's context was on its last real request, and which model was answering. The
+// model travels with the number because the window it's read against depends on it, and only the
+// transcript line knows which one ran.
+//
+// Claude only. Copilot's event log carries per-message output tokens and a running billed total,
+// and neither can be turned into a context size — so a Copilot session simply has none of this.
+export interface AgentContext {
+  // input + cache_read + cache_creation on the last non-synthetic assistant line.
+  tokens: number;
+  // The alias the transcript recorded, `claude-opus-5` rather than a dated snapshot id. Empty when
+  // the line carried usage but no model, which shouldn't happen and isn't worth failing over.
+  model: string;
+}
+
 // A pull request a session opened. Both fields or neither — a link with no number has nothing to
 // print, and a number with no link has nowhere to go.
 export interface AgentPullRequest {
@@ -177,6 +191,9 @@ export interface AgentSession {
   // name only: the input is arbitrary text from the agent's own work, and this panel gets
   // screenshotted.
   pendingTool?: string;
+  // How full the model's context is. Claude only, and absent until the session finishes one
+  // assistant turn.
+  context?: AgentContext;
   // When the log was last written, and when the process started.
   lastActivityAt: number;
   startedAt: number;

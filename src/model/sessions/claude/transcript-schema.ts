@@ -5,6 +5,18 @@ import { z } from 'zod';
 // and the newest thing the extension reads, so a line that grows a key must not become an error.
 const blockSchema = z.object({ type: z.string(), name: z.string().optional() }).passthrough();
 
+// What one request carried into the model. `usage/claude/usage-schema.ts` reads the same block for a
+// different question — what the turn cost — and the two stay apart rather than merging into one
+// schema serving both. Here only the three input figures matter: their sum is the context size, and
+// output isn't in it because what the model wrote this turn is counted in the next request's input.
+const usageSchema = z
+  .object({
+    input_tokens: z.number().optional(),
+    cache_read_input_tokens: z.number().optional(),
+    cache_creation_input_tokens: z.number().optional()
+  })
+  .passthrough();
+
 const transcriptLineSchema = z
   .object({
     type: z.string(),
@@ -19,7 +31,13 @@ const transcriptLineSchema = z
     prUrl: z.string().optional(),
     // A bare string appears in place of the block array on a small number of user lines.
     message: z
-      .object({ content: z.union([z.string(), z.array(blockSchema)]).optional() })
+      .object({
+        content: z.union([z.string(), z.array(blockSchema)]).optional(),
+        // Which model answered, and how full its context was. Both off the same line: the window a
+        // reading is measured against depends on the model, and only the line knows which one ran.
+        model: z.string().optional(),
+        usage: usageSchema.optional()
+      })
       .passthrough()
       .optional()
   })

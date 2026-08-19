@@ -32,6 +32,23 @@ export const readBudget = ({ value, limit }: ReadBudgetArgs): BudgetReading | un
   return { level: levelFor(fraction), fraction, value, limit };
 };
 
+interface ReadThresholdsArgs {
+  value: number;
+  // Where the value stops being comfortable, and where it stops being acceptable. Either at 0 turns
+  // that step off, so a reader can keep the warning and drop the alarm.
+  warnAt: number;
+  errorAt: number;
+}
+
+// The same three levels off two absolute thresholds instead of a share of one limit. A budget asks
+// "how much of your allowance is this"; some numbers instead have a size at which they go wrong
+// whatever else is true, and that size doesn't divide into anything.
+export const readThresholds = ({ value, warnAt, errorAt }: ReadThresholdsArgs): BudgetLevel => {
+  if (errorAt > 0 && value >= errorAt) return 'over';
+  if (warnAt > 0 && value >= warnAt) return 'near';
+  return 'within';
+};
+
 const levelFor = (fraction: number): BudgetLevel => {
   if (fraction > 1) return 'over';
   if (fraction >= NEAR_FRACTION) return 'near';

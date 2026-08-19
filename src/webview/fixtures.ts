@@ -316,7 +316,8 @@ export const budgetSettings = ({
       overrides: overrides ?? {}
     }
   },
-  usage: DEFAULT_SETTINGS.usage
+  usage: DEFAULT_SETTINGS.usage,
+  context: DEFAULT_SETTINGS.context
 });
 
 // A SKILL.md body, shaped like a real one and long enough that the headings actually stack while

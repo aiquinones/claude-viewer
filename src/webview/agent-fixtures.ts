@@ -46,7 +46,10 @@ export const workingAgent: AgentSession = makeAgent({
   lastPrompt: 'the upload retries three times and then gives up silently — fix that',
   tail: 'working',
   pendingTool: 'Bash',
-  lastActivityAt: ago(3_000)
+  lastActivityAt: ago(3_000),
+  // A tenth of a 1M window. The comfortable case, and the one that proves `within` is muted rather
+  // than green.
+  context: { tokens: 103_900, model: 'claude-opus-5' }
 });
 
 // A tool call with nothing written since. The transcript can't say whether that's a permission
@@ -60,7 +63,9 @@ export const waitingAgent: AgentSession = makeAgent({
   pendingTool: 'Edit',
   lastActivityAt: ago(7 * 60_000),
   // A session that already opened a PR and kept working — the link stays on the row after.
-  pullRequest: { number: 412, url: 'https://github.com/example/example-app/pull/412' }
+  pullRequest: { number: 412, url: 'https://github.com/example/example-app/pull/412' },
+  // Past the warn threshold and a fifth of the way along its window — the case the ticks exist for.
+  context: { tokens: 214_000, model: 'claude-opus-5' }
 });
 
 // The common case: the last turn ended in text, and the agent is waiting for a human.
@@ -70,7 +75,10 @@ export const idleAgent: AgentSession = makeAgent({
   cwd: WORKSPACE,
   title: 'Review the migration before it ships',
   lastActivityAt: ago(11 * 60_000),
-  pullRequest: { number: 408, url: 'https://github.com/example/example-app/pull/408' }
+  pullRequest: { number: 408, url: 'https://github.com/example/example-app/pull/408' },
+  // A 200k model, so the same tokens fill far more of the bar than they would on Opus. Which is the
+  // whole reason the window is per model rather than one number.
+  context: { tokens: 48_200, model: 'claude-sonnet-4-6' }
 });
 
 // Another repo entirely. Four sessions in one directory is normal, and so is one somewhere else.
@@ -82,7 +90,8 @@ export const elsewhereAgent: AgentSession = makeAgent({
   title: 'Fix the RSS date format',
   tail: 'working',
   pendingTool: 'Read',
-  lastActivityAt: ago(28_000)
+  lastActivityAt: ago(28_000),
+  context: { tokens: 92_400, model: 'claude-haiku-4-5-20251001' }
 });
 
 // Started, but nothing written yet — the process is real and the transcript isn't there. Also the
@@ -114,7 +123,9 @@ export const askingAgent: AgentSession = makeAgent({
   tail: 'working',
   pendingTool: 'AskUserQuestion',
   // Past the stale threshold, which is what makes a `working` tail read as blocked.
-  lastActivityAt: ago(150_000)
+  lastActivityAt: ago(150_000),
+  // Past the error threshold. A third of the bar, painted red — the split the card explains.
+  context: { tokens: 331_000, model: 'claude-opus-5' }
 });
 
 // A title long enough to prove the row truncates rather than wraps, and a prompt behind it.
@@ -126,7 +137,35 @@ export const longTitleAgent: AgentSession = makeAgent({
     'Work out why the salesforce connector drops webhooks under load, and write the post-mortem for it',
   tail: 'working',
   pendingTool: 'Grep',
-  lastActivityAt: ago(9_000)
+  lastActivityAt: ago(9_000),
+  // The largest context measured on a real machine while designing this.
+  context: { tokens: 410_600, model: 'claude-opus-5' }
+});
+
+// A model the built-in table has never heard of, so its window is the settable fallback. Not in
+// `allAgents`: it's here for the card, which is the only place the difference is visible.
+export const unknownModelAgent: AgentSession = makeAgent({
+  sessionId: '15b7ce2b-e48a-4c0f-b2d9-6a41e3f8c507',
+  pid: 8471,
+  cwd: WORKSPACE,
+  title: 'Try the new model on the parser',
+  tail: 'working',
+  pendingTool: 'Read',
+  lastActivityAt: ago(12_000),
+  context: { tokens: 61_000, model: 'claude-opus-6' }
+});
+
+// Bigger than the window assumed for its model, which can only mean the table is wrong. The bar
+// clamps full and the card says so rather than letting a bad denominator pass as a reading.
+export const overWindowAgent: AgentSession = makeAgent({
+  sessionId: 'c1ff1d3f-bcf2-4e88-a1d7-93b0e5f27a46',
+  pid: 8492,
+  cwd: WORKSPACE,
+  title: 'Long session on a model whose window moved',
+  tail: 'working',
+  pendingTool: 'Bash',
+  lastActivityAt: ago(30_000),
+  context: { tokens: 268_000, model: 'claude-sonnet-4-6' }
 });
 
 // A Copilot session mid-turn, in the same folder as the Claude ones. Four agents in one repo is

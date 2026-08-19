@@ -1,6 +1,7 @@
 import { AgentActivity, AgentSession } from '../model/types';
 import { cn } from '@/lib/utils';
 import { AgentColorPicker } from './agent-color/AgentColorPicker';
+import { AgentContext } from './AgentContext';
 import { AgentLogButton } from './AgentLogButton';
 import { RowColor, useRowColor } from './agent-color/useRowColor';
 import { AgentRobot } from './agent-robot/AgentRobot';
@@ -64,6 +65,17 @@ export const AgentRobotRow = ({ agent, now, onOpen, onOpenLog }: AgentRobotRowPr
           {agentLabel(agent)}
         </span>
       </button>
+
+      {/* Under the name, at the foot of the card. The robot row spells nothing out in words, which
+          is exactly what a bar is for.
+
+          The wrapper does the positioning rather than a class on `AgentContext`: that one is already
+          `relative`, and passing `absolute` alongside it leaves which wins to the order Tailwind
+          happens to emit the two rules in. `pointer-events-none` lets the row's click through the
+          full-width strip, and the bar itself takes them back. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-2.5 flex justify-center">
+        <AgentContext agent={agent} className="pointer-events-auto w-28" />
+      </div>
 
       {/* All three sit outside the button: a `<button>` can hold neither an `<a>` nor the picker's
           popup nor another button. Their clicks stop bubbling, so none of them focuses the agent. */}
