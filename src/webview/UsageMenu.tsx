@@ -19,11 +19,11 @@ interface CostBasisOption {
 const COST_BASIS_OPTIONS: Record<UsageCostBasis, CostBasisOption> = {
   all: {
     label: 'Input + output',
-    hint: 'Every billed token: input, cache reads, cache writes and output. What the API charges.'
+    hint: 'What the API charges.'
   },
   output: {
     label: 'Output only',
-    hint: 'Prices output tokens and nothing else, the way /usage weights a skill.'
+    hint: 'Claude Code seems to only consider this.'
   }
 };
 

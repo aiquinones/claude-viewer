@@ -16,12 +16,12 @@ export const METRIC_OPTIONS: readonly ChoiceOption<UsageMetric>[] = [
   {
     id: 'output-tokens',
     label: 'Tokens',
-    hint: 'Output tokens — measured by both CLIs, and the number Claude Code’s own /usage reports.'
+    hint: 'Number of tokens used. Independent of model cost.'
   },
   {
     id: 'cost',
     label: 'Cost',
-    hint: 'Dollars for Claude Code, priced from a table; AIU for Copilot CLI, which records its own billed figure.'
+    hint: 'USD for Claude Code, AIU for Copilot CLI.'
   }
 ];
 
@@ -29,11 +29,11 @@ export const SCOPE_OPTIONS: readonly ChoiceOption<UsageScope>[] = [
   {
     id: 'all',
     label: 'All sessions',
-    hint: 'Every session on this machine — what usage limits are counted against.'
+    hint: 'Every session found on this machine.'
   },
   {
     id: 'workspace',
     label: 'This workspace',
-    hint: 'Only sessions working under the open folder. A worktree under it counts as this workspace.'
+    hint: 'Filtered to sessions working under the open folder. A worktree under it counts as this workspace.'
   }
 ];

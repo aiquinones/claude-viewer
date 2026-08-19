@@ -105,14 +105,14 @@ const CostParts = ({ breakdown }: CostPartsProps) => {
       </dl>
       {outputOnly ? (
         <p className="text-muted-foreground">
-          Counting output only, which is how <span className="mono">/usage</span> weights a skill.
-          The rest — mostly context re-reads — comes to {formatUsd(uncounted)} at list prices.
+          Counting output only, which is how <span className="mono">/usage</span> seems to weight a
+          skill. The rest comes to {formatUsd(uncounted)} at list prices.
         </p>
       ) : (
         parts[0] === 'cacheRead' && (
           <p className="text-muted-foreground">
-            Cache reads lead because every turn re-reads the context it's working in. Those tokens
-            aren't in the output figure — nothing on this surface counts them.
+            Cache reads lead. During every extra step, the whole conversation needs to be read.
+            Caching makes this cheaper, but the conversation-to-be-read grows step by step.
           </p>
         )
       )}
@@ -170,8 +170,7 @@ const Rates = ({ models }: RatesProps) => {
         />
       </dl>
       <p>
-        List prices, read {PRICED_AT}. A subscription plan doesn't pay these — this is what the same
-        work would cost on the API.
+        Last checked on {PRICED_AT}. Note: Subscription plans don't pay these. This is API cost.
       </p>
     </section>
   );
