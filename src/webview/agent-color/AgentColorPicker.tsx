@@ -14,11 +14,11 @@ interface AgentColorPickerProps {
 // than a popover library, the same call `Tooltip` made for one bubble.
 //
 // Every click in here stops bubbling: the row's own click opens the transcript, and picking a
-// colour would otherwise open a file behind the panel.
+// color would otherwise open a file behind the panel.
 export const AgentColorPicker = ({ color, onPick }: AgentColorPickerProps) => {
   const [open, setOpen] = useState<boolean>(false);
   const box = useRef<HTMLDivElement>(null);
-  const label: string = color ? `Row colour: ${AGENT_COLOR_LABEL[color]}` : 'Set a row colour';
+  const label: string = color ? `Row color: ${AGENT_COLOR_LABEL[color]}` : 'Set a row color';
 
   useDismiss({ open, box, onDismiss: () => setOpen(false) });
 
@@ -32,7 +32,7 @@ export const AgentColorPicker = ({ color, onPick }: AgentColorPickerProps) => {
           aria-label={label}
           aria-expanded={open}
           onClick={() => setOpen((shown) => !shown)}
-          // Invisible until you go looking, unless the row already has a colour — but always laid
+          // Invisible until you go looking, unless the row already has a color — but always laid
           // out, so a row doesn't jump sideways as the pointer crosses it.
           className={cn(
             'flat-focus flex size-5 cursor-pointer items-center justify-center rounded-full border border-border transition-opacity',
@@ -47,7 +47,7 @@ export const AgentColorPicker = ({ color, onPick }: AgentColorPickerProps) => {
       {open && (
         <div
           role="listbox"
-          aria-label="Row colour"
+          aria-label="Row color"
           className="absolute right-0 top-full z-30 mt-1 flex items-center gap-1 rounded-md border border-border bg-popover p-1.5 shadow-lg"
         >
           {AGENT_COLORS.map((entry) => (
@@ -65,7 +65,7 @@ export const AgentColorPicker = ({ color, onPick }: AgentColorPickerProps) => {
             type="button"
             role="option"
             aria-selected={!color}
-            title="No colour"
+            title="No color"
             onClick={() => {
               onPick(undefined);
               setOpen(false);

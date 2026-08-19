@@ -4,7 +4,7 @@ interface TooltipProps {
   label: string;
   // A keyboard shortcut, printed after the label in a key cap.
   hint?: string;
-  // No bubble, for as long as whatever this labels is explaining itself another way — the colour
+  // No bubble, for as long as whatever this labels is explaining itself another way — the color
   // picker's popover opens exactly where the bubble sits.
   disabled?: boolean;
   children: ReactNode;

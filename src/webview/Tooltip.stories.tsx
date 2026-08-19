@@ -43,7 +43,7 @@ export const LabelOnly: Story = {
   }
 };
 
-// What the colour picker does while its swatches are open — the trigger keeps its tooltip, the
+// What the color picker does while its swatches are open — the trigger keeps its tooltip, the
 // tooltip just doesn't draw.
 export const Disabled: Story = {
   args: {

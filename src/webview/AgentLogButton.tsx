@@ -7,7 +7,7 @@ interface AgentLogButtonProps {
 
 // The way to the transcript, now that the row's own click goes to the running agent instead.
 //
-// Invisible until you go looking and always laid out — the same deal the colour picker beside it
+// Invisible until you go looking and always laid out — the same deal the color picker beside it
 // makes, and for the same reason: a row must not reflow as the pointer crosses it. The click stops
 // bubbling, or opening the log would focus the agent behind it.
 //
