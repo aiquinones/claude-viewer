@@ -34,11 +34,12 @@ export const UsageInfo = ({ breakdown }: UsageInfoProps) => {
 
   return (
     <span className="group relative inline-flex align-middle">
-      {/* Not a button — nothing happens on click. Tabbing here opens it via group-focus-within. */}
+      {/* Not a button — nothing happens on click. Tabbing here opens it via
+          group-has-focus-visible; a mouse click on it doesn't, which is the point. */}
       <span
         tabIndex={0}
         aria-describedby={CARD_ID}
-        className="inline-flex cursor-default rounded-sm text-muted-foreground group-hover:text-foreground group-focus-within:text-foreground focus-visible:ring-1 focus-visible:ring-ring"
+        className="inline-flex cursor-default rounded-sm text-muted-foreground group-hover:text-foreground group-has-focus-visible:text-foreground focus-visible:ring-1 focus-visible:ring-ring"
       >
         <Info className="size-3.5" />
         <span className="sr-only">how this figure is priced</span>
@@ -48,7 +49,7 @@ export const UsageInfo = ({ breakdown }: UsageInfoProps) => {
         mouse crossing it. It opens upward — this sits at the bottom of the surface. */}
       <div
         id={CARD_ID}
-        className="invisible absolute bottom-full left-0 z-20 pb-1.5 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+        className="invisible absolute bottom-full left-0 z-20 pb-1.5 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-has-focus-visible:visible group-has-focus-visible:opacity-100"
       >
         <div className="flex w-max max-w-[min(28rem,calc(100vw-3rem))] flex-col gap-3 rounded-md border border-border bg-popover p-3 text-xs shadow-lg">
           <CostParts breakdown={breakdown} />

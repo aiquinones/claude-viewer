@@ -10,9 +10,9 @@ interface HoverCardProps {
   children: ReactNode;
 }
 
-// A wrapping hover card on whatever it's given. The mechanics only — hover, focus-within, a box that
-// opens below, and the side it opens toward — so everything that explains itself this way shares one
-// implementation and none of them owns it.
+// A wrapping hover card on whatever it's given. The mechanics only — hover, keyboard focus, a box
+// that opens below, and the side it opens toward — so everything that explains itself this way
+// shares one implementation and none of them owns it.
 export const HoverCard = ({ card, className = '', children }: HoverCardProps) => {
   const trigger = useRef<HTMLSpanElement>(null);
   const { side, measure } = useCardSide(trigger);
@@ -30,7 +30,7 @@ export const HoverCard = ({ card, className = '', children }: HoverCardProps) =>
           than every card being the width of the longest one. */}
       <span
         role="tooltip"
-        className={`pointer-events-none absolute top-full z-30 mt-1 w-max max-w-[min(16rem,calc(100vw-1.5rem))] rounded-md border border-border bg-popover p-2 text-xs leading-relaxed text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 ${
+        className={`pointer-events-none absolute top-full z-30 mt-1 w-max max-w-[min(16rem,calc(100vw-1.5rem))] rounded-md border border-border bg-popover p-2 text-xs leading-relaxed text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-has-focus-visible:opacity-100 ${
           side === 'end' ? 'right-0' : 'left-0'
         }`}
       >

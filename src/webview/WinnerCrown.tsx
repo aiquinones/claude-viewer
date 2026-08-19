@@ -18,11 +18,11 @@ export const WinnerCrown = ({ shadowed, onSelectSkill }: WinnerCrownProps) => {
   return (
     <span className="group relative inline-flex">
       {/* Not a button: nothing happens on click, and the links live inside the card. Tabbing here
-          opens it via group-focus-within, and tabbing on walks into those links. */}
+          opens it via group-has-focus-visible, and tabbing on walks into those links. */}
       <span
         tabIndex={0}
         aria-describedby={CARD_ID}
-        className="inline-flex cursor-default rounded-sm text-muted-foreground group-hover:text-foreground group-focus-within:text-foreground focus-visible:ring-1 focus-visible:ring-ring"
+        className="inline-flex cursor-default rounded-sm text-muted-foreground group-hover:text-foreground group-has-focus-visible:text-foreground focus-visible:ring-1 focus-visible:ring-ring"
       >
         <Crown className="size-4" />
         <span className="sr-only">
@@ -37,7 +37,7 @@ export const WinnerCrown = ({ shadowed, onSelectSkill }: WinnerCrownProps) => {
           `overflow-x-clip` would cut the rest. */}
       <div
         id={CARD_ID}
-        className={`invisible absolute left-0 top-full ${OVER_STICKY_CLASS} w-[min(24rem,calc(100vw-22rem))] pt-1.5 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100`}
+        className={`invisible absolute left-0 top-full ${OVER_STICKY_CLASS} w-[min(24rem,calc(100vw-22rem))] pt-1.5 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-has-focus-visible:visible group-has-focus-visible:opacity-100`}
       >
         <div className="flex flex-col items-start gap-1 rounded-md border border-border bg-popover p-3 text-xs shadow-lg">
           <span>
