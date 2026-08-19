@@ -1,7 +1,7 @@
 // Shared shapes for the host and the webview. The host builds these from disk; the webview
 // only ever reads them.
 
-import { ViewerSettings } from './settings/settings';
+import { SettingsSection, ViewerSettings } from './settings/settings';
 import { UsageCostBasis, UsageMetric, UsageReport, UsageScope } from './usage/types';
 
 // Two surfaces, two orderings, and they aren't the same list read backwards — each one gets its
@@ -323,7 +323,7 @@ export type HostMessage =
 
 // Webview → host. `surfaceUnavailable` carries only the surface's name: the host owns the
 // sentence, the same way it owns which paths `openFile` will accept. `openSettings` is the same
-// deal — the webview asks, the host knows which keys to filter the Settings UI to.
+// deal — the webview names the section it wants, the host turns that into the query.
 export type WebviewMessage =
   | { type: 'ready' }
   | { type: 'refresh' }
@@ -336,7 +336,7 @@ export type WebviewMessage =
   // SurfaceId is derived from SURFACES, which is webview-only, so the host matches it against its
   // own constant the way it already matches command ids against package.json.
   | { type: 'surfaceChanged'; surface: string | undefined }
-  | { type: 'openSettings' }
+  | { type: 'openSettings'; section: SettingsSection }
   // One row's colour. No `color` clears it — the row goes back to painting like every other one.
   | { type: 'setAgentColor'; sessionId: string; color?: AgentColor }
   // The usage surface's own toggles. They write `claudeViewer.usage.*` — the extension's settings,

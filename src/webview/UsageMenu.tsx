@@ -35,17 +35,25 @@ const SOURCE_NOTE: Record<SettingSource, string> = {
   default: 'the default'
 };
 
-// The `...` beside the cost note: settings that change the numbers rather than which number is
-// shown, so they don't belong on a toggle you flip while reading.
+interface UsageMenuProps {
+  // Where the trigger sits in the row that holds it. The menu positions itself against the trigger,
+  // so the caller only ever places the button.
+  className?: string;
+}
+
+// The `...` in the metrics header: settings that change the numbers rather than which number is
+// shown, so they don't belong on a toggle you flip while reading. It sits beside the figures it
+// changes and renders under either metric — the cost basis is still the setting it is in Tokens
+// mode, and this is also the way to the rest of the usage settings.
 //
 // Click to open, not hover — a hover menu you can click through closes under the pointer on the way
 // to an item.
-export const UsageMenu = () => {
+export const UsageMenu = ({ className = '' }: UsageMenuProps) => {
   const [open, setOpen] = useState<boolean>(false);
   const root = useRef<HTMLSpanElement>(null);
   const { costBasis } = useSettings().usage;
   const setUsage = useSetUsage();
-  const openSettings: () => void = useOpenSettings();
+  const openSettings = useOpenSettings();
 
   // Stable, so the listeners below are bound once per open rather than on every render.
   const close = useCallback((): void => setOpen(false), []);
@@ -58,22 +66,24 @@ export const UsageMenu = () => {
   };
 
   return (
-    <span ref={root} className="relative ml-1 inline-flex align-middle">
+    <span ref={root} className={`relative inline-flex ${className}`}>
       <button
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="inline-flex cursor-pointer rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring"
+        className="inline-flex size-6 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring"
       >
-        <MoreHorizontal className="size-3.5" />
+        <MoreHorizontal className="size-4" />
         <span className="sr-only">how cost is calculated</span>
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute bottom-full left-0 z-30 mb-1.5 flex w-max max-w-[min(24rem,calc(100vw-3rem))] flex-col gap-1 rounded-md border border-border bg-popover p-1.5 text-xs shadow-lg"
+          // Down and to the left: the trigger is at the top-right of the summary card, so a menu
+          // opening upward would leave the panel and one opening rightward would run off its edge.
+          className="absolute right-0 top-full z-30 mt-1.5 flex w-max max-w-[min(24rem,calc(100vw-3rem))] flex-col gap-1 rounded-md border border-border bg-popover p-1.5 text-xs shadow-lg"
         >
           <div className="flex items-baseline gap-2 px-1.5 pt-0.5 text-muted-foreground">
             <span>Claude cost calculated from</span>
@@ -99,7 +109,7 @@ export const UsageMenu = () => {
               className="h-auto p-0 pl-1.5 text-xs"
               onClick={() => {
                 setOpen(false);
-                openSettings();
+                openSettings('usage');
               }}
             >
               <SlidersHorizontal className="size-3.5" />

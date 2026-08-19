@@ -29,7 +29,7 @@ const SOURCE_LABELS: Record<BudgetSource, string> = {
 // with the way to change them. Same card shape as WinnerCrown, so there's still no popover library.
 export const BudgetInfo = ({ skill }: BudgetInfoProps) => {
   const { budgets } = useSettings();
-  const openSettings: () => void = useOpenSettings();
+  const openSettings = useOpenSettings();
 
   return (
     <span className="group relative inline-flex">
@@ -65,7 +65,7 @@ export const BudgetInfo = ({ skill }: BudgetInfoProps) => {
               variant="link"
               size="sm"
               className="h-auto shrink-0 p-0 text-xs"
-              onClick={openSettings}
+              onClick={() => openSettings('budgets')}
             >
               <SlidersHorizontal className="size-3.5" />
               Change

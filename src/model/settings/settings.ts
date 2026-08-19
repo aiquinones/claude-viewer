@@ -11,6 +11,14 @@ import {
   UsageScope
 } from '../usage/types';
 
+// Which part of these settings a card's CTA opens the Settings UI on. The host turns one of these
+// into the query it filters by, so a section that isn't listed here can't be asked for.
+//
+// Deliberately not annotated: a type here would erase the literals `SettingsSection` derives from.
+export const SETTINGS_SECTIONS = ['budgets', 'usage'] as const;
+
+export type SettingsSection = (typeof SETTINGS_SECTIONS)[number];
+
 // Which settings layer a value came from, most specific first. The array is the order the host
 // walks, and every card that explains a number prints whichever one won.
 //
