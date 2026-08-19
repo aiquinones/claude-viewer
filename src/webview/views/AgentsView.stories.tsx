@@ -18,6 +18,7 @@ const meta: Meta<typeof AgentsView> = {
   title: 'Agents/AgentsView',
   component: AgentsView,
   args: {
+    onOpenAgent: () => undefined,
     onOpenFile: () => undefined,
     onSearch: () => undefined,
     onRefresh: () => undefined,

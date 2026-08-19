@@ -13,6 +13,7 @@ interface AgentListProps {
   now: number;
   workspaceRoot: string | undefined;
   onOpen: (agent: AgentSession) => void;
+  onOpenLog: (agent: AgentSession) => void;
 }
 
 // One group of agents under its heading. No folding: the whole surface is usually four rows, and
@@ -26,7 +27,8 @@ export const AgentList = ({
   mode,
   now,
   workspaceRoot,
-  onOpen
+  onOpen,
+  onOpenLog
 }: AgentListProps) => {
   if (agents.length === 0) return null;
 
@@ -47,6 +49,7 @@ export const AgentList = ({
           now={now}
           workspaceRoot={workspaceRoot}
           onOpen={onOpen}
+          onOpenLog={onOpenLog}
         />
       ))}
     </section>

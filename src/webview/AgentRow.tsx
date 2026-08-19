@@ -3,6 +3,7 @@ import { AgentActivity, AgentSession } from '../model/types';
 import { cn } from '@/lib/utils';
 import { ActivityBadge } from './ActivityBadge';
 import { AgentColorPicker } from './agent-color/AgentColorPicker';
+import { AgentLogButton } from './AgentLogButton';
 import { RowColor, useRowColor } from './agent-color/useRowColor';
 import { AgentRowFooter } from './AgentRowFooter';
 import { AgentToolTag } from './AgentToolTag';
@@ -17,17 +18,19 @@ interface AgentRowProps {
   now: number;
   workspaceRoot: string | undefined;
   onOpen: (agent: AgentSession) => void;
+  onOpenLog: (agent: AgentSession) => void;
 }
 
 // One live agent: what it's doing, what it's called, where it's working, and how long ago it last
-// wrote anything. Clicking opens its transcript.
+// wrote anything. Clicking goes to the agent itself — its Claude Code tab, or the terminal it runs
+// in — and the log button is the way to its transcript.
 //
-// The PR link, the issues and the colour picker all sit outside the button — a <button> can't
-// legally hold an <a>, a <ul>, or another button. So the whole row is the hover and click surface
-// and the button carries no handler of its own: a click on it bubbles up to the wrapper, which is
-// also what a keyboard Enter does. The things that have to opt out are the link and the picker, or
-// using either would open the transcript as well.
-export const AgentRow = ({ agent, now, workspaceRoot, onOpen }: AgentRowProps) => {
+// The PR link, the issues, the log button and the colour picker all sit outside the row's button —
+// a <button> can't legally hold an <a>, a <ul>, or another button. So the whole row is the hover
+// and click surface and the button carries no handler of its own: a click on it bubbles up to the
+// wrapper, which is also what a keyboard Enter does. Everything outside it stops the bubble, or
+// using any of them would focus the agent as well.
+export const AgentRow = ({ agent, now, workspaceRoot, onOpen, onOpenLog }: AgentRowProps) => {
   const activity: AgentActivity = activityOf({ agent, now });
   const row: RowColor = useRowColor(agent.sessionId);
 
@@ -43,9 +46,9 @@ export const AgentRow = ({ agent, now, workspaceRoot, onOpen }: AgentRowProps) =
       <button
         type="button"
         title={agentTooltip(agent)}
-        // `pr-9` leaves the picker its corner. A constant gap rather than one that appears on
-        // hover: the row must not reflow as the pointer crosses it.
-        className="flex w-full min-w-0 flex-col gap-1.5 rounded-md px-3 py-2 pr-9 text-left cursor-pointer"
+        // `pr-14` leaves the log button and the picker their corner. A constant gap rather than one
+        // that appears on hover: the row must not reflow as the pointer crosses it.
+        className="flex w-full min-w-0 flex-col gap-1.5 rounded-md px-3 py-2 pr-14 text-left cursor-pointer"
       >
         <span className="flex w-full min-w-0 items-center gap-2">
           <ActivityBadge activity={activity} tail={agent.tail} />
@@ -86,7 +89,8 @@ export const AgentRow = ({ agent, now, workspaceRoot, onOpen }: AgentRowProps) =
         </span>
       </button>
 
-      <div className="absolute right-2 top-2.5">
+      <div className="absolute right-2 top-2.5 flex items-center gap-1">
+        <AgentLogButton onOpen={() => onOpenLog(agent)} />
         <AgentColorPicker color={row.color} onPick={row.pick} />
       </div>
 

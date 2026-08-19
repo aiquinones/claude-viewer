@@ -21,7 +21,7 @@ import { WORKSPACE } from './fixtures';
 const meta: Meta<typeof AgentRobotRow> = {
   title: 'Agents/AgentRobotRow',
   component: AgentRobotRow,
-  args: { workspaceRoot: WORKSPACE, onOpen: () => undefined },
+  args: { workspaceRoot: WORKSPACE, onOpen: () => undefined, onOpenLog: () => undefined },
   decorators: [
     (Story) => (
       <div className="p-3">

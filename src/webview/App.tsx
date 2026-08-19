@@ -35,6 +35,7 @@ export const App = () => {
     reveal,
     refresh,
     openFile,
+    openAgent,
     reportSurface,
     reportUnavailable,
     openSettings
@@ -124,6 +125,7 @@ export const App = () => {
               usage={usage}
               onOpenSkill={openSkill}
               reveal={selected}
+              onOpenAgent={openAgent}
               onOpenFile={openFile}
               onSearch={openSpotlight}
               onRefresh={refresh}
@@ -155,6 +157,8 @@ interface DetailProps {
   // A skill named on another surface — the usage rows do this. Opens it on the skills surface.
   onOpenSkill: (path: string) => void;
   reveal?: Reveal;
+  // Active Agents only: a row goes to the running agent, and the host works out where that is.
+  onOpenAgent: (sessionId: string) => void;
   onOpenFile: (path: string) => void;
   onSearch: () => void;
   onRefresh: () => void;
@@ -170,6 +174,7 @@ const Detail = ({
   usage,
   onOpenSkill,
   reveal,
+  onOpenAgent,
   onOpenFile,
   onSearch,
   onRefresh,
@@ -205,6 +210,7 @@ const Detail = ({
         <AgentsView
           agents={agents}
           snapshot={snapshot}
+          onOpenAgent={onOpenAgent}
           onOpenFile={onOpenFile}
           onSearch={onSearch}
           onRefresh={onRefresh}

@@ -37,6 +37,7 @@ import {
   revealSettings,
   writeUsageSettings
 } from './settings-store';
+import { focusAgent } from './focus-agent/focus-agent';
 import { currentSkillGraph } from './skill-graph-store';
 import {
   currentUsage,
@@ -183,6 +184,7 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
     return void (await Promise.all([refreshSnapshot(), refreshAgents(), refreshUsage()]));
   }
   if (message.type === 'openFile') return _openFile(message.path);
+  if (message.type === 'openAgent') return _openAgent(message.sessionId);
   if (message.type === 'requestBody') return _sendBody(message.path);
   if (message.type === 'requestGraph') return _sendGraph();
   if (message.type === 'surfaceUnavailable') return _surfaceUnavailable(message.title);
@@ -311,6 +313,22 @@ const _postAgents = async (agents: AgentSession[]): Promise<void> => {
 const _postAgentColors = async (colors: AgentColors): Promise<void> => {
   if (!webviewReady) return;
   await panel?.webview.postMessage({ type: 'agentColors', colors });
+};
+
+// Goes to the running agent: the Claude Code tab holding that session, or the terminal it was
+// started in. A session out of this window's reach opens its log instead, which is what clicking a
+// row did before this existed — so there is no failure to report, and nothing is said about it.
+//
+// The webview names a session and never a path. The host resolves it against its own cache, the
+// same rule `_openFile` follows.
+const _openAgent = async (sessionId: string): Promise<void> => {
+  const agent: AgentSession | undefined = cachedAgents().find(
+    (session) => session.sessionId === sessionId
+  );
+  if (!agent) return;
+
+  if (await focusAgent(agent)) return;
+  await _openFile(agent.transcriptPath);
 };
 
 // Opens a config file in the editor. Only paths the host itself put in the snapshot are honored,
