@@ -12,10 +12,19 @@ import { ModeBlockers } from '../view-mode';
 import { SkillFlow, toSkillFlow } from '../flow/steps';
 import { formatTokens } from '../format-size';
 import { useSkillGraph } from '../graph/useSkillGraph';
+import { resolveSection, SectionTarget } from '../markdown/find-section';
+import { Section, toSections } from '../markdown/sections';
+import { trailTo } from '../flow/find-step';
 import { listingTotals } from '../skill-totals';
 import { surfaceAccent } from '../surfaces';
 import { useFileBody } from '../useFileBody';
 import { DEFAULT_VIEW_MODE, SkillViewMode } from '../view-modes';
+
+// What a link named, before the file it names it in has been read.
+interface Asked {
+  slug: string;
+  nonce: number;
+}
 
 interface SkillViewProps {
   snapshot: ConfigSnapshot;
@@ -39,10 +48,15 @@ export const SkillView = ({
 }: SkillViewProps) => {
   const [selectedPath, setSelectedPath] = useState<string | undefined>(undefined);
   const [mode, setMode] = useState<SkillViewMode>(DEFAULT_VIEW_MODE);
+  // A heading a vscode:// link named, exactly as it named it. Resolving has to wait for the file,
+  // which arrives later — so what's held here is the ask, not the answer.
+  const [asked, setAsked] = useState<Asked | undefined>(undefined);
 
   // A reveal comes from outside the webview, so it wins over whatever was clicked in here.
   useEffect(() => {
-    if (reveal) setSelectedPath(reveal.path);
+    if (!reveal) return;
+    setSelectedPath(reveal.path);
+    setAsked(reveal.section ? { slug: reveal.section, nonce: reveal.nonce } : undefined);
   }, [reveal]);
 
   const skills: SkillEntry[] = snapshot.skills;
@@ -73,10 +87,36 @@ export const SkillView = ({
     [body, skills, selected?.path]
   );
 
+  // The heading the link actually landed on. Resolved here rather than inside the views, so the
+  // three loose-matching rules have one home and both modes agree on the answer.
+  const target: SectionTarget | undefined = useMemo(() => {
+    if (!asked || body === undefined) return undefined;
+
+    const sections: Section[] = toSections(body);
+    const slug: string | undefined = resolveSection({ sections, target: asked.slug });
+    return slug ? { slug, nonce: asked.nonce } : undefined;
+  }, [asked, body]);
+
+  // Which mode a link lands in is a question about what the link named. A heading that's a step —
+  // or a section inside one — is better read as a step, with the flow around it saying where in the
+  // sequence you are; a heading that isn't in the sequence has nowhere to go but the text.
+  useEffect(() => {
+    if (!target) return;
+    const inFlow: boolean = Boolean(flow && trailTo({ steps: flow.steps, slug: target.slug }));
+    setMode(inFlow ? 'flow' : 'text');
+  }, [target, flow]);
+
+  // Picking a skill in here is a fresh read of it, so a section a link asked for doesn't follow it
+  // into the next file — where the same slug could well match something.
+  const selectSkill = (path: string): void => {
+    setSelectedPath(path);
+    setAsked(undefined);
+  };
+
   // The panel's selection follows a link out of the graph or a chip in the flow, and reading is
   // what you asked for either way.
   const openSkill = (path: string): void => {
-    setSelectedPath(path);
+    selectSkill(path);
     setMode('text');
   };
 
@@ -111,7 +151,7 @@ export const SkillView = ({
             skills={skills}
             selectedPath={selected?.path}
             reveal={reveal}
-            onSelect={(skill) => setSelectedPath(skill.path)}
+            onSelect={(skill) => selectSkill(skill.path)}
           />
           {/* The pane, not its children, is the scroll container the sticky headings resolve
               against — so the padding sits on the children and a heading bar can span the width.
@@ -128,7 +168,7 @@ export const SkillView = ({
                     winner={winner}
                     shadowed={shadowed}
                     onOpenFile={onOpenFile}
-                    onSelectSkill={setSelectedPath}
+                    onSelectSkill={selectSkill}
                   />
                 </div>
                 <SkillBody
@@ -140,6 +180,7 @@ export const SkillView = ({
                   loading={loading}
                   graph={graph}
                   flow={flow}
+                  target={target}
                   viewedPath={selected.path}
                   onOpenSkill={openSkill}
                 />

@@ -21,7 +21,15 @@ This is a VSCode extension for viewing the **RESOLVED** state for your agent, li
 vscode://canoq.claude-viewer/skill/commit
 vscode://canoq.claude-viewer/skill/deploy?scope=user   # a specific scope's copy
 vscode://canoq.claude-viewer/skill                     # just open the picker
+
+vscode://canoq.claude-viewer/skill/dev-feature#7-release-the-worktree
+vscode://canoq.claude-viewer/skill/dev-feature?section=7   # same thing, if the # is dropped
 ```
+
+A `#section` names a heading inside the skill, so a link can point at the step you mean rather than
+the top of the file. It's matched loosely — the heading's text, the slug, or just its number all
+work — and when the heading is one of the steps the flow view draws, the link opens the flow with
+that step already open. A section that matches nothing is ignored: the skill still opens.
 
 ## Install
 

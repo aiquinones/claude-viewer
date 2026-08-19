@@ -71,26 +71,39 @@ let colorsSubscription: vscode.Disposable | undefined;
 // The webview can't hear anything until it has booted and said so.
 let webviewReady: boolean = false;
 // A reveal that arrived before that, held until it can be delivered.
-let pendingReveal: string | undefined;
+let pendingReveal: PendingReveal | undefined;
 let revealNonce: number = 0;
 // Which surface the webview is showing, `undefined` for the landing page. Only the agents poll
 // reads it, but the webview reports every surface — the next one that goes stale gets it free.
 let visibleSurface: string | undefined;
 
+// One skill to select, and optionally one heading inside it to land on.
+interface PendingReveal {
+  path: string;
+  section?: string;
+}
+
 interface OpenPanelArgs {
   context: vscode.ExtensionContext;
   // Path of the skill to select once the panel is up.
   revealPath?: string;
+  // A heading inside it, as a vscode:// link named it. The webview does the matching — the host
+  // has no idea what's in the file it's pointing at.
+  revealSection?: string;
 }
 
-export const openPanel = ({ context, revealPath }: OpenPanelArgs): void => {
+export const openPanel = ({ context, revealPath, revealSection }: OpenPanelArgs): void => {
+  const asked: PendingReveal | undefined = revealPath
+    ? { path: revealPath, section: revealSection }
+    : undefined;
+
   if (panel) {
     panel.reveal(vscode.ViewColumn.Beside);
-    if (revealPath) void _reveal(revealPath);
+    if (asked) void _reveal(asked);
     return;
   }
 
-  pendingReveal = revealPath;
+  pendingReveal = asked;
   webviewReady = false;
 
   panel = vscode.window.createWebviewPanel(
@@ -255,19 +268,19 @@ const _onReady = async (): Promise<void> => {
   await _post(await currentSnapshot());
   await _postAgents(await currentAgents());
 
-  const waiting: string | undefined = pendingReveal;
+  const waiting: PendingReveal | undefined = pendingReveal;
   pendingReveal = undefined;
   if (waiting) await _reveal(waiting);
 };
 
-const _reveal = async (path: string): Promise<void> => {
+const _reveal = async ({ path, section }: PendingReveal): Promise<void> => {
   if (!webviewReady) {
-    pendingReveal = path;
+    pendingReveal = { path, section };
     return;
   }
 
   revealNonce += 1;
-  await panel?.webview.postMessage({ type: 'reveal', path, nonce: revealNonce });
+  await panel?.webview.postMessage({ type: 'reveal', path, section, nonce: revealNonce });
 };
 
 // Whole snapshot, no partial updates. Posting before `ready` goes nowhere, and `ready` sends the

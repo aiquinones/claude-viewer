@@ -9,6 +9,7 @@ import { SkillFlow } from './flow/steps';
 import { GraphView } from './graph/GraphView';
 import { neighborhood } from './graph/neighborhood';
 import { Loading } from './loading/Loading';
+import { SectionTarget } from './markdown/find-section';
 import { Markdown, STICKY_ROW_CLASS } from './markdown/Markdown';
 import { SkillViewMode, VIEW_MODES } from './view-modes';
 import { STICKY_TOP_Z } from './z-layers';
@@ -27,6 +28,9 @@ interface SkillBodyProps {
   // Flow mode: this skill's own steps. Built from the same body text the markdown renders, so it
   // arrives and goes stale with it.
   flow: SkillFlow | undefined;
+  // A heading a vscode:// link landed on, already resolved. Text mode lights it, flow mode opens
+  // the step holding it — SkillView has already picked whichever of those the heading supports.
+  target?: SectionTarget;
   viewedPath: string | undefined;
   onOpenSkill: (path: string) => void;
 }
@@ -42,6 +46,7 @@ export const SkillBody = ({
   loading,
   graph,
   flow,
+  target,
   viewedPath,
   onOpenSkill
 }: SkillBodyProps) => {
@@ -69,7 +74,9 @@ export const SkillBody = ({
       {/* Three guards rather than nested ternaries — the modes are exclusive, so each one reads on
           its own line. */}
       <div className="pt-3">
-        {mode === 'text' && <Content body={body} error={error} loading={loading} />}
+        {mode === 'text' && (
+          <Content body={body} error={error} loading={loading} target={target} />
+        )}
         {mode === 'graph' && (
           <Graph graph={shown} viewedPath={viewedPath} onOpenSkill={onOpenSkill} />
         )}
@@ -78,6 +85,7 @@ export const SkillBody = ({
             flow={flow}
             error={error}
             loading={loading}
+            target={target}
             viewedPath={viewedPath}
             onOpenSkill={onOpenSkill}
           />
@@ -114,9 +122,10 @@ interface ContentProps {
   body: string | undefined;
   error: string | undefined;
   loading: boolean;
+  target?: SectionTarget;
 }
 
-const Content = ({ body, error, loading }: ContentProps) => {
+const Content = ({ body, error, loading, target }: ContentProps) => {
   if (error) return <ReadError error={error} />;
   if (loading) return <Loading label="Reading SKILL.md" />;
   if (!body?.trim()) {
@@ -124,7 +133,7 @@ const Content = ({ body, error, loading }: ContentProps) => {
   }
 
   // The toggle and the heading are pinned above, so every heading in here starts two slots lower.
-  return <Markdown raw={body} offsetRows={STICKY_ROWS} />;
+  return <Markdown raw={body} offsetRows={STICKY_ROWS} target={target} />;
 };
 
 interface GraphProps {
@@ -152,11 +161,12 @@ interface FlowProps {
   flow: SkillFlow | undefined;
   error: string | undefined;
   loading: boolean;
+  target?: SectionTarget;
   viewedPath: string | undefined;
   onOpenSkill: (path: string) => void;
 }
 
-const Flow = ({ flow, error, loading, viewedPath, onOpenSkill }: FlowProps) => {
+const Flow = ({ flow, error, loading, target, viewedPath, onOpenSkill }: FlowProps) => {
   if (error) return <ReadError error={error} />;
   if (loading) return <Loading label="Reading SKILL.md" />;
 
@@ -172,7 +182,7 @@ const Flow = ({ flow, error, loading, viewedPath, onOpenSkill }: FlowProps) => {
 
   // Keyed on the skill, so selecting another one starts with nothing open. The trail holds nodes
   // from the flow it was opened on, and those don't exist in the next skill's.
-  return <FlowCanvas key={viewedPath} flow={flow} onOpenSkill={onOpenSkill} />;
+  return <FlowCanvas key={viewedPath} flow={flow} target={target} onOpenSkill={onOpenSkill} />;
 };
 
 interface ReadErrorProps {

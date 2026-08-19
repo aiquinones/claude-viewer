@@ -32,4 +32,17 @@ export const NoHeadings: Story = { args: { raw: headinglessMarkdown } };
 // the tree and not the number of hashes.
 export const SkippedLevel: Story = { args: { raw: skippedLevelMarkdown } };
 
+// A vscode:// link that named `## Rollback`. The section scrolls itself into view on mount and the
+// bar stays lit — the highlight is a selection, not a notification, so it clears on the next click
+// rather than on a timer.
+export const LinkedSection: Story = {
+  args: { raw: skillMarkdown, target: { slug: 'rollback', nonce: 1 } }
+};
+
+// A heading two levels down. The scroll has to stop below the bar its parent pins to, which is what
+// the section's `scroll-margin-top` is for — landing flush with the pane's top would put it behind.
+export const LinkedSubSection: Story = {
+  args: { raw: skillMarkdown, target: { slug: 'after-a-rollback', nonce: 1 } }
+};
+
 export const Empty: Story = { args: { raw: '' } };

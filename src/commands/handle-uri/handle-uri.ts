@@ -11,10 +11,15 @@ interface HandleUriArgs {
   uri: vscode.Uri;
 }
 
-// vscode://canoq.claude-viewer/skill/<name>. The name is resolved against the snapshot and the
-// host's own path is used — a link never carries a path, so it can't reach a file we didn't find.
+// vscode://canoq.claude-viewer/skill/<name>[#section]. The name is resolved against the snapshot
+// and the host's own path is used — a link never carries a path, so it can't reach a file we
+// didn't find.
 export const handleUri = async ({ context, uri }: HandleUriArgs): Promise<void> => {
-  const link: DeepLink = parseDeepLink({ path: uri.path, query: uri.query });
+  const link: DeepLink = parseDeepLink({
+    path: uri.path,
+    query: uri.query,
+    fragment: uri.fragment
+  });
 
   if (link.kind === 'panel') return openPanel({ context });
   if (link.kind === 'pick') return findSkill({ context, initialQuery: link.query });
@@ -36,5 +41,7 @@ export const handleUri = async ({ context, uri }: HandleUriArgs): Promise<void> 
     return findSkill({ context, initialQuery: link.name });
   }
 
-  openPanel({ context, revealPath: linkedSkill.path });
+  // A section that matches nothing says nothing: the skill still opens, at its top. Unlike a bad
+  // skill name, the ask already succeeded — this only refines where it lands.
+  openPanel({ context, revealPath: linkedSkill.path, revealSection: link.section });
 };
