@@ -101,6 +101,7 @@ export const UsageView = ({
             <Slices
               breakdown={breakdown}
               metric={metric.value}
+              window={window}
               skills={skills}
               onOpenSkill={onOpenSkill}
             />
@@ -115,16 +116,21 @@ export const UsageView = ({
 interface SlicesProps {
   breakdown: UsageBreakdown;
   metric: UsageMetric;
+  // Which window is empty. Only the empty state reads it — the rows themselves are already the
+  // window's, so nothing below needs to know which one it was.
+  window: UsageWindow;
   skills: SkillEntry[];
   onOpenSkill: (path: string) => void;
 }
 
-const Slices = ({ breakdown, metric, skills, onOpenSkill }: SlicesProps) => {
+const Slices = ({ breakdown, metric, window, skills, onOpenSkill }: SlicesProps) => {
   if (breakdown.slices.length === 0) {
+    // The window is named rather than called "this window", and the way out changes with it:
+    // suggesting Week to someone already looking at Week is advice they've taken.
     return (
       <p className="px-1 py-6 text-center text-sm text-muted-foreground">
-        Nothing ran in this window. Try Week, or check the scope — it’s counting one folder’s
-        sessions while it says This workspace.
+        No sessions found in the {WINDOW_BLURB[window].toLowerCase()}.{' '}
+        {window === 'day' ? 'Try Week, or check the scope.' : 'Check the scope.'}
       </p>
     );
   }
@@ -168,8 +174,8 @@ const CostNote = ({ breakdown }: CostNoteProps) => (
   <p className="px-1 text-xs leading-relaxed text-muted-foreground">
     <UsageInfo breakdown={breakdown} />
     <span className="ml-1.5">
-      Claude Code records tokens only, so dollars are priced from a table last checked {PRICED_AT}.
-      Copilot CLI writes its own billed figure, so its AIU is exact.
+      Claude Code reports tokens usage only, so USD is estimated from the pricing table (last
+      checked: {PRICED_AT}). Copilot CLI reports AIU directly.
       {breakdown.unpricedModels.length > 0 && (
         <>
           {' '}
