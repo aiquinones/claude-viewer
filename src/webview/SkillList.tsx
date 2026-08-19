@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
 import { SKILL_SCOPES, Reveal, SkillEntry, SkillScope } from '../model/types';
+import { CollapsibleHeading } from './CollapsibleHeading';
 import { SkillRow } from './SkillRow';
 import { formatTokens } from './format-size';
 import { listed } from '../model/shadowing';
@@ -56,23 +56,13 @@ export const SkillList = ({ skills, selectedPath, reveal, onSelect }: SkillListP
 
         return (
           <section key={scope} className="flex flex-col gap-1">
-            <button
-              type="button"
-              onClick={() => toggle(scope)}
-              title={`${SCOPE_LABEL[scope]} skills · ~${formatTokens(listingTokens)} est. tokens of descriptions in the system prompt`}
-              className="flex w-full items-center gap-1 rounded-md px-3 py-1 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground cursor-pointer hover:bg-accent"
-              aria-expanded={!isCollapsed}
-            >
-              {isCollapsed ? (
-                <ChevronRight className="size-3.5" />
-              ) : (
-                <ChevronDown className="size-3.5" />
-              )}
-              <span>
-                {SCOPE_LABEL[scope]} · {inScope.length}
-                <span className="normal-case font-normal"> · ~{formatTokens(listingTokens)}</span>
-              </span>
-            </button>
+            <CollapsibleHeading
+              title={`${SCOPE_LABEL[scope]} · ${inScope.length}`}
+              note={`~${formatTokens(listingTokens)}`}
+              tooltip={`${SCOPE_LABEL[scope]} skills · ~${formatTokens(listingTokens)} est. tokens of descriptions in the system prompt`}
+              collapsed={isCollapsed}
+              onToggle={() => toggle(scope)}
+            />
 
             {!isCollapsed &&
               inScope.map((skill) => (

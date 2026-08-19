@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { CollapsibleHeading } from '../CollapsibleHeading';
 import { TrackedRow } from './TrackedRow';
 import { TRACKED_GROUPS, TrackedGroup, TrackedItem, sortTracked } from './tracked-items';
 
@@ -36,21 +36,11 @@ export const TrackedList = ({ items, selectedId, onSelect }: TrackedListProps) =
 
         return (
           <section key={group} className="flex flex-col gap-1">
-            <button
-              type="button"
-              onClick={() => toggle(group)}
-              className="flex w-full items-center gap-1 rounded-md px-3 py-1 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground cursor-pointer hover:bg-accent"
-              aria-expanded={!isCollapsed}
-            >
-              {isCollapsed ? (
-                <ChevronRight className="size-3.5" />
-              ) : (
-                <ChevronDown className="size-3.5" />
-              )}
-              <span>
-                {GROUP_LABEL[group]} · {inGroup.length}
-              </span>
-            </button>
+            <CollapsibleHeading
+              title={`${GROUP_LABEL[group]} · ${inGroup.length}`}
+              collapsed={isCollapsed}
+              onToggle={() => toggle(group)}
+            />
 
             {!isCollapsed &&
               inGroup.map((item) => (
