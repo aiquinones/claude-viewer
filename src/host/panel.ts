@@ -93,6 +93,19 @@ interface OpenPanelArgs {
   revealSection?: string;
 }
 
+// Where the panel opens: an empty editor group right of the focused one if there is one, else the
+// focused group itself — which is column One when nothing is open at all. Not `Beside`, which means
+// "a new column right of the active one" rather than "next to the editor", so two columns always
+// became three.
+const _panelColumn = (): vscode.ViewColumn => {
+  const active: vscode.ViewColumn = vscode.window.tabGroups.activeTabGroup.viewColumn;
+  const empty: vscode.TabGroup | undefined = vscode.window.tabGroups.all
+    .filter((group) => group.viewColumn > active && group.tabs.length === 0)
+    .sort((one, other) => one.viewColumn - other.viewColumn)[0];
+
+  return empty?.viewColumn ?? vscode.ViewColumn.Active;
+};
+
 export const openPanel = ({ context, revealPath, revealSection }: OpenPanelArgs): void => {
   const asked: PendingReveal | undefined = revealPath
     ? { path: revealPath, section: revealSection }
@@ -112,9 +125,7 @@ export const openPanel = ({ context, revealPath, revealSection }: OpenPanelArgs)
   panel = vscode.window.createWebviewPanel(
     PANEL_VIEW_TYPE,
     PANEL_TITLE,
-    // The focused editor group, which is column One when nothing is open. `Beside` means "a new
-    // column right of the active one", so two columns always became three.
-    vscode.ViewColumn.Active,
+    _panelColumn(),
     {
       enableScripts: true,
       retainContextWhenHidden: true,
