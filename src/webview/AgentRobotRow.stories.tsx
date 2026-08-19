@@ -72,6 +72,18 @@ export const WithAndWithoutAPullRequest: Story = {
   )
 };
 
+// The bar at the foot of each card, across its three levels. The robot row says nothing in words,
+// so this is the only place a long conversation shows up in it at all.
+export const ContextLevels: Story = {
+  render: (args) => (
+    <div className="flex flex-col gap-1">
+      {[workingAgent, waitingAgent, askingAgent].map((agent) => (
+        <AgentRobotRow {...args} key={agent.sessionId} agent={agent} now={Date.now()} />
+      ))}
+    </div>
+  )
+};
+
 // The four stacked, which is the arrangement that shows whether the poses read at row size.
 export const EveryMood: Story = {
   render: (args) => (

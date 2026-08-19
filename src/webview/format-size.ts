@@ -6,6 +6,17 @@
 export const formatTokens = (tokens: number): string =>
   tokens < 1000 ? `${tokens}` : `${(tokens / 1000).toFixed(1)}k`;
 
+// A context figure, which runs to millions and is often a round number someone typed. `1M` rather
+// than `1000.0k` or `1.00M`: a window is a stated size, and trailing zeros read as precision that
+// was measured. A used figure keeps its one decimal, where it's carrying real digits.
+export const formatContextTokens = (tokens: number): string => {
+  if (tokens < 1_000) return `${tokens}`;
+  if (tokens < 1_000_000) return `${trimZero(tokens / 1_000)}k`;
+  return `${trimZero(tokens / 1_000_000)}M`;
+};
+
+const trimZero = (value: number): string => value.toFixed(1).replace(/\.0$/, '');
+
 export const formatBytes = (chars: number): string =>
   chars < 1024 ? `${chars} B` : `${(chars / 1024).toFixed(1)} KB`;
 

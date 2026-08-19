@@ -3,6 +3,7 @@ import { AgentActivity, AgentSession } from '../model/types';
 import { cn } from '@/lib/utils';
 import { ActivityBadge } from './ActivityBadge';
 import { AgentColorPicker } from './agent-color/AgentColorPicker';
+import { AgentContext } from './AgentContext';
 import { AgentLogButton } from './AgentLogButton';
 import { RowColor, useRowColor } from './agent-color/useRowColor';
 import { AgentRowFooter } from './AgentRowFooter';
@@ -93,6 +94,11 @@ export const AgentRow = ({ agent, now, workspaceRoot, onOpen, onOpenLog }: Agent
         <AgentLogButton onOpen={() => onOpenLog(agent)} />
         <AgentColorPicker color={row.color} onPick={row.pick} />
       </div>
+
+      {/* Outside the button like everything else that isn't plain text: its card holds a CTA, and a
+          `<button>` can't hold a `<button>`. Indented to the footer's left edge so the row has one
+          text column rather than two. */}
+      <AgentContext agent={agent} className="px-3 pb-2 pl-6" />
 
       <AgentRowFooter agent={agent} />
     </div>

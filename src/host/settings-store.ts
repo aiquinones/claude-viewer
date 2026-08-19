@@ -2,11 +2,16 @@ import * as vscode from 'vscode';
 import {
   BudgetValue,
   DEFAULT_CONTENT_BUDGET,
+  DEFAULT_CONTEXT_ERROR_AT,
+  DEFAULT_CONTEXT_WARN_AT,
+  DEFAULT_CONTEXT_WINDOW_FALLBACK,
   DEFAULT_DESCRIPTION_BUDGET,
   DEFAULT_USAGE_COST_BASIS,
   DEFAULT_USAGE_METRIC,
   DEFAULT_USAGE_SCOPE,
   parseBudgetTokens,
+  parseContextTokens,
+  parseContextWindows,
   parseOverrides,
   parseUsageCostBasis,
   parseUsageMetric,
@@ -26,6 +31,10 @@ const OVERRIDES_KEY: string = 'budgets.skills.overrides';
 const USAGE_METRIC_KEY: string = 'usage.metric';
 const USAGE_SCOPE_KEY: string = 'usage.scope';
 const USAGE_COST_BASIS_KEY: string = 'usage.costBasis';
+const CONTEXT_WARN_KEY: string = 'context.warnAt';
+const CONTEXT_ERROR_KEY: string = 'context.errorAt';
+const CONTEXT_WINDOW_KEY: string = 'context.window';
+const CONTEXT_FALLBACK_KEY: string = 'context.windowFallback';
 
 // What the Settings UI opens filtered to. A plain query rather than `@ext:`, so it doesn't carry a
 // second copy of the publisher id.
@@ -72,6 +81,27 @@ export const currentSettings = (): ViewerSettings => {
         parse: parseUsageCostBasis,
         fallback: DEFAULT_USAGE_COST_BASIS
       })
+    },
+    context: {
+      warnAt: readValue({
+        config,
+        key: CONTEXT_WARN_KEY,
+        parse: parseContextTokens,
+        fallback: DEFAULT_CONTEXT_WARN_AT
+      }),
+      errorAt: readValue({
+        config,
+        key: CONTEXT_ERROR_KEY,
+        parse: parseContextTokens,
+        fallback: DEFAULT_CONTEXT_ERROR_AT
+      }),
+      windowFallback: readValue({
+        config,
+        key: CONTEXT_FALLBACK_KEY,
+        parse: parseContextTokens,
+        fallback: DEFAULT_CONTEXT_WINDOW_FALLBACK
+      }),
+      windows: parseContextWindows(config.get(CONTEXT_WINDOW_KEY))
     }
   };
 };

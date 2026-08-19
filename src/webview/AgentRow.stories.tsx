@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { AgentRow } from './AgentRow';
 import {
+  askingAgent,
   copilotBlockedAgent,
   copilotMcpAgent,
   copilotWorkingAgent,
@@ -70,3 +71,16 @@ export const CopilotBlocked: Story = { args: { agent: copilotBlockedAgent } };
 // An MCP tool prints server-qualified, so a remote call doesn't read like a local one. Also the
 // no-branch case, which is what a session outside a git repo looks like.
 export const CopilotMcpTool: Story = { args: { agent: copilotMcpAgent } };
+
+// The context bar across its three levels, stacked so the colours can be compared. The Copilot row
+// at the bottom has no bar — it records no context size anywhere on disk — which is what the gap
+// between the rows is saying.
+export const ContextLevels: Story = {
+  render: (args) => (
+    <div className="flex flex-col gap-1">
+      {[workingAgent, waitingAgent, askingAgent, copilotWorkingAgent].map((agent) => (
+        <AgentRow {...args} key={agent.sessionId} agent={agent} />
+      ))}
+    </div>
+  )
+};
