@@ -10,6 +10,9 @@ import { sectionText } from './section-text';
 export interface FlowNode {
   // Position in the tree, dotted — "2", "2.0". What the focus trail holds onto.
   id: string;
+  // The heading's own anchor, carried through from the section so a link naming a heading can be
+  // matched against the steps as well as against the text.
+  slug: string;
   // The heading with any ordinal stripped — a card carries its number in its own badge, and
   // "1 · 1. Read the state" reads like a bug.
   label: string;
@@ -140,6 +143,7 @@ const toNode = ({ section, id, names, byName }: ToNodeArgs): FlowNode => {
 
   return {
     id,
+    slug: section.slug,
     label: stripOrdinal(section.heading?.text ?? ''),
     blocks: section.blocks,
     children,

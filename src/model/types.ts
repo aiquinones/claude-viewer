@@ -288,6 +288,9 @@ export type SurfaceAdapter = (args: SurfaceArgs) => TreeNode | undefined;
 export interface Reveal {
   path: string;
   nonce: number;
+  // A heading inside the file, as a link named it — see webview/markdown/find-section.ts for how
+  // loosely it's matched. Undefined means the top of the file, which is every reveal but a link's.
+  section?: string;
 }
 
 // The text of one config file, answering a `requestBody` — a SKILL.md below its frontmatter, or a

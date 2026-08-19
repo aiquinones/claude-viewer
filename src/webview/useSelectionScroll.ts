@@ -1,4 +1,5 @@
 import { RefObject, useEffect, useRef, useState } from 'react';
+import { scrollBehavior } from './scroll-behavior';
 
 interface SelectionScrollArgs {
   // Whether a file is selected, which is also whether the body — and its anchor — is mounted.
@@ -87,7 +88,3 @@ export const useSelectionScroll = ({
 const scrollTo = (element: HTMLElement | null): void => {
   element?.scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
 };
-
-// Read per scroll rather than once: the setting can change while the panel is open.
-const scrollBehavior = (): ScrollBehavior =>
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';

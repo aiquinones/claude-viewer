@@ -32,7 +32,9 @@ export const useSnapshot = () => {
       if (message?.type === 'agentColors') setAgentColors(message.colors as AgentColors);
       if (message?.type === 'usage') setUsage(message.report as UsageReport);
       // A fresh object every time, so an effect keyed on it re-runs for a repeated reveal.
-      if (message?.type === 'reveal') setReveal({ path: message.path, nonce: message.nonce });
+      if (message?.type === 'reveal') {
+        setReveal({ path: message.path, section: message.section, nonce: message.nonce });
+      }
     };
     window.addEventListener('message', onMessage);
     vscode.postMessage({ type: 'ready' });

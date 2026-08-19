@@ -803,6 +803,14 @@
   fill: var(--surface-accent, var(--foreground));
 }
 
+/* The heading a vscode:// link landed on. It stays lit until you click somewhere else, so this is
+   a steady tint rather than a fade — a selection, not a notification. Unlayered like the focus
+   opt-out below, which is what lets it beat the `bg-background` utility on the same bar. */
+.section-lit {
+  background: color-mix(in srgb, var(--surface-accent, var(--foreground)) 18%, var(--background));
+  box-shadow: inset 3px 0 0 var(--surface-accent, var(--foreground));
+}
+
 /* VS Code injects an unlayered `input:focus { outline: 1px solid -webkit-focus-ring-color }` into
    every webview, and an unlayered rule beats anything in a Tailwind layer — so `outline-none` can't
    turn it off. The opt-out has to stay outside `@layer` and out-specify `input:focus`. */

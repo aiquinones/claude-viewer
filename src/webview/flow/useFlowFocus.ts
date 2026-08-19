@@ -10,6 +10,9 @@ export interface FlowFocus {
   stepId: string | undefined;
   focusStep: (node: FlowNode) => void;
   drill: (node: FlowNode) => void;
+  // A whole trail at once — a vscode:// link naming a heading that turns out to be a sub-section
+  // has to land inside it, not on the step above it.
+  open: (trail: FlowNode[]) => void;
   // Back to a crumb, by its position in the trail.
   goTo: (index: number) => void;
   close: () => void;
@@ -29,6 +32,8 @@ export const useFlowFocus = (): FlowFocus => {
     setTrail((current) => [...current, node]);
   }, []);
 
+  const open = useCallback((next: FlowNode[]): void => setTrail(next), []);
+
   const goTo = useCallback((index: number): void => {
     setTrail((current) => current.slice(0, index + 1));
   }, []);
@@ -41,6 +46,7 @@ export const useFlowFocus = (): FlowFocus => {
     stepId: trail[0]?.id,
     focusStep,
     drill,
+    open,
     goTo,
     close
   };

@@ -1,16 +1,22 @@
+import { useEffect } from 'react';
 import { Maximize2 } from 'lucide-react';
 import { Tooltip } from '../Tooltip';
 import { useCursorGlow } from '../glow/useCursorGlow';
+import { SectionTarget } from '../markdown/find-section';
+import { trailTo } from './find-step';
 import { FlowSplit } from './FlowSplit';
 import { StepColumn } from './StepColumn';
 import { StepDetail } from './StepDetail';
 import { CanvasZoom, useCanvasZoom } from './useCanvasZoom';
-import { SkillFlow } from './steps';
+import { FlowNode, SkillFlow } from './steps';
 import { FlowFocus, useFlowFocus } from './useFlowFocus';
 import { useStepKeys } from './useStepKeys';
 
 interface FlowCanvasProps {
   flow: SkillFlow;
+  // A heading a vscode:// link named. When it's a step — or a section inside one — the flow opens
+  // on it; when it isn't, SkillView never picks this mode in the first place.
+  target?: SectionTarget;
   onOpenSkill: (path: string) => void;
 }
 
@@ -24,12 +30,22 @@ interface FlowCanvasProps {
 // which is also what makes `zoom` do something — it reflows, so zooming in genuinely lengthens the
 // page. `min-h-72` is the floor, and it lives here rather than on the split because this is what
 // paints the ground under it.
-export const FlowCanvas = ({ flow, onOpenSkill }: FlowCanvasProps) => {
+export const FlowCanvas = ({ flow, target, onOpenSkill }: FlowCanvasProps) => {
   const focus: FlowFocus = useFlowFocus();
   // The glow owns the box's ref, since it's the one reading pointer moves off it.
   const { cardRef, glowRef } = useCursorGlow<HTMLDivElement>();
   const zoom: CanvasZoom = useCanvasZoom({ boxRef: cardRef });
   const stepIndex: number = flow.steps.findIndex((step) => step.id === focus.stepId);
+
+  // Keyed on the nonce, so the same link twice re-opens the step you closed. Nothing clears it
+  // afterwards — an opened step stays open until you close it, the same as one you clicked.
+  const open = focus.open;
+  useEffect(() => {
+    if (!target) return;
+
+    const trail: FlowNode[] | undefined = trailTo({ steps: flow.steps, slug: target.slug });
+    if (trail) open(trail);
+  }, [target?.slug, target?.nonce, flow, open]);
 
   useStepKeys({
     steps: flow.steps,
