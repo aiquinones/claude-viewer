@@ -2,7 +2,6 @@
 // exists: the prose is the part that gets rewritten, and it shouldn't mean opening a component to
 // do it.
 
-import { ContextWindowSource } from '../model/sessions/context';
 import { SettingSource } from '../model/settings/settings';
 
 // Where a threshold came from. Same phrases the budgets card uses, minus the per-skill override —
@@ -13,18 +12,16 @@ export const CONTEXT_SOURCE_LABELS: Record<SettingSource, string> = {
   default: 'the default'
 };
 
-// Where the window came from. `table` names the date, because a table entry is the one number here
-// that goes stale on someone else's release schedule.
-export const CONTEXT_WINDOW_SOURCE_LABELS: Record<ContextWindowSource, string> = {
-  override: 'your setting for this model',
-  table: 'the built-in table',
-  fallback: 'the fallback — this model isn’t in the built-in table'
-};
+// Said only when the window is a guess about a model nothing here knows. The other two sources —
+// the built-in table and your own setting — say nothing at all: naming them on every card was three
+// phrases where two of them meant "this number is fine".
+export const CONTEXT_FALLBACK_NOTE: string =
+  'No context window on record for this model, so the figure above is your fallback. Set the real one under claudeViewer.context.window.';
 
-// Why the colours exist at all. The card's one paragraph, and the reason it can't be dropped: a
-// fifth of a bar painted yellow reads as a bug until this sentence explains it.
+// Why the colours exist at all — the card's one paragraph, and the only thing on the surface that
+// says what a yellow bar is warning about.
 export const CONTEXT_NOTE: string =
-  'Model hallucinations become more common as the context grows. These two thresholds are absolute — they don’t move with the window, because a 200k conversation is the same conversation whether the model holds 200k or 1M.';
+  'Model hallucinations become more common as the context grows. Try keeping your conversations lean.';
 
 // Said only when the session is bigger than the window it was measured against, which can mean
 // nothing else.

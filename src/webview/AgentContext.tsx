@@ -5,11 +5,11 @@ import { AgentSession } from '../model/types';
 import { Button } from '@/components/ui/button';
 import { ContextBar } from './ContextBar';
 import {
+  CONTEXT_FALLBACK_NOTE,
   CONTEXT_LABELS,
   CONTEXT_NOTE,
   CONTEXT_OVER_WINDOW_NOTE,
-  CONTEXT_SOURCE_LABELS,
-  CONTEXT_WINDOW_SOURCE_LABELS
+  CONTEXT_SOURCE_LABELS
 } from './agent-context-labels';
 import { formatContextTokens } from './format-size';
 import { budgetTextClass } from './BudgetBar';
@@ -58,6 +58,7 @@ export const AgentContext = ({ agent, className = '' }: AgentContextProps) => {
           <Headline reading={reading} />
           <Thresholds reading={reading} />
           <p className="max-w-[42ch] text-muted-foreground">{CONTEXT_NOTE}</p>
+          <WindowNote reading={reading} />
           <Customize />
         </div>
       </div>
@@ -74,9 +75,9 @@ interface ReadingProps {
   reading: ContextReading;
 }
 
-// The measurement, and immediately under it the two things it depends on — which model was
-// answering and where its window came from. The window is the number most likely to be wrong, so it
-// says who supplied it rather than presenting itself as fact.
+// The measurement and the model it belongs to. Where the window came from used to be spelled out
+// here for all three sources, which said nothing on the two where the number is fine — so only the
+// cases that need explaining say anything now, and they say it at the foot of the card.
 const Headline = ({ reading }: ReadingProps) => (
   <div className="flex flex-col gap-1 border-b border-border pb-2">
     <div className="flex items-baseline justify-between gap-6">
@@ -85,15 +86,29 @@ const Headline = ({ reading }: ReadingProps) => (
         {formatContextTokens(reading.tokens)} of {formatContextTokens(reading.window.tokens)}
       </span>
     </div>
-    <span className="text-muted-foreground">
-      {reading.model && <span className="mono">{reading.model}</span>}
-      {reading.model && ' · '}
-      window from {CONTEXT_WINDOW_SOURCE_LABELS[reading.window.source]}
-      {reading.window.source === 'table' && `, read ${WINDOWS_READ_AT}`}
-    </span>
-    {reading.overWindow && <span className="text-error">{CONTEXT_OVER_WINDOW_NOTE}</span>}
+    {reading.model && <span className="mono text-muted-foreground">{reading.model}</span>}
   </div>
 );
+
+// The window is a claim rather than a reading, and these are the two states where that matters. The
+// date rides the over-window note rather than sitting on every card: a table entry being three
+// months old is only interesting once the session has proved it wrong.
+const WindowNote = ({ reading }: ReadingProps) => {
+  if (reading.overWindow) {
+    return (
+      <p className="max-w-[42ch] text-error">
+        {CONTEXT_OVER_WINDOW_NOTE}
+        {reading.window.source === 'table' && ` The built-in figure is as of ${WINDOWS_READ_AT}.`}
+      </p>
+    );
+  }
+
+  if (reading.window.source === 'fallback') {
+    return <p className="max-w-[42ch] text-muted-foreground">{CONTEXT_FALLBACK_NOTE}</p>;
+  }
+
+  return null;
+};
 
 // Where the colours change. Both are printed even when one is off, because "off" is the answer to
 // why a bar that should be red isn't.
