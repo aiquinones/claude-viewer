@@ -42,3 +42,17 @@ export const LabelOnly: Story = {
     )
   }
 };
+
+// What the color picker does while its swatches are open — the trigger keeps its tooltip, the
+// tooltip just doesn't draw.
+export const Disabled: Story = {
+  args: {
+    label: 'Refresh',
+    disabled: true,
+    children: (
+      <Button variant="ghost" size="icon" aria-label="Refresh">
+        <Search />
+      </Button>
+    )
+  }
+};

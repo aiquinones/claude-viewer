@@ -2,6 +2,7 @@ import { CSSProperties, useEffect, useRef, useState } from 'react';
 import { Ban } from 'lucide-react';
 import { AGENT_COLORS, AgentColor } from '../../model/types';
 import { cn } from '@/lib/utils';
+import { Tooltip } from '../Tooltip';
 import { AGENT_COLOR_LABEL, AGENT_COLOR_VAR } from './agent-colors';
 
 interface AgentColorPickerProps {
@@ -13,35 +14,40 @@ interface AgentColorPickerProps {
 // than a popover library, the same call `Tooltip` made for one bubble.
 //
 // Every click in here stops bubbling: the row's own click opens the transcript, and picking a
-// colour would otherwise open a file behind the panel.
+// color would otherwise open a file behind the panel.
 export const AgentColorPicker = ({ color, onPick }: AgentColorPickerProps) => {
   const [open, setOpen] = useState<boolean>(false);
   const box = useRef<HTMLDivElement>(null);
+  const label: string = color ? `Row color: ${AGENT_COLOR_LABEL[color]}` : 'Set a row color';
 
   useDismiss({ open, box, onDismiss: () => setOpen(false) });
 
   return (
     <div ref={box} className="relative" onClick={(event) => event.stopPropagation()}>
-      <button
-        type="button"
-        aria-label={color ? `Row colour: ${AGENT_COLOR_LABEL[color]}` : 'Set a row colour'}
-        aria-expanded={open}
-        onClick={() => setOpen((shown) => !shown)}
-        // Invisible until you go looking, unless the row already has a colour — but always laid
-        // out, so a row doesn't jump sideways as the pointer crosses it.
-        className={cn(
-          'flat-focus flex size-5 cursor-pointer items-center justify-center rounded-full border border-border transition-opacity',
-          !color && !open && 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
-        )}
-        style={{ background: color ? AGENT_COLOR_VAR[color] : 'transparent' }}
-      >
-        {!color && <span className="size-2 rounded-full bg-muted-foreground" />}
-      </button>
+      {/* The label goes away while the swatches are out: they open where the bubble sits, and a
+          shut picker is the only time you need telling what the dot is. */}
+      <Tooltip label={label} disabled={open}>
+        <button
+          type="button"
+          aria-label={label}
+          aria-expanded={open}
+          onClick={() => setOpen((shown) => !shown)}
+          // Invisible until you go looking, unless the row already has a color — but always laid
+          // out, so a row doesn't jump sideways as the pointer crosses it.
+          className={cn(
+            'flat-focus flex size-5 cursor-pointer items-center justify-center rounded-full border border-border transition-opacity',
+            !color && !open && 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
+          )}
+          style={{ background: color ? AGENT_COLOR_VAR[color] : 'transparent' }}
+        >
+          {!color && <span className="size-2 rounded-full bg-muted-foreground" />}
+        </button>
+      </Tooltip>
 
       {open && (
         <div
           role="listbox"
-          aria-label="Row colour"
+          aria-label="Row color"
           className="absolute right-0 top-full z-30 mt-1 flex items-center gap-1 rounded-md border border-border bg-popover p-1.5 shadow-lg"
         >
           {AGENT_COLORS.map((entry) => (
@@ -59,7 +65,7 @@ export const AgentColorPicker = ({ color, onPick }: AgentColorPickerProps) => {
             type="button"
             role="option"
             aria-selected={!color}
-            title="No colour"
+            title="No color"
             onClick={() => {
               onPick(undefined);
               setOpen(false);
