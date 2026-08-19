@@ -328,6 +328,10 @@ export type WebviewMessage =
   | { type: 'ready' }
   | { type: 'refresh' }
   | { type: 'openFile'; path: string }
+  // Go to the agent itself — its Claude Code tab, or the terminal it runs in. A session id rather
+  // than anything about how to reach it: what this window can reach is the host's question, and
+  // the answer changes between one click and the next.
+  | { type: 'openAgent'; sessionId: string }
   | { type: 'requestBody'; path: string }
   // No path: the graph is over every listed skill, and the host caches it per snapshot.
   | { type: 'requestGraph' }

@@ -1,6 +1,7 @@
 import { AgentActivity, AgentSession } from '../model/types';
 import { cn } from '@/lib/utils';
 import { AgentColorPicker } from './agent-color/AgentColorPicker';
+import { AgentLogButton } from './AgentLogButton';
 import { RowColor, useRowColor } from './agent-color/useRowColor';
 import { AgentRobot } from './agent-robot/AgentRobot';
 import { RobotMood, robotMood } from './agent-robot/moods';
@@ -13,6 +14,7 @@ interface AgentRobotRowProps {
   now: number;
   workspaceRoot: string | undefined;
   onOpen: (agent: AgentSession) => void;
+  onOpenLog: (agent: AgentSession) => void;
 }
 
 // The same session as `AgentRow`, acted out instead of listed. The robot carries the state, so
@@ -24,7 +26,7 @@ interface AgentRobotRowProps {
 //
 // `workspaceRoot` is unused here and stays in the props: `AgentList` picks between this and
 // `AgentRow` by mode and hands both the same four things.
-export const AgentRobotRow = ({ agent, now, onOpen }: AgentRobotRowProps) => {
+export const AgentRobotRow = ({ agent, now, onOpen, onOpenLog }: AgentRobotRowProps) => {
   const activity: AgentActivity = activityOf({ agent, now });
   const mood: RobotMood = robotMood({ activity, pendingTool: agent.pendingTool });
   const row: RowColor = useRowColor(agent.sessionId);
@@ -63,13 +65,14 @@ export const AgentRobotRow = ({ agent, now, onOpen }: AgentRobotRowProps) => {
         </span>
       </button>
 
-      {/* Both of these sit outside the button: a `<button>` can hold neither an `<a>` nor the
-          picker's popup. Their clicks still stop bubbling, so neither opens the transcript. */}
+      {/* All three sit outside the button: a `<button>` can hold neither an `<a>` nor the picker's
+          popup nor another button. Their clicks stop bubbling, so none of them focuses the agent. */}
       <div className="absolute right-6 top-1/2 -translate-y-1/2">
         <AgentSquircles agent={agent} />
       </div>
 
-      <div className="absolute right-3 top-3">
+      <div className="absolute right-3 top-3 flex items-center gap-1">
+        <AgentLogButton onOpen={() => onOpenLog(agent)} />
         <AgentColorPicker color={row.color} onPick={row.pick} />
       </div>
     </div>

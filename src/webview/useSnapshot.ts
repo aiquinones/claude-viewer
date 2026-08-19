@@ -45,6 +45,10 @@ export const useSnapshot = () => {
 
   const openFile = (path: string): void => vscode.postMessage({ type: 'openFile', path });
 
+  // Go to the agent rather than to a file about it. Which of the two the host can do is a question
+  // only the host can answer, so the row sends a session id and hears nothing back.
+  const openAgent = (sessionId: string): void => vscode.postMessage({ type: 'openAgent', sessionId });
+
   // Says which surface is on screen. The host polls the agent transcripts faster while theirs is
   // up, and it has no other way to know — a webview reports nothing about its own navigation.
   const reportSurface = (surface: string | undefined): void =>
@@ -81,6 +85,7 @@ export const useSnapshot = () => {
     reveal,
     refresh,
     openFile,
+    openAgent,
     reportSurface,
     reportUnavailable,
     openSettings
