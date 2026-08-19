@@ -2,6 +2,7 @@ import { CSSProperties, useEffect, useRef, useState } from 'react';
 import { Ban } from 'lucide-react';
 import { AGENT_COLORS, AgentColor } from '../../model/types';
 import { cn } from '@/lib/utils';
+import { Tooltip } from '../Tooltip';
 import { AGENT_COLOR_LABEL, AGENT_COLOR_VAR } from './agent-colors';
 
 interface AgentColorPickerProps {
@@ -17,26 +18,31 @@ interface AgentColorPickerProps {
 export const AgentColorPicker = ({ color, onPick }: AgentColorPickerProps) => {
   const [open, setOpen] = useState<boolean>(false);
   const box = useRef<HTMLDivElement>(null);
+  const label: string = color ? `Row colour: ${AGENT_COLOR_LABEL[color]}` : 'Set a row colour';
 
   useDismiss({ open, box, onDismiss: () => setOpen(false) });
 
   return (
     <div ref={box} className="relative" onClick={(event) => event.stopPropagation()}>
-      <button
-        type="button"
-        aria-label={color ? `Row colour: ${AGENT_COLOR_LABEL[color]}` : 'Set a row colour'}
-        aria-expanded={open}
-        onClick={() => setOpen((shown) => !shown)}
-        // Invisible until you go looking, unless the row already has a colour — but always laid
-        // out, so a row doesn't jump sideways as the pointer crosses it.
-        className={cn(
-          'flat-focus flex size-5 cursor-pointer items-center justify-center rounded-full border border-border transition-opacity',
-          !color && !open && 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
-        )}
-        style={{ background: color ? AGENT_COLOR_VAR[color] : 'transparent' }}
-      >
-        {!color && <span className="size-2 rounded-full bg-muted-foreground" />}
-      </button>
+      {/* The label goes away while the swatches are out: they open where the bubble sits, and a
+          shut picker is the only time you need telling what the dot is. */}
+      <Tooltip label={label} disabled={open}>
+        <button
+          type="button"
+          aria-label={label}
+          aria-expanded={open}
+          onClick={() => setOpen((shown) => !shown)}
+          // Invisible until you go looking, unless the row already has a colour — but always laid
+          // out, so a row doesn't jump sideways as the pointer crosses it.
+          className={cn(
+            'flat-focus flex size-5 cursor-pointer items-center justify-center rounded-full border border-border transition-opacity',
+            !color && !open && 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
+          )}
+          style={{ background: color ? AGENT_COLOR_VAR[color] : 'transparent' }}
+        >
+          {!color && <span className="size-2 rounded-full bg-muted-foreground" />}
+        </button>
+      </Tooltip>
 
       {open && (
         <div
