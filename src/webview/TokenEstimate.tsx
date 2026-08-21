@@ -2,7 +2,6 @@ import { MouseEvent } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
 import { TokenEstimator } from '../model/estimate-tokens';
 import {
-  BUDGET_NOTE,
   EDIT_ESTIMATOR,
   ESTIMATOR_FORMULAS,
   ESTIMATOR_LABELS,
@@ -54,7 +53,6 @@ export const TokenEstimate = ({
           <HoverCardTitle>{ESTIMATOR_LABELS[estimator]}</HoverCardTitle>
           <span className="mono mt-1 block text-foreground">{ESTIMATOR_FORMULAS[estimator]}</span>
           <span className="mt-1 block text-muted-foreground">{estimatorNote(estimator)}</span>
-          <span className="mt-1 block text-muted-foreground">{BUDGET_NOTE}</span>
           {/* A plain button rather than the ui/button: this is inline in a `<span>` card, and the
               variant's own layout classes would set a min height the card doesn't want. */}
           <button

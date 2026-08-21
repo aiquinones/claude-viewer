@@ -30,13 +30,21 @@ export const EstimatorDialog = ({ current, onApply, onDismiss }: EstimatorDialog
   const box = useRef<HTMLDivElement>(null);
 
   // On the window rather than on the box: the box is focusable but nothing inside it is focused on
-  // open, and a keydown that never reaches it would leave Escape doing whatever the panel behind
-  // does with it.
+  // open, so a listener there would only fire once you had clicked something. Escape closes, and the
+  // arrows walk the options — both directions on both axes, since the radios read as a list and the
+  // formula beside them reads as a row.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key !== 'Escape') return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        return onDismiss();
+      }
+
+      const step: number | undefined = ARROW_STEPS[event.key];
+      if (step === undefined) return;
+
       event.preventDefault();
-      onDismiss();
+      setDraft((previous) => stepEstimator({ from: previous, step }));
     };
 
     box.current?.focus();
@@ -70,7 +78,13 @@ export const EstimatorDialog = ({ current, onApply, onDismiss }: EstimatorDialog
           </Button>
         </header>
 
-        <div role="radiogroup" aria-labelledby={TITLE_ID} className="flex flex-col p-2">
+        {/* `px-4` and `gap-2` rather than a tighter `p-2`: the options and the formula under them
+            are one column, so they share an inset, and two cards touching read as one control. */}
+        <div
+          role="radiogroup"
+          aria-labelledby={TITLE_ID}
+          className="flex flex-col gap-2 px-4 py-3"
+        >
           {TOKEN_ESTIMATORS.map((estimator) => (
             <EstimatorOption
               key={estimator}
@@ -108,6 +122,26 @@ export const EstimatorDialog = ({ current, onApply, onDismiss }: EstimatorDialog
 
 const TITLE_ID: string = 'estimator-dialog-title';
 
+// Which way each arrow moves through TOKEN_ESTIMATORS.
+const ARROW_STEPS: Record<string, number> = {
+  ArrowDown: 1,
+  ArrowRight: 1,
+  ArrowUp: -1,
+  ArrowLeft: -1
+};
+
+interface StepEstimatorArgs {
+  from: TokenEstimator;
+  step: number;
+}
+
+// Clamped rather than wrapping: with two options a wrap makes both arrows do the same thing, and
+// an arrow that reverses direction at the end of a list is harder to hold down than one that stops.
+const stepEstimator = ({ from, step }: StepEstimatorArgs): TokenEstimator => {
+  const next: number = TOKEN_ESTIMATORS.indexOf(from) + step;
+  return TOKEN_ESTIMATORS[Math.min(Math.max(next, 0), TOKEN_ESTIMATORS.length - 1)];
+};
+
 interface EstimatorOptionProps {
   estimator: TokenEstimator;
   selected: boolean;
@@ -121,14 +155,12 @@ const EstimatorOption = ({ estimator, selected, onSelect }: EstimatorOptionProps
     role="radio"
     aria-checked={selected}
     onClick={() => onSelect(estimator)}
-    className={`flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
-      selected ? 'bg-accent' : 'hover:bg-accent'
+    className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${
+      selected ? 'border-border bg-accent' : 'border-transparent hover:bg-accent'
     }`}
   >
-    {/* `mt-0.5` lines the circle up with the cap height of the label beside it rather than with the
-        line box, which sits a little higher than the letters do. */}
     <span
-      className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors ${
+      className={`flex size-4 shrink-0 items-center justify-center self-center rounded-full border transition-colors ${
         selected ? 'border-primary' : 'border-border'
       }`}
     >

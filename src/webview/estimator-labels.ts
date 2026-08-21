@@ -15,10 +15,11 @@ export const ESTIMATOR_FORMULAS: Record<TokenEstimator, string> = {
   anthropic: `chars ÷ ${CHARS_PER_TOKEN} × ${ANTHROPIC_FACTOR}`
 };
 
-// What picking it claims. One sentence: the dialog is where the longer version lives.
+// What picking it claims, and which models it's the right claim for — the second half is the part
+// that actually decides it, since the panel can be pointed at a workspace using either.
 export const ESTIMATOR_HINTS: Record<TokenEstimator, string> = {
-  standard: 'The published rule of thumb, and what this panel has always shown.',
-  anthropic: `Adjusted for Claude's current tokenizer, which runs denser than ${CHARS_PER_TOKEN} characters per token.`
+  standard: 'Published rule of thumb. Prefer if using OpenAI models',
+  anthropic: "Adjusted for Claude's latest tokenizer. Prefer if using Anthropic models"
 };
 
 // The line the hover card leads with — it says which approximation the number above it is, before
@@ -30,12 +31,7 @@ export const estimatorNote = (estimator: TokenEstimator): string =>
 
 export const EDIT_ESTIMATOR: string = 'Edit token estimator';
 
-// Said once in the hover card, because it's the consequence people don't expect: the budget bars
-// don't move when the estimator does, so every skill gets closer to its limit at once.
-export const BUDGET_NOTE: string =
-  'Budgets are read in these units, so switching moves every number against the same limits.';
-
-// The dialog's own subtitle. Nothing here runs a tokenizer, and a panel that let you pick between
-// two of them without saying so would be claiming more than it can.
+// The dialog's own subtitle. Says what these numbers are before offering a choice between two of
+// them — neither option runs a tokenizer, and a dialog that didn't say so would imply otherwise.
 export const ESTIMATOR_CAVEAT: string =
-  'Neither runs a real tokenizer — an estimate is worth having because it costs one division. Both are claims about how Claude reads text.';
+  'Token count is estimated based on character count, rather than actually embedding the strings.';
