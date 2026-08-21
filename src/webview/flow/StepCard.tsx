@@ -1,5 +1,6 @@
 import { plural } from '../format-size';
 import { FlowNode } from './steps';
+import { Z } from '../z-layers';
 
 // Only one can be true. `faded` is every other card once one is open.
 export type StepState = 'plain' | 'active' | 'faded';
@@ -70,7 +71,8 @@ const Mentions = ({ node }: MentionsProps) => {
   return (
     <span
       role="tooltip"
-      className="pointer-events-none absolute left-full top-1 z-30 ml-2 hidden w-max max-w-52 rounded-md border border-border bg-popover px-2 py-1.5 text-[0.6875rem] leading-relaxed text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-has-focus-visible:opacity-100 lg:block"
+      style={{ zIndex: Z.card }}
+      className="pointer-events-none absolute left-full top-1 ml-2 hidden w-max max-w-52 rounded-md border border-border bg-popover px-2 py-1.5 text-[0.6875rem] leading-relaxed text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-has-focus-visible:opacity-100 lg:block"
     >
       <span className="block text-muted-foreground">names</span>
       <span className="mono block text-foreground">

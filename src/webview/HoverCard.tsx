@@ -1,4 +1,5 @@
 import { ReactNode, RefObject, useCallback, useRef, useState } from 'react';
+import { Z } from './z-layers';
 
 interface HoverCardProps {
   // What the card says — a heading and a paragraph, usually. Not a label: `Tooltip` is the one for
@@ -11,10 +12,6 @@ interface HoverCardProps {
   // meant for whatever it's floating over is worse than one you can't press — turn it on only when
   // the card holds something to press, and the group's hover is what keeps it open on the way there.
   interactive?: boolean;
-  // The card's own z-index, as a class. Named rather than merged with the default: two z utilities
-  // on one element resolve by the order Tailwind emitted them, not by the order they're written.
-  // A card inside the skills detail pane wants `OVER_STICKY_CLASS`, which clears the pinned rows.
-  cardZClass?: string;
   children: ReactNode;
 }
 
@@ -25,7 +22,6 @@ export const HoverCard = ({
   card,
   className = '',
   interactive = false,
-  cardZClass = 'z-30',
   children
 }: HoverCardProps) => {
   const trigger = useRef<HTMLSpanElement>(null);
@@ -46,10 +42,15 @@ export const HoverCard = ({
           but visibility keeps it out of the tab order while it's closed.
 
           `pt-1` rather than a margin, so the gap under the trigger is still inside the group — with
-          a margin the pointer leaves the group crossing it and the card shuts on the way to it. */}
+          a margin the pointer leaves the group crossing it and the card shuts on the way to it.
+
+          Every card takes the `card` layer, with no way to ask for less: these hang off rows that
+          sit above a pane's pinned bar and drop down across it, so a card that didn't clear the
+          whole pinned stack would go behind the markdown body under it. */}
       <span
         role={interactive ? undefined : 'tooltip'}
-        className={`absolute top-full ${cardZClass} pt-1 opacity-0 transition-opacity group-hover:opacity-100 group-has-focus-visible:opacity-100 ${
+        style={{ zIndex: Z.card }}
+        className={`absolute top-full pt-1 opacity-0 transition-opacity group-hover:opacity-100 group-has-focus-visible:opacity-100 ${
           interactive
             ? 'invisible group-hover:visible group-has-focus-visible:visible'
             : 'pointer-events-none'

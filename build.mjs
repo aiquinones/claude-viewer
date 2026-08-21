@@ -1,7 +1,12 @@
 import * as esbuild from 'esbuild';
 import { spawn } from 'node:child_process';
+import { checkZLayers } from './check-z-layers.mjs';
 
 const watch = process.argv.includes('--watch');
+
+// Before anything is bundled: a raw z-index anywhere in the webview is a build error, because the
+// panel's stacking order only holds while every layer is named in one place.
+await checkZLayers();
 
 // Host: runs in the extension (Node) — vscode is provided by the runtime.
 const host = {

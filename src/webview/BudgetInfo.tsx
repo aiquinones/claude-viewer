@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { formatTokens } from './format-size';
 import { useOpenSettings, useSettings } from './settings/SettingsContext';
 import { FIELD_CONTEXT, FIELD_LABELS, SKILL_DOCS_URL } from './skill-budget-labels';
-import { OVER_STICKY_CLASS } from './z-layers';
+import { Z } from './z-layers';
 
 interface BudgetInfoProps {
   skill: SkillEntry;
@@ -45,11 +45,11 @@ export const BudgetInfo = ({ skill }: BudgetInfoProps) => {
       </span>
 
       {/* `pt-1.5` rather than a margin, so the gap under the icon is still inside the group and the
-          card survives the mouse crossing it. The card is tall enough to reach the Content bar
-          pinned below it, so it wears the class that clears the whole pinned scale. */}
+          card survives the mouse crossing it. */}
       <div
         id={CARD_ID}
-        className={`invisible absolute left-0 top-full ${OVER_STICKY_CLASS} pt-1.5 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-has-focus-visible:visible group-has-focus-visible:opacity-100`}
+        style={{ zIndex: Z.card }}
+        className="invisible absolute left-0 top-full pt-1.5 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-has-focus-visible:visible group-has-focus-visible:opacity-100"
       >
         {/* `w-max` rather than a fixed width: the source phrases differ in length — "the default"
             against "your override for this skill" — and a fixed box wrapped the long one onto a

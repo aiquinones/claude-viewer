@@ -16,6 +16,7 @@ import {
   formatUsd,
   USD_PART_LABEL
 } from './usage-format';
+import { Z } from './z-layers';
 
 interface UsageInfoProps {
   breakdown: UsageBreakdown;
@@ -49,7 +50,8 @@ export const UsageInfo = ({ breakdown }: UsageInfoProps) => {
         mouse crossing it. It opens upward — this sits at the bottom of the surface. */}
       <div
         id={CARD_ID}
-        className="invisible absolute bottom-full left-0 z-20 pb-1.5 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-has-focus-visible:visible group-has-focus-visible:opacity-100"
+        style={{ zIndex: Z.card }}
+        className="invisible absolute bottom-full left-0 pb-1.5 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-has-focus-visible:visible group-has-focus-visible:opacity-100"
       >
         <div className="flex w-max max-w-[min(28rem,calc(100vw-3rem))] flex-col gap-3 rounded-md border border-border bg-popover p-3 text-xs shadow-lg">
           <CostParts breakdown={breakdown} />

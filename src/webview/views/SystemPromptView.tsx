@@ -11,6 +11,7 @@ import { alwaysLoads, totals } from '../prompt-totals';
 import { surfaceAccent } from '../surfaces';
 import { useFileBody } from '../useFileBody';
 import { useSelectionScroll } from '../useSelectionScroll';
+import { Z } from '../z-layers';
 
 interface SystemPromptViewProps {
   snapshot: ConfigSnapshot;
@@ -93,10 +94,11 @@ export const SystemPromptView = ({
         <Empty />
       ) : (
         // This pane, not its children, is the scroll container the body's sticky headings resolve
-        // against. `relative z-0` keeps their z-scale contained here rather than panel-wide.
+        // against. `Z.contained` keeps their z-scale here rather than panel-wide.
         <div
           ref={paneRef}
-          className="relative z-0 min-h-0 flex-1 overflow-y-auto overflow-x-clip"
+          style={{ zIndex: Z.contained }}
+          className="relative min-h-0 flex-1 overflow-y-auto overflow-x-clip"
         >
           <div className="px-2">
             <PromptList

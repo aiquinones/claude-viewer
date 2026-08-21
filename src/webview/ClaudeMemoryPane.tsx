@@ -4,6 +4,7 @@ import { MemoryBody } from './MemoryBody';
 import { MemoryIndexCard } from './MemoryIndexCard';
 import { MemoryList } from './MemoryList';
 import { displayFolder } from './display-path';
+import { Z } from './z-layers';
 
 interface ClaudeMemoryPaneProps {
   memory: MemorySet;
@@ -43,8 +44,12 @@ export const ClaudeMemoryPane = ({
   onOpenLink
 }: ClaudeMemoryPaneProps) => (
   // This pane, not its children, is the scroll container the body's sticky headings resolve
-  // against. `relative z-0` keeps their z-scale contained here rather than panel-wide.
-  <div ref={paneRef} className="relative z-0 min-h-0 flex-1 overflow-y-auto overflow-x-clip">
+  // against. `Z.contained` keeps their z-scale here rather than panel-wide.
+  <div
+    ref={paneRef}
+    style={{ zIndex: Z.contained }}
+    className="relative min-h-0 flex-1 overflow-y-auto overflow-x-clip"
+  >
     <div className="flex flex-col gap-3 px-2 pt-3">
       <MemoryIndexCard
         index={memory.index}

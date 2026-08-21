@@ -2,6 +2,7 @@ import { EllipsisVertical } from 'lucide-react';
 import { Reveal, SkillEntry } from '../model/types';
 import { cn } from './lib/utils';
 import { SkillList } from './SkillList';
+import { Z } from './z-layers';
 
 interface SkillNavProps {
   skills: SkillEntry[];
@@ -24,8 +25,9 @@ export const SkillNav = ({ skills, selectedPath, reveal, onSelect }: SkillNavPro
     <Rail />
 
     <div
+      style={{ zIndex: Z.nav }}
       className={cn(
-        'skill-nav absolute inset-y-0 left-0 z-20 w-60 -translate-x-full',
+        'skill-nav absolute inset-y-0 left-0 w-60 -translate-x-full',
         'overflow-y-auto overflow-x-clip border-r border-border bg-background py-3 shadow-lg',
         'hover:translate-x-0 focus-within:translate-x-0 peer-hover/rail:translate-x-0',
         // Back to an ordinary grid column, and the rail stops existing.
@@ -46,8 +48,9 @@ export const SkillNav = ({ skills, selectedPath, reveal, onSelect }: SkillNavPro
 // line down the middle of the list.
 const Rail = () => (
   <div
+    style={{ zIndex: Z.raised }}
     className={cn(
-      'peer/rail absolute inset-y-0 left-0 z-10 flex items-center justify-center md:hidden',
+      'peer/rail absolute inset-y-0 left-0 flex items-center justify-center md:hidden',
       'border-r border-border text-muted-foreground',
       RAIL_WIDTH
     )}

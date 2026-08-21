@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { scrollBehavior } from '../scroll-behavior';
-import { STICKY_TOP_Z } from '../z-layers';
+import { stickyHeadingZ } from '../z-layers';
 import { Blocks } from './Blocks';
 import { SectionTarget } from './find-section';
 import { Inline } from './Inline';
@@ -114,7 +114,7 @@ const StickyHeading = ({ section, offsetRows, lit }: StickyHeadingProps) => {
     <Tag
       id={section.slug || undefined}
       title={heading.text}
-      style={{ top: stickyTop(section.depth, offsetRows), zIndex: STICKY_TOP_Z - depth }}
+      style={{ top: stickyTop(section.depth, offsetRows), zIndex: stickyHeadingZ(depth) }}
       className={`sticky -mx-5 flex ${STICKY_ROW_CLASS} items-center border-b border-border bg-background px-5 ${HEADING_CLASS[depth]} ${lit ? 'section-lit' : ''}`}
     >
       {/* The span, not the heading, does the truncating: a flex item needs min-w-0 before it

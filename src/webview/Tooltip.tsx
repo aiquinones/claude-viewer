@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { Z } from './z-layers';
 
 interface TooltipProps {
   label: string;
@@ -26,7 +27,8 @@ export const Tooltip = ({ label, hint, disabled = false, children }: TooltipProp
     {!disabled && (
       <span
         role="tooltip"
-        className="pointer-events-none absolute right-0 top-full z-20 mt-1 flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover/tip:opacity-100 group-has-focus-visible/tip:opacity-100"
+        style={{ zIndex: Z.card }}
+        className="pointer-events-none absolute right-0 top-full mt-1 flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover/tip:opacity-100 group-has-focus-visible/tip:opacity-100"
       >
         {label}
         {hint && (

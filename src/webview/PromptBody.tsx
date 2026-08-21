@@ -3,6 +3,7 @@ import { SystemPromptFile } from '../model/types';
 import { displayDirectory, fileName } from './display-path';
 import { Loading } from './loading/Loading';
 import { Markdown, STICKY_ROW_CLASS } from './markdown/Markdown';
+import { Z } from './z-layers';
 
 interface PromptBodyProps {
   // The selected file, or undefined when nothing is selected — in which case nothing renders.
@@ -47,7 +48,7 @@ const PathTitle = ({ file, workspaceRoot }: PathTitleProps) => {
   return (
     <h2
       title={file.path}
-      style={{ zIndex: 30 }}
+      style={{ zIndex: Z.stickyTop }}
       className={`mono sticky top-0 -mx-5 flex ${STICKY_ROW_CLASS} items-center border-b border-border bg-background px-5 text-xs text-muted-foreground`}
     >
       {hasDirectory && <span className="min-w-0 truncate">{directory}/</span>}
