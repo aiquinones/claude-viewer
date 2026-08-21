@@ -29,15 +29,28 @@ export const EstimatorDialog = ({ current, onApply, onDismiss }: EstimatorDialog
   const unchanged: boolean = draft === current;
   const box = useRef<HTMLDivElement>(null);
 
+  // Applying is what Enter and the button both do, so neither owns it. A draft that matches what's
+  // already set writes nothing — same as the disabled button — but still closes, because Enter in a
+  // dialog means "I'm done here" whether or not there was anything to save.
+  const apply = (): void => (unchanged ? onDismiss() : onApply(draft));
+
   // On the window rather than on the box: the box is focusable but nothing inside it is focused on
-  // open, so a listener there would only fire once you had clicked something. Escape closes, and the
-  // arrows walk the options — both directions on both axes, since the radios read as a list and the
-  // formula beside them reads as a row.
+  // open, so a listener there would only fire once you had clicked something. Escape closes, Enter
+  // applies, and the arrows walk the options — both directions on both axes, since the radios read
+  // as a list and the formula beside them reads as a row.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
         event.preventDefault();
         return onDismiss();
+      }
+      if (event.key === 'Enter') {
+        // A focused button already answers Enter by firing its own click, and handling it here too
+        // would apply twice — or apply on the press that was only meant to pick a radio.
+        if (event.target instanceof HTMLElement && event.target.closest('button')) return;
+
+        event.preventDefault();
+        return apply();
       }
 
       const step: number | undefined = ARROW_STEPS[event.key];
@@ -50,7 +63,7 @@ export const EstimatorDialog = ({ current, onApply, onDismiss }: EstimatorDialog
     box.current?.focus();
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onDismiss]);
+  }, [onDismiss, onApply, draft, unchanged]);
 
   return (
     <div
@@ -109,7 +122,7 @@ export const EstimatorDialog = ({ current, onApply, onDismiss }: EstimatorDialog
           <Button
             size="sm"
             disabled={unchanged}
-            onClick={() => onApply(draft)}
+            onClick={apply}
             className="disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
           >
             Apply
