@@ -3,6 +3,7 @@ import { DAYS_PER_WEEK, GridDay, GridMetric, GridWeek, UsageGrid } from './grid'
 import { GridLegend } from './GridLegend';
 import { GridTooltip } from './GridTooltip';
 import { gridDayLabel, gridDayValue } from './grid-labels';
+import { Z } from '@/z-layers';
 
 interface ContributionGridProps {
   grid: UsageGrid;
@@ -48,7 +49,10 @@ export const ContributionGrid = ({ grid, metric }: ContributionGridProps) => {
               squares would be off the left edge from the moment the grid is drawn. */}
           {/* `mt-4` clears the month row, so these line up with the squares rather than with the
               top of the grid area. */}
-          <div className="usage-grid-days sticky left-0 z-10 mt-4 flex shrink-0 flex-col bg-background pr-1">
+          <div
+            className="usage-grid-days sticky left-0 mt-4 flex shrink-0 flex-col bg-background pr-1"
+            style={{ zIndex: Z.raised }}
+          >
             {Array.from({ length: DAYS_PER_WEEK }, (_, row) => (
               <span key={row} className="usage-grid-weekday">
                 {WEEKDAY[row] ?? ''}

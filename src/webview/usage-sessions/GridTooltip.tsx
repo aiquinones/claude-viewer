@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { Z } from '@/z-layers';
 
 // How near an edge a square has to be before the bubble stops centring on it. Three columns is
 // about half the width of the longest thing it says.
@@ -34,8 +35,9 @@ export const GridTooltip = ({ week, row, weeks, children }: GridTooltipProps) =>
   return (
     <div
       role="tooltip"
-      className={`pointer-events-none absolute z-20 -translate-y-full whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[11px] text-popover-foreground shadow-md ${align}`}
+      className={`pointer-events-none absolute -translate-y-full whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[11px] text-popover-foreground shadow-md ${align}`}
       style={{
+        zIndex: Z.card,
         // Half a cell over puts it on the square's centre; the row's own top is where it stops.
         left: `calc(var(--grid-pitch) * ${week} + var(--grid-cell) / 2)`,
         top: `calc(var(--grid-pitch) * ${row} - 0.25rem)`

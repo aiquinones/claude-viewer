@@ -2,6 +2,44 @@
 
 Notable changes to Claude Viewer, newest first.
 
+## 0.20.0 - 2026-08-21
+
+### Added
+
+- **The usage surface is tabbed, and Sessions is the new half.** Skills is what was there — a
+  window's totals split by the skill that was running, with the Day / Week toggle that goes with it.
+  Sessions opens first and covers the whole machine: every session on record, drawn as a grid of days
+  and listed under it. The grid is Sunday-to-Saturday weeks painted from the surface accent in four
+  shades plus empty, with a Tokens / Sessions toggle over the same days. The shades are quartiles by
+  rank over the distinct values, which is what keeps a fortnight of ordinary days readable beside one
+  800k outlier — and what keeps two days that both say "1 session" the same colour. The box scrolls
+  sideways and opens at today, its weekday column pinned so it doesn't start off screen. The list
+  below filters by name and scrolls inside its own box, so the grid above it stays put.
+- **The grid spans as far back as Claude Code actually keeps.** It reads `cleanupPeriodDays` from
+  Claude Code's own settings — managed, then local, then project, then user, falling through any
+  layer that can't answer — rather than assuming a year. A sweep at startup deletes transcripts older
+  than that, so a year-long grid was ten empty months by construction, which reads as a failed scan
+  rather than as history that was deleted. An (i) beside the heading says which file the number came
+  from. The span widens past the window when data outlived it, which is what a resumed session does:
+  rewriting the file resets the age the sweep measures.
+- Behind it, every transcript on disk folds into one record per session — a name, four numbers, and
+  one entry per day it spent something — so the cache is bounded by the corpus's shape rather than
+  its size. Measured on a real machine: 87 transcripts, 76MB, 287ms cold and 8ms warm.
+
+### Fixed
+
+- **Hover cards and tooltips no longer open behind the pinned bar above them.** Their default was
+  `z-30` and every pane's pinned bar is also 30 — a tie the later element in the DOM wins, and the
+  body is always later than the list above it. The estimator's card was the visible one; every other
+  card had the same latent bug, and the one call site that worked around it doesn't need to any more.
+  The panel's stacking order is one named back-to-front scale now, and the build fails on a raw
+  z-index written anywhere else.
+- **The grid's own lattice.** A month label was a flex child of its week column, so any column
+  carrying one was as wide as the word rather than as a square — a visible gap every four weeks.
+  Labels are absolute now, and span two to three columns the way GitHub's do. The gaps were also 4px
+  horizontal against 2px vertical, which reads as columns rather than days; one pitch drives the
+  layout, the label offsets and the tooltip together.
+
 ## 0.18.0 - 2026-08-21
 
 ### Added
