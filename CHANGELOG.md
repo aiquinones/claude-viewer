@@ -2,6 +2,55 @@
 
 Notable changes to Claude Viewer, newest first.
 
+## 0.18.0 - 2026-08-21
+
+### Added
+
+- **The Memory surface** — the files Claude writes about you, under
+  `~/.claude/projects/<encoded>/memory/`: one file per fact, plus the `MEMORY.md` index that decides
+  which of them a session ever reads. Grouped by type, and carrying the same two-number split the
+  skills surface uses — what the index costs *every session*, and what every memory costs *if all of
+  it is recalled*. It exists for the two ways that pair goes wrong without announcing itself: a
+  memory on disk that nothing in the index points at, so no session will read it, and an index line
+  pointing at a file that is gone, still spending tokens to claim it. Both show as a warning on the
+  row. A `[[link]]` with no target is neither — the memory instructions say it marks something worth
+  writing later, so it renders dimmed. `MEMORY.md` itself reads below the list the way a memory
+  does. Memory is keyed on the working directory, so a worktree gets its own and no folder open
+  means none at all; there is no user scope to fall back to.
+- **The surface is tabbed by CLI.** Copilot has memory too and none of it is on this machine — it
+  lives on GitHub and is fetched per session — so its tab says where to find it rather than showing
+  an empty list. Both tools write agent rows and one list merges them; only Claude writes memory
+  *files*, so these two halves answer different questions and don't share a column.
+- **Which token estimate the panel uses is a setting.** Every "est. tokens" was `chars ÷ 4` with
+  nothing saying so, and Claude's current tokenizer runs about a third denser than that rule of
+  thumb. Now it's a choice between two approximations — standard, and the same rule × 1.35 — and
+  every figure on every surface moves with it. The number is itself a button: hovering names the
+  approximation and its formula, and clicking opens a dialog that says which models each one is the
+  right claim for. The dialog holds a draft, so Apply is the only thing that writes and it stays
+  greyed while the draft matches what's already set. Arrows walk the options and Enter applies.
+
+### Fixed
+
+- **Two Active Agents rows that described a session that wasn't there.** A slash command writes
+  `user` lines the model never saw — an `isMeta` caveat block, and one carrying `<command-name>` —
+  and reading the end of the transcript took either as a prompt still waiting on an answer. So a
+  session sat at Working for a minute after `/clear` and then aged into Waiting, whose tooltip
+  claimed a tool call was out; replayed over the 82 transcripts here, the four that end that way all
+  read Idle now and nothing else changed. Separately, a live process whose transcript doesn't exist
+  has never been prompted — it was an empty row carrying only an issue. Claude Code leaves these
+  behind, since resuming a conversation spawns a second process and abandons the first.
+- **The usage view waited 15 seconds on a timer before its first scan.** Nothing ever started one:
+  the call that kicks off a scan if none has run was imported and never called, so the only path
+  that reached the disk was the poll — and the poll scheduled its first pass a full interval out.
+  Arriving at the surface cost ~15,000ms of nothing in front of a 120ms read. The scan now starts
+  while you're still on the landing page, and entering a polling mode reads immediately rather than
+  in an interval.
+- **A hover card no longer stays open after you click its trigger.** Clicking focuses the trigger,
+  and the cards opened on `:focus-within` — so the card hung there until focus moved elsewhere. Most
+  visible on the usage pills, where the card describing an option sat over the option you'd just
+  picked, and on a flow step, whose "names…" popup pinned open on the very click that opens the
+  step. Keyboard focus still opens a card; a mouse click no longer pins one.
+
 ## 0.16.0 - 2026-08-19
 
 ### Added
