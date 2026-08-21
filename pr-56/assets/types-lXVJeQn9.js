@@ -1,1 +1,0 @@
-import{n as e}from"./rolldown-runtime-DkW27tQK.js";var t,n,r,i,a,o;function s(){return(s=e((()=>{t=[`project`,`user`,`plugin`],n=[`running`,`blocked`,`idle`],r=[`claude`,`copilot`],i={claude:`Claude Code`,copilot:`Copilot CLI`},a=[`blue`,`green`,`purple`,`orange`,`red`,`yellow`],o=[`skill`]})))()}export{o as a,i,a as n,t as o,r,s,n as t};
