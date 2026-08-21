@@ -25,8 +25,9 @@ export const GRID_METRIC_OPTIONS: readonly ChoiceOption<GridMetric>[] = GRID_MET
 // different rules — Claude Code on a `cleanupPeriodDays` sweep, Copilot on nothing it publishes —
 // so one run of squares can't carry a caption that is true of both halves.
 const TOOL_HINT: Record<AgentTool, string> = {
-  claude: 'Sessions under ~/.claude/projects. The window comes from cleanupPeriodDays.',
-  copilot: 'Sessions under ~/.copilot/session-state. No documented retention period, so the window is whatever was found.'
+  claude: 'Sessions under `~/.claude/projects`. The window comes from `cleanupPeriodDays`.',
+  copilot:
+    'Sessions under `~/.copilot/session-state`. No documented retention period, so the window is whatever was found.'
 };
 
 export const GRID_TOOL_OPTIONS: readonly ChoiceOption<AgentTool>[] = AGENT_TOOLS.map((tool) => ({
