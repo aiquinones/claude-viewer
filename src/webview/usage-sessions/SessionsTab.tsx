@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { AgentTool } from '../../model/types';
-import { SessionUsage, UsageHistory } from '../../model/usage/types';
+import { SessionUsage, UsageHistory, UsageScope } from '../../model/usage/types';
 import { Loading } from '../loading/Loading';
+import { useSettings, useSetUsage } from '../settings/SettingsContext';
+import { SCOPE_OPTIONS } from '../usage-options';
 import { UsageChoice } from '../UsageChoice';
 import { useNow } from '../useNow';
 import { ContributionGrid } from './ContributionGrid';
@@ -36,7 +38,8 @@ interface SessionsTabProps {
 }
 
 // Every session on record, twice: as a run of days, and as a list you can search. Both are the same
-// `history.sessions` — one rolled up by day, one sorted by activity.
+// `history.sessions` — one rolled up by day, one sorted by activity — and both are already narrowed
+// to the scope, which the host applied on the way out of the store.
 //
 // The grid is one CLI at a time and the list is both. That split is the retention rule: Claude Code
 // deletes transcripts on a schedule you can read out of `cleanupPeriodDays`, and Copilot publishes
@@ -54,6 +57,12 @@ export const SessionsTab = ({
   const [metric, setMetric] = useState<GridMetric>(initialMetric);
   const [tool, setTool] = useState<AgentTool>(initialTool);
   const now: number = useNow(AGE_TICK_MS);
+
+  // The scope is the exception: it's a setting, shared with the Skills tab, and the host is what
+  // applies it — `narrowHistory` runs on the way out of the store, so flipping this re-posts the
+  // sessions without reading a single transcript again.
+  const scope: UsageScope = useSettings().usage.scope.value;
+  const setUsage = useSetUsage();
 
   const grid: UsageGrid | undefined = useMemo(() => {
     if (!history) return undefined;
@@ -91,7 +100,15 @@ export const SessionsTab = ({
             />
           )}
         </h2>
-        <div className="flex items-center gap-2">
+        {/* Wraps rather than shrinks: three word-labelled controls are wider than a docked panel,
+            and a control that shrank would truncate the very words that distinguish its options. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <UsageChoice
+            label="Sessions"
+            options={SCOPE_OPTIONS}
+            value={scope}
+            onChange={(next) => setUsage({ scope: next })}
+          />
           <UsageChoice label="CLI" options={GRID_TOOL_OPTIONS} value={tool} onChange={setTool} />
           <UsageChoice
             label="Grid metric"
