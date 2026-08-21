@@ -9,5 +9,6 @@ export const formatTokens = (tokens: number): string =>
 export const formatBytes = (chars: number): string =>
   chars < 1024 ? `${chars} B` : `${(chars / 1024).toFixed(1)} KB`;
 
-export const plural = (count: number, noun: string): string =>
-  `${count} ${noun}${count === 1 ? '' : 's'}`;
+// `many` is for the nouns an `s` doesn't pluralize — "memories", not "memorys".
+export const plural = (count: number, noun: string, many?: string): string =>
+  `${count} ${count === 1 ? noun : (many ?? `${noun}s`)}`;

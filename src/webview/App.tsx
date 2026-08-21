@@ -13,6 +13,7 @@ import { useSnapshot } from './useSnapshot';
 import { ViewSlider } from './ViewSlider';
 import { AgentsView } from './views/AgentsView';
 import { LandingView } from './views/LandingView';
+import { MemoryView } from './views/MemoryView';
 import { UsageView } from './views/UsageView';
 import { SkillView } from './views/SkillView';
 import { SystemPromptView } from './views/SystemPromptView';
@@ -205,6 +206,17 @@ const Detail = ({
         <AgentsView
           agents={agents}
           snapshot={snapshot}
+          onOpenFile={onOpenFile}
+          onSearch={onSearch}
+          onRefresh={onRefresh}
+          onBack={onBack}
+        />
+      );
+    case 'memory':
+      return (
+        <MemoryView
+          snapshot={snapshot}
+          reveal={reveal}
           onOpenFile={onOpenFile}
           onSearch={onSearch}
           onRefresh={onRefresh}

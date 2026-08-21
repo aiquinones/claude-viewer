@@ -1,5 +1,5 @@
 import { bySalience } from '../shadowing';
-import { ConfigSnapshot, SearchDoc, SearchKind, SkillEntry } from '../types';
+import { ConfigSnapshot, MemoryEntry, SearchDoc, SearchKind, SkillEntry } from '../types';
 
 const WORD_BITS: number = 32;
 
@@ -19,7 +19,19 @@ interface MakeDocArgs extends DocSeed {
 // Everything in the snapshot the spotlight can find, in the panel's own order so `rank` breaks
 // score ties the way the lists already do. The next surface appends its own seeds here.
 export const buildSearchIndex = (snapshot: ConfigSnapshot): SearchDoc[] =>
-  skillSeeds(snapshot.skills).map((seed, rank) => makeDoc({ ...seed, rank }));
+  [...skillSeeds(snapshot.skills), ...memorySeeds(snapshot.memory?.memories ?? [])].map(
+    (seed, rank) => makeDoc({ ...seed, rank })
+  );
+
+// A memory nothing points at is `inactive` for the same reason a shadowed skill is: it's on disk
+// and no session will read it.
+const memorySeeds = (memories: MemoryEntry[]): DocSeed[] =>
+  memories.map((memory) => ({
+    id: memory.path,
+    label: memory.name,
+    kind: 'memory',
+    inactive: !memory.indexed
+  }));
 
 const skillSeeds = (skills: SkillEntry[]): DocSeed[] =>
   [...skills].sort(bySalience).map((skill) => ({

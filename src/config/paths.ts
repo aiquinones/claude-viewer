@@ -9,6 +9,10 @@ export const CLAUDE_FILE = 'CLAUDE.md';
 
 export const LOCAL_CLAUDE_FILE = 'CLAUDE.local.md';
 
+// The auto-memory index. One line per memory, and the only part of the directory that is loaded
+// into every session.
+export const MEMORY_FILE = 'MEMORY.md';
+
 // Directories the nested CLAUDE.md scan never descends into. `.claude` is on the list because it
 // holds config rather than project subdirectories — and because a repo can park whole worktrees
 // under `.claude/worktrees`, which would report every file in them twice.
@@ -41,12 +45,20 @@ interface TranscriptPathArgs {
   sessionId: string;
 }
 
-// A session's transcript. The directory is the working directory with every non-alphanumeric
-// character turned into a dash, which is lossy — `.claude` and `-claude` land on the same name —
-// so it's only ever computed in this direction. To label a directory, read the `cwd` a session
-// carries rather than decoding the name back.
+// One working directory's own directory under `projects/`: the path with every non-alphanumeric
+// character turned into a dash. Lossy — `.claude` and `-claude` land on the same name — so it is
+// only ever computed in this direction. To label a directory, read the `cwd` a session carries
+// rather than decoding the name back.
+export const projectDir = (cwd: string): string =>
+  join(projectsDir(), cwd.replace(/[^a-zA-Z0-9]/g, '-'));
+
+// A session's transcript, inside that directory.
 export const transcriptPath = ({ cwd, sessionId }: TranscriptPathArgs): string =>
-  join(userClaudeDir(), 'projects', cwd.replace(/[^a-zA-Z0-9]/g, '-'), `${sessionId}.jsonl`);
+  join(projectDir(cwd), `${sessionId}.jsonl`);
+
+// The memories Claude wrote about one working directory — one file per fact. A worktree is its own
+// working directory, so it gets its own memories, which is what a session running there would load.
+export const memoryDir = (cwd: string): string => join(projectDir(cwd), 'memory');
 
 const copilotDir = (): string => join(homedir(), '.copilot');
 

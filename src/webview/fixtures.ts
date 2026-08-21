@@ -10,9 +10,11 @@ import {
   SkillBudgetOverride,
   ViewerSettings
 } from '../model/settings/settings';
+import { memorySet } from './memory-fixtures';
 import {
   ConfigIssue,
   ConfigSnapshot,
+  MemorySet,
   Reveal,
   SearchDoc,
   SearchHit,
@@ -281,15 +283,24 @@ export const userOnlyPromptFiles: SystemPromptFile[] = inLoadOrder([userPrompt])
 interface SnapshotArgs {
   skills: SkillEntry[];
   systemPrompt?: SystemPromptFile[];
+  // `null` is no folder open, which is the one state where there is no memory directory at all.
+  // Undefined just means the story didn't care and gets the usual set.
+  memory?: MemorySet | null;
   workspaceRoot?: string;
 }
 
 // Live agents aren't in here, the same way they aren't in the real snapshot — a story that wants
 // them passes them as their own prop, from agent-fixtures.ts.
-export const snapshot = ({ skills, systemPrompt, workspaceRoot }: SnapshotArgs): ConfigSnapshot => ({
+export const snapshot = ({
+  skills,
+  systemPrompt,
+  memory,
+  workspaceRoot
+}: SnapshotArgs): ConfigSnapshot => ({
   workspaceRoot: workspaceRoot ?? WORKSPACE,
   skills,
   systemPrompt: systemPrompt ?? allPromptFiles,
+  memory: memory === null ? undefined : (memory ?? memorySet),
   loadedAt: Date.UTC(2026, 7, 1)
 });
 
@@ -532,6 +543,19 @@ export const skippedLevelMarkdown: string = `# Top
 ### Straight to three
 
 Body text under a heading whose parent was never written.
+`;
+
+// A memory's body — what's left of the file once the host strips its frontmatter. The `[[link]]`
+// is what the body pane turns into a chip, and the two bold lines are the shape the memory
+// instructions ask for.
+export const memoryMarkdown: string = `The integration tests run against a real database, and the
+schema they expect is whatever the migration folder describes — not whatever the last branch left
+behind.
+
+**Why:** a stale local database fails the suite in ways that look like application bugs.
+
+**How to apply:** run the migration step before the suite, then seed. See
+[[seed-the-test-database]] for where the fixture data comes from.
 `;
 
 // The spotlight's input: the real index, over the same synthetic skills.

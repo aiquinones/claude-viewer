@@ -228,7 +228,7 @@ const _updatePollMode = (): void => {
 const _sendBody = async (path: string): Promise<void> => {
   if (!_isKnownFile(path)) return;
 
-  const read: Result<string, ConfigError> = _isKnownSkill(path)
+  const read: Result<string, ConfigError> = _hasFrontmatter(path)
     ? await loadSkillBody(path)
     : await readTextFile(path);
   const message: FileBody = read.ok
@@ -247,10 +247,18 @@ const _sendGraph = async (): Promise<void> => {
 const _isKnownSkill = (path: string): boolean =>
   cachedSnapshot()?.skills.some((skill) => skill.path === path) ?? false;
 
-// Anything the host itself read — a SKILL.md, a CLAUDE.md, a live agent's transcript — is openable.
+const _isKnownMemory = (path: string): boolean =>
+  cachedSnapshot()?.memory?.memories.some((memory) => memory.path === path) ?? false;
+
+// The two file kinds whose `---` block is metadata the panel already shows, so the body is sent
+// without it. A CLAUDE.md and MEMORY.md go whole — every line of those reaches a session.
+const _hasFrontmatter = (path: string): boolean => _isKnownSkill(path) || _isKnownMemory(path);
+
+// Anything the host itself read — a SKILL.md, a CLAUDE.md, a memory, a live agent's transcript.
 const _isKnownFile = (path: string): boolean =>
-  _isKnownSkill(path) ||
+  _hasFrontmatter(path) ||
   (cachedSnapshot()?.systemPrompt.some((file) => file.path === path) ?? false) ||
+  cachedSnapshot()?.memory?.index.path === path ||
   cachedAgents().some((agent) => agent.transcriptPath === path);
 
 // Clicking a surface that has no view yet. A notification rather than a line in the panel, so the

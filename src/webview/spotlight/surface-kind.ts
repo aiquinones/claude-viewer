@@ -7,7 +7,8 @@ const KIND_BY_SURFACE: Record<SurfaceId, SearchKind | undefined> = {
   skills: 'skill',
   'system-prompt': undefined,
   'active-agents': undefined,
-  usage: undefined
+  usage: undefined,
+  memory: 'memory'
 };
 
 // Opening the spotlight from inside a surface starts narrowed to it. From the landing page — no
