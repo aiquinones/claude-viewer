@@ -1,10 +1,11 @@
+import { CodeText } from './CodeText';
 import { HoverCard, HoverCardBody } from './HoverCard';
 
 export interface ChoiceOption<Id extends string> {
   id: Id;
   label: string;
   // What the option means, on hover. Every one of these picks between two readings of the same
-  // sessions, and the label alone can't say which.
+  // sessions, and the label alone can't say which. A `backticked` run in it is set in mono.
   hint: string;
 }
 
@@ -33,7 +34,14 @@ export const UsageChoice = <Id extends string>({
     className="flex shrink-0 items-center rounded-lg border border-border bg-muted p-0.5"
   >
     {options.map((option) => (
-      <HoverCard key={option.id} card={<HoverCardBody>{option.hint}</HoverCardBody>}>
+      <HoverCard
+        key={option.id}
+        card={
+          <HoverCardBody>
+            <CodeText text={option.hint} />
+          </HoverCardBody>
+        }
+      >
         <button
           type="button"
           aria-pressed={option.id === value}

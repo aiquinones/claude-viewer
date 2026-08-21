@@ -51,7 +51,9 @@ export const RetentionInfo = ({
               <>
                 {' '}
                 in{' '}
-                <span className="mono text-[11px]">
+                {/* `break-words` for the same reason CodeText carries it: the card sizes to
+                    max-content and clamps, so an unbreakable path runs out the side. */}
+                <span className="mono break-words text-[11px]">
                   {displayDirectory({ path: retention.path, workspaceRoot })}
                 </span>
               </>

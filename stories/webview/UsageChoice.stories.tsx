@@ -34,6 +34,33 @@ export const Metric: Story = {
   }
 };
 
+// A hint carrying paths and a setting name. Backticked runs come through in the editor's mono face
+// and wrap inside the card, which is what keeps a long path from deciding how wide the card is.
+export const TickedHints: Story = {
+  render: () => {
+    const [value, setValue] = useState<string>('claude');
+    return (
+      <UsageChoice
+        label="CLI"
+        options={[
+          {
+            id: 'claude',
+            label: 'Claude Code',
+            hint: 'Sessions under `~/.claude/projects`. The window comes from `cleanupPeriodDays`.'
+          },
+          {
+            id: 'copilot',
+            label: 'Copilot CLI',
+            hint: 'Sessions under `~/.copilot/session-state`. No documented retention period, so the window is whatever was found.'
+          }
+        ]}
+        value={value}
+        onChange={setValue}
+      />
+    );
+  }
+};
+
 // Words of very different lengths, which is why the selected option is painted rather than chased
 // by a sliding tile the way ViewModeToggle does it.
 export const UnevenLabels: Story = {
