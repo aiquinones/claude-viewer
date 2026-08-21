@@ -2,7 +2,7 @@
   "name": "claude-viewer",
   "displayName": "Claude Viewer",
   "description": "Inspect your agent's grounding files. View content, size, token estimates.",
-  "version": "0.18.0",
+  "version": "0.20.0",
   "publisher": "canoq",
   "license": "MIT",
   "icon": "resources/icon.png",
