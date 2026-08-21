@@ -3,6 +3,7 @@ import { Maximize2 } from 'lucide-react';
 import { Tooltip } from '../Tooltip';
 import { useCursorGlow } from '../glow/useCursorGlow';
 import { SectionTarget } from '../markdown/find-section';
+import { Z } from '../z-layers';
 import { trailTo } from './find-step';
 import { FlowSplit } from './FlowSplit';
 import { StepColumn } from './StepColumn';
@@ -65,7 +66,11 @@ export const FlowCanvas = ({ flow, target, onOpenSkill }: FlowCanvasProps) => {
               centre — on a tall box the dots would exist only in a band across the middle.
               The light is placed by margins rather than a -translate utility: `translate` is what
               the spring writes, and Tailwind v4's translate-x-* would write the same property. */}
-          <div aria-hidden className="pointer-events-none sticky top-0 z-0 h-0">
+          <div
+            aria-hidden
+            style={{ zIndex: Z.ground }}
+            className="pointer-events-none sticky top-0 h-0"
+          >
             <div
               ref={glowRef}
               className="flow-glow absolute left-1/2 top-[50vh] -ml-48 -mt-48 size-96"
@@ -87,7 +92,10 @@ export const FlowCanvas = ({ flow, target, onOpenSkill }: FlowCanvasProps) => {
           {/* Sticky rather than pinned to the box's bottom corner, which on a page-tall flow is off
               screen almost always. It only sticks because every ancestor clips rather than hides —
               `overflow: hidden` is a scroll container and would capture it. */}
-          <div className="pointer-events-none sticky bottom-0 z-10 flex items-end justify-between gap-2 px-3 pb-2">
+          <div
+            style={{ zIndex: Z.raised }}
+            className="pointer-events-none sticky bottom-0 flex items-end justify-between gap-2 px-3 pb-2"
+          >
             <span className="text-[0.6875rem] text-muted-foreground/70">
               {focus.node ? '↑ ↓ to walk the steps · esc to close' : '⌘ or ctrl + scroll to zoom'}
             </span>

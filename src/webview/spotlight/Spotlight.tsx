@@ -5,6 +5,7 @@ import { searchIndex } from '../../model/search/search';
 import { SEARCH_KINDS, SearchDoc, SearchHit, SearchKind } from '../../model/types';
 import { FilterPill } from './FilterPill';
 import { SpotlightRow } from './SpotlightRow';
+import { Z } from '../z-layers';
 
 interface SpotlightProps {
   index: SearchDoc[];
@@ -89,7 +90,8 @@ export const Spotlight = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-center bg-scrim px-4 pt-[15vh]"
+      style={{ zIndex: Z.overlay }}
+      className="fixed inset-0 flex justify-center bg-scrim px-4 pt-[15vh]"
       onMouseDown={onDismiss}
     >
       <div

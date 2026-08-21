@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Markdown, STICKY_ROW_CLASS } from '@src/webview/markdown/Markdown';
-import { STICKY_TOP_Z } from '@src/webview/z-layers';
+import { Z } from '@src/webview/z-layers';
 import { CopyId } from './CopyId';
 import { TrackedList } from './TrackedList';
 import { TrackedItem, sortTracked } from './tracked-items';
@@ -54,8 +54,11 @@ export const TrackingView = ({ items, initialId }: TrackingViewProps) => {
           </div>
 
           {/* The pane is the scroll container the sticky headings resolve against, so the padding
-              sits on the children. `relative z-0` keeps their z-scale to itself. */}
-          <div className="relative z-0 min-w-0 overflow-y-auto overflow-x-clip">
+              sits on the children. `Z.contained` keeps their z-scale to itself. */}
+          <div
+            style={{ zIndex: Z.contained }}
+            className="relative min-w-0 overflow-y-auto overflow-x-clip"
+          >
             {selected && <Body item={selected} />}
           </div>
         </div>
@@ -86,7 +89,7 @@ const Body = ({ item }: BodyProps) => (
 // the view exists for stays reachable however far down the note you've scrolled.
 const IdTitle = ({ item }: BodyProps) => (
   <h2
-    style={{ zIndex: STICKY_TOP_Z }}
+    style={{ zIndex: Z.stickyTop }}
     className={`sticky top-0 -mx-5 flex ${STICKY_ROW_CLASS} items-center gap-2 border-b border-border bg-background px-5 text-xs`}
   >
     <span className="mono min-w-0 truncate font-semibold text-foreground">{item.id}</span>

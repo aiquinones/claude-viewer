@@ -9,6 +9,7 @@ import {
   ESTIMATOR_HINTS,
   ESTIMATOR_LABELS
 } from './estimator-labels';
+import { Z } from './z-layers';
 
 interface EstimatorDialogProps {
   // What's set today. Seeds the draft, and what Apply is measured against.
@@ -67,7 +68,8 @@ export const EstimatorDialog = ({ current, onApply, onDismiss }: EstimatorDialog
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-center bg-scrim px-4 pt-[15vh]"
+      style={{ zIndex: Z.overlay }}
+      className="fixed inset-0 flex justify-center bg-scrim px-4 pt-[15vh]"
       onMouseDown={onDismiss}
     >
       <div

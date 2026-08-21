@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { HoverCard, HoverCardBody, HoverCardTitle } from '@src/webview/HoverCard';
+import { STICKY_ROW_CLASS } from '@src/webview/markdown/Markdown';
+import { Z } from '@src/webview/z-layers';
 
 // The card only exists on hover, so every story here is something to point at.
 const meta: Meta<typeof HoverCard> = {
@@ -51,6 +53,29 @@ export const NearTheRightEdge: Story = {
   ]
 };
 
+
+// The shape every pane with a markdown body has: a row, and under it a bar pinned at
+// `Z.stickyTop`. The card drops down across that bar, so it has to be on a layer above it — at the
+// same number the bar would win, being later in the DOM, and the card would go behind the body.
+// Hover the trigger: the card must cover the bar.
+export const OverAPinnedBar: Story = {
+  decorators: [
+    (Story) => (
+      <div style={{ zIndex: Z.contained }} className="relative h-64 overflow-y-auto p-6">
+        <Story />
+        <div
+          style={{ zIndex: Z.stickyTop }}
+          className={`sticky top-0 mt-2 flex ${STICKY_ROW_CLASS} items-center border-y border-border bg-background text-xs text-muted-foreground`}
+        >
+          a pinned bar, the way a file path or a heading is
+        </div>
+        <p className="pt-2 text-sm text-muted-foreground">
+          {'the body under it. '.repeat(40)}
+        </p>
+      </div>
+    )
+  ]
+};
 
 // A card you can reach with the pointer. The default is `pointer-events-none`, which is right for a
 // label and fatal for one holding a button — this variant swaps that for `invisible`, so the card

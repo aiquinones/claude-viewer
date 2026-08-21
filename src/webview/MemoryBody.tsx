@@ -2,6 +2,7 @@ import { CircleAlert } from 'lucide-react';
 import { MemoryDocument, MemoryLink } from '../model/types';
 import { Loading } from './loading/Loading';
 import { Markdown, STICKY_ROW_CLASS } from './markdown/Markdown';
+import { Z } from './z-layers';
 
 interface MemoryBodyProps {
   // The selected document, or undefined when nothing is selected — in which case nothing renders.
@@ -27,7 +28,7 @@ export const MemoryBody = ({ memory, body, error, loading, onOpenLink }: MemoryB
     <section className="flex flex-col border-t border-border px-5 pb-8 pt-4">
       <h2
         title={memory.path}
-        style={{ zIndex: 30 }}
+        style={{ zIndex: Z.stickyTop }}
         className={`mono sticky top-0 -mx-5 flex ${STICKY_ROW_CLASS} items-center gap-2 border-b border-border bg-background px-5 text-xs text-muted-foreground`}
       >
         <span className="shrink-0 font-semibold text-foreground">{memory.name}</span>

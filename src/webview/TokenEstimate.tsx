@@ -19,8 +19,6 @@ interface TokenEstimateProps {
   // one in a row that already says what it's counting.
   long?: boolean;
   className?: string;
-  // Extra classes on the card, for a pane with its own z-scale.
-  cardZClass?: string;
 }
 
 // Every "est. tokens" in the panel. One component because the number and the sentence explaining
@@ -29,8 +27,7 @@ interface TokenEstimateProps {
 export const TokenEstimate = ({
   chars,
   long = false,
-  className = '',
-  cardZClass
+  className = ''
 }: TokenEstimateProps) => {
   const estimate = useEstimate();
   const estimator: TokenEstimator = useEstimator();
@@ -46,7 +43,6 @@ export const TokenEstimate = ({
   return (
     <HoverCard
       interactive
-      cardZClass={cardZClass}
       className={className}
       card={
         <span onClick={(event: MouseEvent) => event.stopPropagation()}>

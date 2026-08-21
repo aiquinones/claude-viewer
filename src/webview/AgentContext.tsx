@@ -14,6 +14,7 @@ import {
 import { formatContextTokens } from './format-size';
 import { budgetTextClass } from './BudgetBar';
 import { useOpenSettings, useSettings } from './settings/SettingsContext';
+import { Z } from './z-layers';
 
 interface AgentContextProps {
   agent: AgentSession;
@@ -52,7 +53,8 @@ export const AgentContext = ({ agent, className = '' }: AgentContextProps) => {
           pointer crossing it on the way down. */}
       <div
         id={CARD_ID}
-        className="invisible absolute left-0 top-full z-30 pt-1.5 opacity-0 transition-opacity group-hover/context:visible group-hover/context:opacity-100 group-focus-within/context:visible group-focus-within/context:opacity-100"
+        style={{ zIndex: Z.card }}
+        className="invisible absolute left-0 top-full pt-1.5 opacity-0 transition-opacity group-hover/context:visible group-hover/context:opacity-100 group-focus-within/context:visible group-focus-within/context:opacity-100"
       >
         <div className="flex w-max max-w-[min(22rem,calc(100vw-2rem))] flex-col gap-2 rounded-md border border-border bg-popover p-3 text-left text-xs shadow-lg">
           <Headline reading={reading} />

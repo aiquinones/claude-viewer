@@ -11,7 +11,6 @@ import { BudgetInfo } from './BudgetInfo';
 import { formatBytes } from './format-size';
 import { TokenEstimate } from './TokenEstimate';
 import { useEstimate, useSettings } from './settings/SettingsContext';
-import { OVER_STICKY_CLASS } from './z-layers';
 import { FIELD_LABELS, FIELD_NOTES } from './skill-budget-labels';
 
 interface SkillCostProps {
@@ -58,14 +57,10 @@ const CostRow = ({ skill, field }: CostRowProps) => {
       <div className="flex flex-wrap items-baseline justify-between gap-x-2">
         <span className="font-medium">{FIELD_LABELS[field]}</span>
         {/* What it costs, and nothing else. The bar carries the share of the budget and the (i)
-            card carries the limit — printing `x / y` here said the same thing a third time.
-
-            Its own card hangs down across the Content bar pinned below it, so it wears the class
-            that clears the whole pinned scale — the default `z-30` would put it behind. */}
+            card carries the limit — printing `x / y` here said the same thing a third time. */}
         <TokenEstimate
           chars={chars}
           long
-          cardZClass={OVER_STICKY_CLASS}
           className={shadowed ? 'line-through opacity-60' : budgetTextClass(reading?.level)}
         />
       </div>

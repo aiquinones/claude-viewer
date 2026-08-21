@@ -4,6 +4,7 @@ import { AGENT_COLORS, AgentColor } from '../../model/types';
 import { cn } from '@/lib/utils';
 import { Tooltip } from '../Tooltip';
 import { AGENT_COLOR_LABEL, AGENT_COLOR_VAR } from './agent-colors';
+import { Z } from '../z-layers';
 
 interface AgentColorPickerProps {
   color: AgentColor | undefined;
@@ -48,7 +49,8 @@ export const AgentColorPicker = ({ color, onPick }: AgentColorPickerProps) => {
         <div
           role="listbox"
           aria-label="Row color"
-          className="absolute right-0 top-full z-30 mt-1 flex items-center gap-1 rounded-md border border-border bg-popover p-1.5 shadow-lg"
+          style={{ zIndex: Z.card }}
+          className="absolute right-0 top-full mt-1 flex items-center gap-1 rounded-md border border-border bg-popover p-1.5 shadow-lg"
         >
           {AGENT_COLORS.map((entry) => (
             <Swatch

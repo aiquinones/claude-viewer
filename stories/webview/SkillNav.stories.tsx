@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SkillNav } from '@src/webview/SkillNav';
+import { Z } from '@src/webview/z-layers';
 import { allSkills, plainSkill, projectDeploy } from '../fixtures';
 
 // The decorator is SkillView's grid, because that's what the nav's positioning resolves against:
@@ -16,7 +17,10 @@ const meta: Meta<typeof SkillNav> = {
     (Story) => (
       <div className="relative grid h-screen grid-cols-[minmax(0,1fr)] overflow-x-clip md:grid-cols-[minmax(160px,240px)_minmax(0,1fr)]">
         <Story />
-        <div className="relative z-0 p-5 pl-4 text-sm text-muted-foreground md:pl-2">
+        <div
+          style={{ zIndex: Z.contained }}
+          className="relative p-5 pl-4 text-sm text-muted-foreground md:pl-2"
+        >
           The detail pane. Under 768px it has the whole width and the list slides over it.
         </div>
       </div>

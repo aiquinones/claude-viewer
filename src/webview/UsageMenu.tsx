@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { SettingSource } from '../model/settings/settings';
 import { UsageCostBasis, USAGE_COST_BASES } from '../model/usage/types';
 import { useOpenSettings, useSettings, useSetUsage } from './settings/SettingsContext';
+import { Z } from './z-layers';
 
 interface CostBasisOption {
   label: string;
@@ -83,7 +84,8 @@ export const UsageMenu = ({ className = '' }: UsageMenuProps) => {
           role="menu"
           // Down and to the left: the trigger is at the top-right of the summary card, so a menu
           // opening upward would leave the panel and one opening rightward would run off its edge.
-          className="absolute right-0 top-full z-30 mt-1.5 flex w-max max-w-[min(24rem,calc(100vw-3rem))] flex-col gap-1 rounded-md border border-border bg-popover p-1.5 text-xs shadow-lg"
+          style={{ zIndex: Z.card }}
+          className="absolute right-0 top-full mt-1.5 flex w-max max-w-[min(24rem,calc(100vw-3rem))] flex-col gap-1 rounded-md border border-border bg-popover p-1.5 text-xs shadow-lg"
         >
           <div className="flex items-baseline gap-2 px-1.5 pt-0.5 text-muted-foreground">
             <span>Claude cost calculated from</span>
