@@ -25,7 +25,14 @@ const MESSAGE_TYPES: readonly string[] = ['user', 'assistant'];
 // reading calls a 235k session empty.
 const SYNTHETIC_MODEL: string = '<synthetic>';
 
+// The marker on a `user` line that is a slash command rather than a prompt. `/clear` and the rest
+// are handled locally: the line is written to the transcript and nothing is sent to the model.
+const COMMAND_MARKER: string = '<command-name>';
+
 export interface TranscriptSummary {
+  // The file isn't on disk. Distinct from one that couldn't be read: a session that has never been
+  // prompted has written nothing yet, and there is no conversation to show for it.
+  missing: boolean;
   title?: string;
   lastPrompt?: string;
   pullRequest?: AgentPullRequest;
@@ -49,13 +56,19 @@ export const readTranscript = async (path: string): Promise<TranscriptSummary> =
       read.error.kind === 'not-found'
         ? 'no transcript on disk yet — nothing has been written for this session'
         : `could not read the transcript: ${read.error.message}`;
-    return { tail: 'settled', lastActivityAt: 0, issues: [warning(message)] };
+    return {
+      tail: 'settled',
+      missing: read.error.kind === 'not-found',
+      lastActivityAt: 0,
+      issues: [warning(message)]
+    };
   }
 
   const lines: TranscriptLine[] = parseLines(read.value.text, read.value.truncated);
 
   return {
     ...lastTurn(lines),
+    missing: false,
     context: lastContext(lines),
     title: await firstTitle(path),
     // Rewritten through the session, so the last one in the window is the current one. Both stay
@@ -146,7 +159,10 @@ const lastTurn = (lines: TranscriptLine[]): Pick<TranscriptSummary, 'tail' | 'pe
   for (let i = lines.length - 1; i >= 0; i -= 1) {
     const line: TranscriptLine = lines[i];
     if (!MESSAGE_TYPES.includes(line.type)) continue;
-    if (line.type === 'user') return { tail: 'working' };
+    if (line.type === 'user') {
+      if (!isPrompt(line)) continue;
+      return { tail: 'working' };
+    }
     // An error ended the turn as surely as text would have.
     if (line.isApiErrorMessage) return { tail: 'settled' };
 
@@ -161,6 +177,17 @@ const lastTurn = (lines: TranscriptLine[]): Pick<TranscriptSummary, 'tail' | 'pe
 
   // Nothing but metadata in the window — no turn to read, so nothing is claimed about one.
   return { tail: 'settled' };
+};
+
+// Whether a `user` line is a prompt the model was asked to answer. A slash command writes two that
+// aren't — an `isMeta` caveat and the command itself — and neither leaves a turn outstanding.
+const isPrompt = (line: TranscriptLine): boolean => {
+  if (line.isMeta) return false;
+
+  // A tool result is an array of blocks; only the handful of lines carrying a bare string can be
+  // a command, so anything else is a prompt.
+  const content = line.message?.content;
+  return typeof content !== 'string' || !content.includes(COMMAND_MARKER);
 };
 
 // How full the context was on the most recent real request. The three input figures add up because
