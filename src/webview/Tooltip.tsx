@@ -17,15 +17,16 @@ interface TooltipProps {
 // an icon button in an agent row — and `group-hover:` matches *any* ancestor group. Unnamed, the
 // bubble opens on the row's hover rather than on the button's.
 //
-// `group-focus-within/tip` is what makes it reachable by keyboard, since the thing it wraps is a
-// button.
+// `group-has-focus-visible/tip` is what makes it reachable by keyboard, since the thing it wraps
+// is a button. Focus-visible rather than focus-within: a click focuses that button too, and a
+// focus-within bubble stays up after the pointer has gone until you focus something else.
 export const Tooltip = ({ label, hint, disabled = false, children }: TooltipProps) => (
   <span className="group/tip relative inline-flex">
     {children}
     {!disabled && (
       <span
         role="tooltip"
-        className="pointer-events-none absolute right-0 top-full z-20 mt-1 flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover/tip:opacity-100 group-focus-within/tip:opacity-100"
+        className="pointer-events-none absolute right-0 top-full z-20 mt-1 flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover/tip:opacity-100 group-has-focus-visible/tip:opacity-100"
       >
         {label}
         {hint && (

@@ -34,11 +34,11 @@ export const BudgetInfo = ({ skill }: BudgetInfoProps) => {
   return (
     <span className="group relative inline-flex">
       {/* Not a button — nothing happens on click, and the CTA lives inside the card. Tabbing here
-          opens it via group-focus-within, and tabbing on walks into that button. */}
+          opens it via group-has-focus-visible, and tabbing on walks into that button. */}
       <span
         tabIndex={0}
         aria-describedby={CARD_ID}
-        className="inline-flex cursor-default rounded-sm text-muted-foreground group-hover:text-foreground group-focus-within:text-foreground focus-visible:ring-1 focus-visible:ring-ring"
+        className="inline-flex cursor-default rounded-sm text-muted-foreground group-hover:text-foreground group-has-focus-visible:text-foreground focus-visible:ring-1 focus-visible:ring-ring"
       >
         <Info className="size-3.5" />
         <span className="sr-only">where these budgets come from</span>
@@ -49,7 +49,7 @@ export const BudgetInfo = ({ skill }: BudgetInfoProps) => {
           pinned below it, so it wears the class that clears the whole pinned scale. */}
       <div
         id={CARD_ID}
-        className={`invisible absolute left-0 top-full ${OVER_STICKY_CLASS} pt-1.5 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100`}
+        className={`invisible absolute left-0 top-full ${OVER_STICKY_CLASS} pt-1.5 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-has-focus-visible:visible group-has-focus-visible:opacity-100`}
       >
         {/* `w-max` rather than a fixed width: the source phrases differ in length — "the default"
             against "your override for this skill" — and a fixed box wrapped the long one onto a
