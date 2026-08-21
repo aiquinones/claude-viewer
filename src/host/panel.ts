@@ -285,6 +285,11 @@ const _onReady = async (): Promise<void> => {
   await _post(await currentSnapshot());
   await _postAgents(await currentAgents());
 
+  // Un-awaited: this one reads every transcript on the machine, so nothing on the ready path waits
+  // for it and the store posts the report on its own message when it lands. Without it nothing ever
+  // starts a first scan — the landing card sat on "Reading session logs…" while nothing read.
+  void currentUsage();
+
   const waiting: PendingReveal | undefined = pendingReveal;
   pendingReveal = undefined;
   if (waiting) await _reveal(waiting);

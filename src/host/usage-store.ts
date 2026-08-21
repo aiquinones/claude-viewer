@@ -73,10 +73,21 @@ const publish = (): UsageReport => {
 
 // What the panel is showing. Same arrangement as the agents poll — the store owns the timer, the
 // panel owns the question of whether anyone is looking.
+//
+// Entering a polling mode reads now. The interval is the gap between passes, not the wait before the
+// first one — scheduling instead meant arriving at the surface cost a full 15s of nothing, which is
+// two orders of magnitude more than the scan it was waiting for.
 export const setUsagePollMode = (mode: UsagePollMode): void => {
   if (mode === pollMode) return;
   pollMode = mode;
-  schedulePoll();
+
+  if (pollTimer) clearTimeout(pollTimer);
+  pollTimer = undefined;
+
+  // The pass starts here rather than inside schedulePoll, which poll() calls when it finishes — a
+  // pass kicked off in there would recurse without ever yielding to the timer. A mode that doesn't
+  // poll has had its timer cleared above and wants nothing else.
+  if (USAGE_POLL_MS[mode] !== 0) void poll();
 };
 
 // Chained off the end of each pass rather than an interval, so a slow disk can't stack passes up
