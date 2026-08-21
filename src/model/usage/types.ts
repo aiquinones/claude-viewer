@@ -2,6 +2,7 @@
 // tokens; only Claude stamps every turn with its skill, which is what `source` is for.
 
 import { AgentTool } from '../types';
+import { Retention } from '../retention/types';
 import { UsdParts } from './pricing';
 
 // Which number the surface reads. `output-tokens` is measured on both sides and is what Claude
@@ -156,5 +157,53 @@ export interface UsageBreakdown {
 export interface UsageReport {
   windows: Record<UsageWindow, UsageBreakdown>;
   // When the scan behind these numbers finished. The view ages it, the way agent rows age.
+  scannedAt: number;
+}
+
+// What one day of one session cost. Output tokens only: it's the one figure both CLIs report in the
+// same unit, and a grid painted in two units would be a grid painted in neither.
+export interface SessionDay {
+  // Local `YYYY-MM-DD`. A calendar day is what the grid draws and the calendar is the reader's —
+  // the host and the panel are the same machine, so either one can compute it.
+  day: string;
+  outputTokens: number;
+  turns: number;
+}
+
+// One session, from either CLI, over its whole life. The grid and the list are this same list read
+// two ways: rolled up by day, or sorted by activity.
+//
+// Unlike a UsageTurn this outlives the window. The Sessions tab is about everything on disk, and
+// keeping the turns behind it would grow the cache with the corpus instead of with the window.
+export interface SessionUsage {
+  sessionId: string;
+  tool: AgentTool;
+  // The session's own name — Claude's first `ai-title`, Copilot's `workspace.yaml` name. Absent on
+  // a session too short to have been given one, which is 10 of the 87 transcripts measured here.
+  title?: string;
+  // Where the agent was working. What the scope filter reads, and what a row falls back to for a
+  // name when there is no title.
+  cwd: string;
+  firstAt: number;
+  lastAt: number;
+  outputTokens: number;
+  turns: number;
+  // Ascending, and only the days the session actually spent something — an idle month costs nothing
+  // to carry.
+  days: SessionDay[];
+}
+
+// Every session on disk, already narrowed to the scope in force. Its own message rather than a
+// field on UsageReport: the report is a seven-day window re-aggregated on every poll, and this is
+// the whole corpus.
+export interface UsageHistory {
+  // Most recently active first.
+  sessions: SessionUsage[];
+  // How long Claude Code keeps a transcript, and which settings file said so. Carried here because
+  // it is the thing that explains the list: history older than this was deleted by Claude Code's
+  // own sweep, so a grid drawn further back is empty by construction rather than by accident.
+  //
+  // Claude's number. Copilot documents no equivalent and writes none to disk.
+  retention: Retention;
   scannedAt: number;
 }

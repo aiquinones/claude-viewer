@@ -3,7 +3,13 @@
 
 import { TokenEstimator } from './estimate-tokens';
 import { SettingsSection, ViewerSettings } from './settings/settings';
-import { UsageCostBasis, UsageMetric, UsageReport, UsageScope } from './usage/types';
+import {
+  UsageCostBasis,
+  UsageHistory,
+  UsageMetric,
+  UsageReport,
+  UsageScope
+} from './usage/types';
 
 // Two surfaces, two orderings, and they aren't the same list read backwards — each one gets its
 // own array, and `Scope` is the union.
@@ -419,7 +425,10 @@ export type HostMessage =
   // What the sessions on this machine have cost, both windows already aggregated. Its own message
   // for the reason agents are, and more so: the scan behind it reads every transcript on disk, and
   // nothing else should have to wait for it.
-  | { type: 'usage'; report: UsageReport };
+  | { type: 'usage'; report: UsageReport }
+  // Every session on disk, for the Sessions tab. Its own message rather than a field on the report:
+  // that one is a seven-day window on a 15s poll, this is the whole corpus on a slower one.
+  | { type: 'usageHistory'; history: UsageHistory };
 
 // Webview → host. `surfaceUnavailable` carries only the surface's name: the host owns the
 // sentence, the same way it owns which paths `openFile` will accept. `openSettings` is the same

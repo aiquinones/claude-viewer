@@ -21,6 +21,52 @@ export interface FileUsage {
 
 export type UsageCache = Map<string, FileUsage>;
 
+export interface AppendedLines {
+  // Whole lines only. The half line at the end of the window is left for the next pass.
+  lines: string[];
+  // Byte offset just past the last one, to hand back on the next read.
+  offset: number;
+  // The file is shorter than the offset asked for, so it was replaced rather than appended to and
+  // whatever the caller accumulated from the old one describes a file that no longer exists.
+  rewound: boolean;
+}
+
+interface ReadAppendedLinesArgs {
+  path: string;
+  offset: number;
+}
+
+// The bytes since `offset`, cut into whole lines. Both readers over these logs need exactly this and
+// differ only in what they keep — turns here, a per-session fold in `history/`. Undefined means the
+// file couldn't be read at all; a session directory can be deleted while the panel is open.
+export const readAppendedLines = async ({
+  path,
+  offset
+}: ReadAppendedLinesArgs): Promise<AppendedLines | undefined> => {
+  const read: Result<FileSince, ConfigError> = await readFileSince({
+    path,
+    offset,
+    maxBytes: MAX_CHUNK_BYTES
+  });
+
+  if (!read.ok) return undefined;
+
+  const from: number = read.value.rewound ? 0 : offset;
+
+  // The file is being appended to while it's read, so the last line in the window is often half a
+  // line. Consuming up to the final newline leaves it for the next pass, whole.
+  const end: number = read.value.text.lastIndexOf('\n');
+  if (end < 0) return { lines: [], offset: from, rewound: read.value.rewound };
+
+  const consumed: string = read.value.text.slice(0, end + 1);
+
+  return {
+    lines: consumed.split('\n'),
+    offset: from + Buffer.byteLength(consumed, 'utf8'),
+    rewound: read.value.rewound
+  };
+};
+
 interface ReadNewTurnsArgs {
   path: string;
   cache: UsageCache;
@@ -37,43 +83,27 @@ export const readNewTurns = async ({
 }: ReadNewTurnsArgs): Promise<UsageTurn[]> => {
   const held: FileUsage = cache.get(path) ?? { offset: 0, turns: [] };
 
-  const read: Result<FileSince, ConfigError> = await readFileSince({
-    path,
-    offset: held.offset,
-    maxBytes: MAX_CHUNK_BYTES
-  });
+  const read: AppendedLines | undefined = await readAppendedLines({ path, offset: held.offset });
 
-  if (!read.ok) {
+  if (!read) {
     cache.delete(path);
     return [];
   }
 
   // Shorter than the offset means the file was replaced rather than appended to, so everything read
   // out of the old one is about a file that no longer exists.
-  const from: FileUsage = read.value.rewound ? { offset: 0, turns: [] } : held;
+  const from: FileUsage = read.rewound ? { offset: 0, turns: [] } : held;
 
-  // The file is being appended to while it's read, so the last line in the window is often half a
-  // line. Consuming up to the final newline leaves it for the next pass, whole.
-  const end: number = read.value.text.lastIndexOf('\n');
-  if (end < 0) {
-    cache.set(path, from);
-    return from.turns;
-  }
-
-  const consumed: string = read.value.text.slice(0, end + 1);
   const turns: UsageTurn[] = [...from.turns];
   const seen: Set<string> = new Set(turns.map((turn) => turn.id));
 
-  for (const turn of parse(consumed.split('\n'))) {
+  for (const turn of parse(read.lines)) {
     if (seen.has(turn.id)) continue;
     seen.add(turn.id);
     turns.push(turn);
   }
 
-  cache.set(path, {
-    offset: from.offset + Buffer.byteLength(consumed, 'utf8'),
-    turns
-  });
+  cache.set(path, { offset: read.offset, turns });
   return turns;
 };
 

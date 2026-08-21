@@ -11,7 +11,7 @@ import {
   SkillGraph,
   WebviewMessage
 } from '../model/types';
-import { UsageReport } from '../model/usage/types';
+import { UsageHistory, UsageReport } from '../model/usage/types';
 import {
   currentAgentColors,
   onDidChangeAgentColors,
@@ -47,6 +47,12 @@ import {
   refreshUsage,
   setUsagePollMode
 } from './usage-store';
+import {
+  onDidChangeUsageHistory,
+  refreshUsageHistory,
+  renarrowUsageHistory,
+  setUsageHistoryPollMode
+} from './usage-history-store';
 import { getWebviewHtml } from './shell-html';
 
 // Registered in package.json under contributes.commands — the two have to agree.
@@ -69,6 +75,7 @@ let snapshotSubscription: vscode.Disposable | undefined;
 let settingsSubscription: vscode.Disposable | undefined;
 let agentsSubscription: vscode.Disposable | undefined;
 let usageSubscription: vscode.Disposable | undefined;
+let historySubscription: vscode.Disposable | undefined;
 let colorsSubscription: vscode.Disposable | undefined;
 // The webview can't hear anything until it has booted and said so.
 let webviewReady: boolean = false;
@@ -158,6 +165,9 @@ export const openPanel = ({ context, revealPath, revealSection }: OpenPanelArgs)
   settingsSubscription = onDidChangeSettings((settings) => {
     void _postSettings(settings);
     reaggregateUsage();
+    // The same setting decides which sessions the Sessions tab lists, and answering it costs no
+    // disk read either — the scan is held unfiltered and narrowed on the way out.
+    renarrowUsageHistory();
   });
   // Same deal, the other way round: an agent starting shouldn't re-read every skill.
   agentsSubscription = onDidChangeAgents((agents) => void _postAgents(agents));
@@ -165,6 +175,8 @@ export const openPanel = ({ context, revealPath, revealSection }: OpenPanelArgs)
   colorsSubscription = onDidChangeAgentColors((colors) => void _postAgentColors(colors));
   // And this one is the reason the rule exists: a usage pass reads every transcript on the machine.
   usageSubscription = onDidChangeUsage((report) => void _postUsage(report));
+  // The Sessions tab's own channel — every session on disk rather than the last seven days of them.
+  historySubscription = onDidChangeUsageHistory((history) => void _postUsageHistory(history));
 
   // A hidden tab still holds its webview — retainContextWhenHidden — so nothing tells the poll to
   // stop except this. Reading the disk every two seconds for a panel nobody is looking at is the
@@ -175,6 +187,7 @@ export const openPanel = ({ context, revealPath, revealSection }: OpenPanelArgs)
   panel.onDidDispose(() => {
     setAgentPollMode('off');
     setUsagePollMode('off');
+    setUsageHistoryPollMode('off');
     visibleSurface = undefined;
     snapshotSubscription?.dispose();
     snapshotSubscription = undefined;
@@ -186,6 +199,8 @@ export const openPanel = ({ context, revealPath, revealSection }: OpenPanelArgs)
     colorsSubscription = undefined;
     usageSubscription?.dispose();
     usageSubscription = undefined;
+    historySubscription?.dispose();
+    historySubscription = undefined;
     panel = undefined;
     webviewReady = false;
     pendingReveal = undefined;
@@ -197,7 +212,12 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   // Through the stores, so the tree redraws off the same read. One button, both channels: the
   // reader pressing refresh means everything on screen, whichever surface they're looking at.
   if (message.type === 'refresh') {
-    return void (await Promise.all([refreshSnapshot(), refreshAgents(), refreshUsage()]));
+    return void (await Promise.all([
+      refreshSnapshot(),
+      refreshAgents(),
+      refreshUsage(),
+      refreshUsageHistory()
+    ]));
   }
   if (message.type === 'openFile') return _openFile(message.path);
   if (message.type === 'openAgent') return _openAgent(message.sessionId);
@@ -230,13 +250,15 @@ const _updatePollMode = (): void => {
   if (!panel?.visible) {
     setAgentPollMode('off');
     setUsagePollMode('off');
+    setUsageHistoryPollMode('off');
     return;
   }
 
   setAgentPollMode(visibleSurface === AGENTS_SURFACE ? 'live' : 'background');
-  // No background rate for this one. Nothing off the surface itself moves fast enough to be worth a
+  // No background rate for these two. Nothing off the surface itself moves fast enough to be worth a
   // pass over every transcript on the machine.
   setUsagePollMode(visibleSurface === USAGE_SURFACE ? 'live' : 'off');
+  setUsageHistoryPollMode(visibleSurface === USAGE_SURFACE ? 'live' : 'off');
 };
 
 // The selected file's text, read on demand rather than shipped with every snapshot. Same path
@@ -330,6 +352,11 @@ const _postSettings = async (settings: ViewerSettings): Promise<void> => {
 const _postUsage = async (report: UsageReport): Promise<void> => {
   if (!webviewReady) return;
   await panel?.webview.postMessage({ type: 'usage', report });
+};
+
+const _postUsageHistory = async (history: UsageHistory): Promise<void> => {
+  if (!webviewReady) return;
+  await panel?.webview.postMessage({ type: 'usageHistory', history });
 };
 
 // Every agent list is also the answer to which colours are still worth keeping, so the prune rides
