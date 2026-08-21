@@ -242,7 +242,6 @@ export interface MemoryEntry extends MemoryDocument {
   // What it said instead, when it said something. Printed, so a typo is visible rather than silent.
   declaredType?: string;
   chars: number;
-  estimatedTokens: number;
   // `metadata.modified` where the file has one, else the file's own mtime. Absolute, so the view
   // ages it against its own clock.
   modifiedAt: number;
@@ -269,7 +268,6 @@ export interface MemoryIndex {
   // False when there's no MEMORY.md at all — memories on disk that nothing points at.
   present: boolean;
   chars: number;
-  estimatedTokens: number;
   entries: MemoryIndexEntry[];
   issues: ConfigIssue[];
 }

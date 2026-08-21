@@ -3,7 +3,6 @@ import { Frontmatter, parseFrontmatter } from '../../config/frontmatter';
 import { MEMORY_FILE, memoryDir } from '../../config/paths';
 import { FileStats, fileStats, listFiles, readTextFile } from '../../config/read';
 import { ConfigError, Result } from '../../config/result';
-import { estimateTokens } from '../estimate-tokens';
 import {
   ConfigIssue,
   MEMORY_TYPES,
@@ -61,7 +60,6 @@ const loadIndex = async ({ dir, fileNames }: LoadIndexArgs): Promise<MemoryIndex
     path: indexPath,
     present: false,
     chars: 0,
-    estimatedTokens: 0,
     entries: [],
     issues: []
   };
@@ -93,7 +91,6 @@ const loadIndex = async ({ dir, fileNames }: LoadIndexArgs): Promise<MemoryIndex
     ...base,
     present: true,
     chars: read.value.length,
-    estimatedTokens: estimateTokens(read.value.length),
     entries,
     issues: dangling === 0 ? [] : [warning(danglingMessage(dangling))]
   };
@@ -190,7 +187,6 @@ const toEntry = ({ memory, names, indexed }: ToEntryArgs): MemoryEntry => {
     declaredType: memory.frontmatter?.declaredType,
     path: memory.path,
     chars: memory.chars,
-    estimatedTokens: estimateTokens(memory.chars),
     modifiedAt: memory.modifiedAt,
     links: findMemoryLinks(memory.body, names),
     indexed: isIndexed,

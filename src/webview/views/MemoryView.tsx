@@ -16,6 +16,7 @@ import { PanelActions } from '../PanelActions';
 import { formatTokens, plural } from '../format-size';
 import { indexDocument } from '../memory-document';
 import { MemoryTotals, memoryTotals } from '../memory-totals';
+import { useEstimate } from '../settings/SettingsContext';
 import { surfaceAccent } from '../surfaces';
 import { useFileBody } from '../useFileBody';
 import { useSelectionScroll } from '../useSelectionScroll';
@@ -53,6 +54,7 @@ export const MemoryView = ({
   // What every memory here would cost if all of them were recalled — the ceiling, next to the
   // index's per-session floor.
   const recalled: MemoryTotals = memoryTotals(memories);
+  const estimate = useEstimate();
 
   const [tool, setTool] = useState<AgentTool>('claude');
   const [selection, setSelection] = useState<Selection | undefined>(undefined);
@@ -111,7 +113,7 @@ export const MemoryView = ({
         <div className="mr-auto flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-semibold">Memory</span>
           <span className="truncate text-xs text-muted-foreground">
-            {subtitle({ tool, memory, recalled })}
+            {subtitle({ tool, memory, recalled, estimate })}
           </span>
         </div>
         <PanelActions
@@ -158,17 +160,18 @@ interface SubtitleArgs {
   tool: AgentTool;
   memory: MemorySet | undefined;
   recalled: MemoryTotals;
+  estimate: (chars: number) => number;
 }
 
 // The two token figures are a claim about Claude's files, so they don't follow the Copilot tab —
 // there is nothing on this machine for them to count.
-const subtitle = ({ tool, memory, recalled }: SubtitleArgs): string => {
+const subtitle = ({ tool, memory, recalled, estimate }: SubtitleArgs): string => {
   if (tool === 'copilot') return 'kept on GitHub, fetched per session — nothing is stored here';
   if (!memory) return 'no folder open — memory is keyed on the working directory';
 
   return `${plural(memory.memories.length, 'memory', 'memories')} · ~${formatTokens(
-    memory.index.estimatedTokens
-  )} est. tokens every session · ~${formatTokens(recalled.estimatedTokens)} if all recalled`;
+    estimate(memory.index.chars)
+  )} est. tokens every session · ~${formatTokens(estimate(recalled.chars))} if all recalled`;
 };
 
 const NoWorkspace = () => (

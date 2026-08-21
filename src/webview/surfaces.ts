@@ -107,19 +107,23 @@ export const getDetailForSurface = ({
     case 'usage':
       return usageDetail(usage);
     case 'memory':
-      return memoryDetail(snapshot.memory);
+      return memoryDetail({ memory: snapshot.memory, estimate });
   }
 };
 
+interface MemoryDetailArgs {
+  memory: MemorySet | undefined;
+  estimate: (chars: number) => number;
+}
+
 // The index cost, which is what memory adds to every session whether or not anything is recalled —
 // the same question the prompt card answers.
-const memoryDetail = (memory: MemorySet | undefined): string => {
+const memoryDetail = ({ memory, estimate }: MemoryDetailArgs): string => {
   if (!memory) return 'No folder open';
   if (memory.memories.length === 0) return 'None written yet';
 
-  return `${plural(memory.memories.length, 'memory', 'memories')} · ~${formatTokens(
-    memory.index.estimatedTokens
-  )} est. tokens`;
+  const tokens: number = estimate(memory.index.chars);
+  return `${plural(memory.memories.length, 'memory', 'memories')} · ~${formatTokens(tokens)} est. tokens`;
 };
 
 // The day's output tokens, which is the default metric and the one figure both CLIs measure. No

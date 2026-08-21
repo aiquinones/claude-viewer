@@ -1,4 +1,3 @@
-import { estimateTokens } from '../model/estimate-tokens';
 import { MemoryEntry, MemoryIndex, MemoryIndexEntry, MemorySet } from '../model/types';
 
 // Synthetic only, like every other fixture here — auto-memory is the one config surface made
@@ -27,7 +26,6 @@ const makeMemory = ({ name, ...overrides }: MakeMemoryArgs): MemoryEntry => {
     type: 'feedback',
     path: `${MEMORY_DIR}/${name}.md`,
     chars,
-    estimatedTokens: estimateTokens(chars),
     modifiedAt: NOW - 2 * DAY,
     links: [],
     indexed: true,
@@ -128,7 +126,6 @@ export const memoryIndex: MemoryIndex = {
   path: `${MEMORY_DIR}/MEMORY.md`,
   present: true,
   chars: 690,
-  estimatedTokens: estimateTokens(690),
   entries: [
     indexEntry(userMemory, 'keeps pull requests small'),
     indexEntry(feedbackMemory, 'migrate before running the suite'),
@@ -159,7 +156,6 @@ export const emptyMemoryIndex: MemoryIndex = {
   path: `${MEMORY_DIR}/MEMORY.md`,
   present: false,
   chars: 0,
-  estimatedTokens: 0,
   entries: [],
   issues: []
 };

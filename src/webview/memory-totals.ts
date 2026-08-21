@@ -3,19 +3,21 @@ import { MemoryEntry, MEMORY_TYPES, MemoryType } from '../model/types';
 export interface MemoryTotals {
   memories: number;
   chars: number;
-  estimatedTokens: number;
 }
 
 // What a set of memories costs if every one of them is recalled. The other number this surface
 // shows — the index — is paid every session and lives on `MemoryIndex` rather than here.
+//
+// Chars, not tokens: the caller estimates the sum once, under whichever estimator is set. Same rule
+// listingTotals follows, and for the same reason — estimating the sum is the more defensible of the
+// two orders.
 export const memoryTotals = (memories: MemoryEntry[]): MemoryTotals =>
   memories.reduce(
     (running: MemoryTotals, memory) => ({
       memories: running.memories + 1,
-      chars: running.chars + memory.chars,
-      estimatedTokens: running.estimatedTokens + memory.estimatedTokens
+      chars: running.chars + memory.chars
     }),
-    { memories: 0, chars: 0, estimatedTokens: 0 }
+    { memories: 0, chars: 0 }
   );
 
 // A group is one type, or the untyped remainder. `undefined` is a real group here, not a missing

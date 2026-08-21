@@ -2,9 +2,10 @@ import { FileText, Link2Off, SquareArrowOutUpRight } from 'lucide-react';
 import { MemoryIndex, MemoryIndexEntry } from '../model/types';
 import { cn } from '@/lib/utils';
 import { IssueList } from './IssueList';
+import { TokenEstimate } from './TokenEstimate';
 import { Tooltip } from './Tooltip';
 import { fileName } from './display-path';
-import { formatBytes, formatTokens, plural } from './format-size';
+import { formatBytes, plural } from './format-size';
 
 interface MemoryIndexCardProps {
   index: MemoryIndex;
@@ -50,7 +51,7 @@ export const MemoryIndexCard = ({
           {fileName(index.path)}
         </button>
         <span className="mono ml-auto shrink-0 text-xs text-muted-foreground">
-          {formatBytes(index.chars)} · ~{formatTokens(index.estimatedTokens)}
+          {formatBytes(index.chars)} · <TokenEstimate chars={index.chars} />
         </span>
         {index.present && (
           <Tooltip label="Open in editor">

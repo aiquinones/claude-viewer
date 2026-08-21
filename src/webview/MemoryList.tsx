@@ -1,8 +1,9 @@
 import { RefObject, useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
 import { MemoryEntry, MemoryType } from '../model/types';
+import { CollapsibleHeading } from './CollapsibleHeading';
 import { MemoryRow } from './MemoryRow';
-import { formatTokens, plural } from './format-size';
+import { TokenEstimate } from './TokenEstimate';
+import { plural } from './format-size';
 import { MemoryGroup, memoryGroups, memoryTotals } from './memory-totals';
 
 interface MemoryListProps {
@@ -86,44 +87,30 @@ const MemoryGroupSection = ({
   selectionRef,
   onToggle,
   onSelect
-}: MemoryGroupSectionProps) => {
-  const tokens: number = memoryTotals(group.memories).estimatedTokens;
+}: MemoryGroupSectionProps) => (
+  <section className="flex flex-col gap-1">
+    <CollapsibleHeading
+      title={id}
+      note={
+        <>
+          {note} · {plural(group.memories.length, 'memory', 'memories')} ·{' '}
+          <TokenEstimate chars={memoryTotals(group.memories).chars} long /> if recalled
+        </>
+      }
+      collapsed={collapsed}
+      onToggle={() => onToggle(id)}
+    />
 
-  return (
-    <section className="flex flex-col gap-1">
-      <h2>
-        <button
-          type="button"
-          onClick={() => onToggle(id)}
-          aria-expanded={!collapsed}
-          className="flex w-full items-center gap-1 rounded-md px-3 py-1 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground cursor-pointer hover:bg-accent"
-        >
-          {collapsed ? (
-            <ChevronRight className="size-3.5 shrink-0" />
-          ) : (
-            <ChevronDown className="size-3.5 shrink-0" />
-          )}
-          <span>
-            {id}{' '}
-            <span className="normal-case font-normal">
-              · {note} · {plural(group.memories.length, 'memory', 'memories')} · ~
-              {formatTokens(tokens)} est. tokens if recalled
-            </span>
-          </span>
-        </button>
-      </h2>
-
-      {!collapsed &&
-        group.memories.map((memory) => (
-          <MemoryRow
-            key={memory.path}
-            memory={memory}
-            selected={memory.path === selectedPath}
-            now={now}
-            selectionRef={selectionRef}
-            onSelect={onSelect}
-          />
-        ))}
-    </section>
-  );
-};
+    {!collapsed &&
+      group.memories.map((memory) => (
+        <MemoryRow
+          key={memory.path}
+          memory={memory}
+          selected={memory.path === selectedPath}
+          now={now}
+          selectionRef={selectionRef}
+          onSelect={onSelect}
+        />
+      ))}
+  </section>
+);
