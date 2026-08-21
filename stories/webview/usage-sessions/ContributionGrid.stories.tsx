@@ -9,7 +9,12 @@ import { busyYear, emptyHistory, quietHistory } from '../../usage-history-fixtur
 // The squares are painted from `--surface-accent`, which the usage view sets on itself — a custom
 // property resolves where it's used, so a story that doesn't set it draws the fallback grey.
 const OnSurface = ({ history, metric }: { history: UsageHistory; metric: GridMetric }) => {
-  const grid: UsageGrid = buildGrid({ sessions: history.sessions, metric, now: Date.now() });
+  const grid: UsageGrid = buildGrid({
+    sessions: history.sessions,
+    metric,
+    now: Date.now(),
+    retentionDays: history.retention.days
+  });
 
   return (
     <div

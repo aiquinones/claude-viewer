@@ -2,7 +2,7 @@ import { CSSProperties, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { findSkillByName } from '../../model/shadowing';
-import { SkillEntry } from '../../model/types';
+import { AgentTool, SkillEntry } from '../../model/types';
 import { PRICED_AT } from '../../model/usage/pricing';
 import {
   SessionUsage,
@@ -24,6 +24,7 @@ import { UsageInfo } from '../UsageInfo';
 import { UsageChoice } from '../UsageChoice';
 import { UsageTab, UsageTabs } from '../UsageTabs';
 import { SessionsTab } from '../usage-sessions/SessionsTab';
+import { GridMetric } from '../usage-sessions/grid';
 import { sliceLabel } from '../usage-format';
 import { WINDOW_OPTIONS } from '../usage-options';
 import { UsageSummary } from '../UsageSummary';
@@ -51,8 +52,11 @@ interface UsageViewProps {
   onOpenSession: (session: SessionUsage) => void;
   // Which window the view opens on. The panel never passes it; a story does.
   initialWindow?: UsageWindow;
-  // Which tab it opens on. Same deal.
+  // Which tab it opens on, and which of the Sessions tab's two toggles start where. Same deal —
+  // the panel never passes any of them.
   initialTab?: UsageTab;
+  initialMetric?: GridMetric;
+  initialTool?: AgentTool;
   onSearch: () => void;
   onRefresh: () => void;
   onBack: () => void;
@@ -70,6 +74,8 @@ export const UsageView = ({
   onOpenSession,
   initialWindow = 'day',
   initialTab = 'sessions',
+  initialMetric,
+  initialTool,
   onSearch,
   onRefresh,
   onBack
@@ -116,6 +122,8 @@ export const UsageView = ({
             history={history}
             workspaceRoot={workspaceRoot}
             onOpenSession={onOpenSession}
+            initialMetric={initialMetric}
+            initialTool={initialTool}
           />
         </div>
       ) : !breakdown ? (

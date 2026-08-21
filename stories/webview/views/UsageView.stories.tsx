@@ -12,7 +12,13 @@ import {
   unpricedModel,
   usageSkills
 } from '../../usage-fixtures';
-import { busyYear, emptyHistory, quietHistory } from '../../usage-history-fixtures';
+import {
+  busyYear,
+  emptyHistory,
+  quietHistory,
+  resumedOldSession,
+  shortRetention
+} from '../../usage-history-fixtures';
 import { UsageView } from '@src/webview/views/UsageView';
 
 // The metric, the scope and the cost basis are settings, so a story that wants one of them has to say
@@ -142,4 +148,27 @@ export const SessionsEmpty: Story = {
 // ones, so this tab waits on its own scan — the Skills tab beside it may already have its numbers.
 export const SessionsScanning: Story = {
   args: { initialTab: 'sessions', history: undefined }
+};
+
+// The Copilot half of the grid. No `cleanupPeriodDays` on that side and no documented equivalent,
+// so the window is whatever was found and the heading carries no (i) to explain it.
+export const SessionsCopilot: Story = {
+  args: { initialTab: 'sessions', initialTool: 'copilot' }
+};
+
+// The grid counted rather than measured. A day of one long session is dark on tokens and pale here.
+export const SessionsByCount: Story = {
+  args: { initialTab: 'sessions', initialMetric: 'sessions' }
+};
+
+// `cleanupPeriodDays` set to a week. The grid shrinks to the window that can hold data, instead of
+// drawing eleven empty months to reach it.
+export const SessionsShortRetention: Story = {
+  args: { initialTab: 'sessions', history: shortRetention }
+};
+
+// One session resumed months after it ran, which is the only way history outlives the sweep. The
+// grid widens to hold it and the card beside the heading says why.
+export const SessionsResumedOldSession: Story = {
+  args: { initialTab: 'sessions', history: resumedOldSession }
 };

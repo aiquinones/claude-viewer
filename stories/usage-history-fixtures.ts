@@ -6,6 +6,7 @@
 // grid's shades then agree with each other the way they do in the panel.
 
 import { AgentTool } from '@src/model/types';
+import { DEFAULT_RETENTION, Retention } from '@src/model/retention/types';
 import { foldToSession, foldTurns } from '@src/model/usage/history/fold';
 import { SessionUsage, UsageHistory, UsageTurn } from '@src/model/usage/types';
 
@@ -88,8 +89,9 @@ const session = ({
   return name ? { ...folded, title: name } : folded;
 };
 
-const history = (sessions: SessionUsage[]): UsageHistory => ({
+const history = (sessions: SessionUsage[], retention: Retention = DEFAULT_RETENTION): UsageHistory => ({
   sessions: [...sessions].sort((left, right) => right.lastAt - left.lastAt),
+  retention,
   scannedAt: Date.now()
 });
 
@@ -152,3 +154,19 @@ export const copilotSession: SessionUsage = session({
   outputPerTurn: 1_450,
   tool: 'copilot'
 });
+
+// A machine where someone set `cleanupPeriodDays` themselves. The grid spans it instead of the
+// default, and the card beside the heading names the file it came from rather than saying "default".
+export const shortRetention: UsageHistory = history(quietHistory.sessions, {
+  days: 7,
+  source: 'user',
+  path: '/Users/dev/.claude/settings.json'
+});
+
+// A session resumed long after it ran, which is the only way history reaches past the retention
+// period: touching the file resets its age, so Claude Code's sweep keeps it. The grid has to widen
+// to hold it — one lit square months behind an otherwise 30-day window.
+export const resumedOldSession: UsageHistory = history([
+  ...quietHistory.sessions,
+  session({ index: 5, daysAgo: 96, spanDays: 1, turnsPerDay: 9, outputPerTurn: 1_800 })
+]);

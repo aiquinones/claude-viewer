@@ -1,12 +1,17 @@
 // Sessions → the squares a contribution grid draws. Pure, and the only place the calendar is
 // reasoned about: which day is in which column, what a square is worth, and how dark it gets.
 
-import { dayKey, dayStart, shiftDays } from '../../model/usage/history/day';
+import { DAY_MS, dayKey, dayStart, shiftDays } from '../../model/usage/history/day';
 import { SessionUsage } from '../../model/usage/types';
 
-// A year of columns, which is the shape everyone already reads a grid like this in. Wider than a
-// narrow panel, so the box it sits in scrolls sideways and opens at today.
-export const GRID_WEEKS: number = 53;
+// The widest the grid ever gets. A year is the shape everyone reads a grid like this in, and it's
+// also the ceiling: a session resumed from two years ago would otherwise draw a hundred columns of
+// nothing to reach one lit square.
+export const MAX_GRID_WEEKS: number = 53;
+
+// The narrowest. Below about this a grid stops reading as a grid, and the shortest retention period
+// anyone would set is still a few days.
+export const MIN_GRID_WEEKS: number = 6;
 
 export const DAYS_PER_WEEK: number = 7;
 
@@ -48,8 +53,13 @@ export interface UsageGrid {
   weeks: GridWeek[];
   tokens: number;
   sessions: number;
-  // Days with anything on them. The denominator behind "spent on N of the last 371 days".
+  // Days with anything on them.
   activeDays: number;
+  // How many days back the oldest lit square is. Undefined when nothing is lit.
+  //
+  // This is what says whether history outlived the retention sweep — the grid's own width can't,
+  // because the minimum span already makes it wider than a short `cleanupPeriodDays`.
+  oldestActiveDays?: number;
 }
 
 const MONTH_LABEL: readonly string[] = [
@@ -76,16 +86,22 @@ interface BuildGridArgs {
   sessions: SessionUsage[];
   metric: GridMetric;
   now: number;
+  // How many days of transcripts Claude Code keeps. The span is built from this rather than fixed
+  // at a year: history older than the sweep isn't missing, it's deleted, and a grid that drew ten
+  // empty months to say so would read as a failed scan.
+  retentionDays: number;
 }
 
-export const buildGrid = ({ sessions, metric, now }: BuildGridArgs): UsageGrid => {
+export const buildGrid = ({ sessions, metric, now, retentionDays }: BuildGridArgs): UsageGrid => {
   const totals: Map<string, DayTotals> = dayTotals(sessions);
 
   const today: number = dayStart(now);
-  // Back to the Sunday of this week, then back a further 52 weeks. Every column is then a whole
+  const span: number = gridWeeks({ totals, today, retentionDays });
+
+  // Back to the Sunday of this week, then back a further N. Every column is then a whole
   // Sunday-to-Saturday week and today sits in the last one.
   const lastSunday: number = shiftDays({ from: today, days: -new Date(today).getDay() });
-  const first: number = shiftDays({ from: lastSunday, days: -(GRID_WEEKS - 1) * DAYS_PER_WEEK });
+  const first: number = shiftDays({ from: lastSunday, days: -(span - 1) * DAYS_PER_WEEK });
 
   // Ranked over the days the grid actually draws, not over everything the scan found. A corpus
   // reaching back further than the span would otherwise set the shades from days nobody can see.
@@ -93,13 +109,13 @@ export const buildGrid = ({ sessions, metric, now }: BuildGridArgs): UsageGrid =
     totals,
     metric,
     from: dayKey(first),
-    to: dayKey(shiftDays({ from: first, days: GRID_WEEKS * DAYS_PER_WEEK - 1 }))
+    to: dayKey(shiftDays({ from: first, days: span * DAYS_PER_WEEK - 1 }))
   });
 
   const weeks: GridWeek[] = [];
   let previousMonth: number | undefined;
 
-  for (let week = 0; week < GRID_WEEKS; week += 1) {
+  for (let week = 0; week < span; week += 1) {
     const start: number = shiftDays({ from: first, days: week * DAYS_PER_WEEK });
     const days: GridDay[] = [];
 
@@ -138,12 +154,41 @@ export const buildGrid = ({ sessions, metric, now }: BuildGridArgs): UsageGrid =
   // on the wall — and a caption that counted it would name days nothing is lit for.
   const drawn: GridDay[] = weeks.flatMap((week) => week.days);
 
+  const lit: GridDay[] = drawn.filter((day) => day.sessions > 0);
+
   return {
     weeks,
     tokens: drawn.reduce((running, day) => running + day.tokens, 0),
     sessions: drawn.reduce((running, day) => running + day.sessions, 0),
-    activeDays: drawn.filter((day) => day.sessions > 0).length
+    activeDays: lit.length,
+    ...(lit.length > 0
+      ? { oldestActiveDays: Math.round((today - lit[0].at) / DAY_MS) }
+      : {})
   };
+};
+
+interface GridWeeksArgs {
+  totals: Map<string, DayTotals>;
+  today: number;
+  retentionDays: number;
+}
+
+// How many columns to draw. The retention period is the floor, because that's what *can* be on disk
+// — but a session resumed after it ran keeps its old file alive past the sweep, and its days are
+// real, so the span widens to hold the oldest one there is.
+//
+// That widening is not an edge case worth skipping: it's the only reason a grid ever reaches past a
+// month, and the day it draws is genuinely the oldest thing this machine remembers.
+const gridWeeks = ({ totals, today, retentionDays }: GridWeeksArgs): number => {
+  const oldest: string | undefined = [...totals.keys()].sort()[0];
+  const oldestDays: number = oldest
+    ? Math.floor((today - Date.parse(`${oldest}T12:00:00`)) / DAY_MS)
+    : 0;
+
+  const days: number = Math.max(retentionDays, oldestDays) + 1;
+  const weeks: number = Math.ceil(days / DAYS_PER_WEEK);
+
+  return Math.min(Math.max(weeks, MIN_GRID_WEEKS), MAX_GRID_WEEKS);
 };
 
 // Every day any session spent something, with how many sessions were involved. Only days inside the
@@ -205,13 +250,3 @@ const levelOf = (value: number, thresholds: number[]): number => {
   if (value <= 0) return 0;
   return thresholds.reduce((level, threshold) => (value >= threshold ? level + 1 : level), 1);
 };
-
-// The day a square covers, spelled out. `title` on every square is what makes the grid readable
-// without a hover card per cell, of which there would be 371.
-export const gridDayLabel = (day: GridDay): string =>
-  new Date(day.at).toLocaleDateString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: new Date(day.at).getFullYear() === new Date().getFullYear() ? undefined : 'numeric'
-  });

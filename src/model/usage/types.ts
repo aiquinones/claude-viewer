@@ -2,6 +2,7 @@
 // tokens; only Claude stamps every turn with its skill, which is what `source` is for.
 
 import { AgentTool } from '../types';
+import { Retention } from '../retention/types';
 import { UsdParts } from './pricing';
 
 // Which number the surface reads. `output-tokens` is measured on both sides and is what Claude
@@ -198,5 +199,11 @@ export interface SessionUsage {
 export interface UsageHistory {
   // Most recently active first.
   sessions: SessionUsage[];
+  // How long Claude Code keeps a transcript, and which settings file said so. Carried here because
+  // it is the thing that explains the list: history older than this was deleted by Claude Code's
+  // own sweep, so a grid drawn further back is empty by construction rather than by accident.
+  //
+  // Claude's number. Copilot documents no equivalent and writes none to disk.
+  retention: Retention;
   scannedAt: number;
 }

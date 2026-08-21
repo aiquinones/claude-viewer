@@ -5,6 +5,7 @@ import {
   newHistoryCache,
   scanUsageHistory
 } from '../model/usage/history/scan';
+import { DEFAULT_RETENTION } from '../model/retention/types';
 import { UsageHistory } from '../model/usage/types';
 import { currentSettings } from './settings-store';
 import { workspaceRoot } from './workspace';
@@ -47,7 +48,7 @@ export const onDidChangeUsageHistory: vscode.Event<UsageHistory> = changeEmitter
 // — a `current*()` nobody calls is a store that never runs, which is exactly how the usage view
 // ended up sitting on its loading state.
 export const refreshUsageHistory = async (): Promise<UsageHistory> => {
-  scanned = await scanUsageHistory({ cache, now: Date.now() });
+  scanned = await scanUsageHistory({ cache, now: Date.now(), workspaceRoot: workspaceRoot() });
   return publish();
 };
 
@@ -57,7 +58,7 @@ export const renarrowUsageHistory = (): UsageHistory | undefined => (scanned ? p
 
 const publish = (): UsageHistory => {
   const next: UsageHistory = narrowHistory({
-    history: scanned ?? { sessions: [], scannedAt: Date.now() },
+    history: scanned ?? { sessions: [], retention: DEFAULT_RETENTION, scannedAt: Date.now() },
     scope: currentSettings().usage.scope.value,
     workspaceRoot: workspaceRoot()
   });

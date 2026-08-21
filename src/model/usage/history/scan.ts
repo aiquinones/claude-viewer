@@ -1,6 +1,8 @@
 // Both CLIs' whole corpus, as one list of sessions. The same shape as `usage/load.ts` and for the
 // same reason: which CLI a session ran under is a field on the answer, not a separate question.
 
+import { loadRetention } from '../../retention/load';
+import { Retention } from '../../retention/types';
 import { UsageScope, UsageHistory, SessionUsage } from '../types';
 import { scanClaudeHistory, HistoryCache } from './claude';
 import { scanCopilotHistory } from './copilot';
@@ -13,15 +15,20 @@ export const newHistoryCache = (): HistoryCache => new Map();
 interface ScanUsageHistoryArgs {
   cache: HistoryCache;
   now: number;
+  // Which settings layers to look in for `cleanupPeriodDays`. The project ones only exist when a
+  // folder is open, the same as everywhere else here.
+  workspaceRoot: string | undefined;
 }
 
 export const scanUsageHistory = async ({
   cache,
-  now
+  now,
+  workspaceRoot
 }: ScanUsageHistoryArgs): Promise<UsageHistory> => {
-  const [claude, copilot]: SessionFold[][] = await Promise.all([
+  const [claude, copilot, retention]: [SessionFold[], SessionFold[], Retention] = await Promise.all([
     scanClaudeHistory(cache),
-    scanCopilotHistory()
+    scanCopilotHistory(),
+    loadRetention(workspaceRoot)
   ]);
 
   const sessions: SessionUsage[] = [...claude, ...copilot]
@@ -31,7 +38,7 @@ export const scanUsageHistory = async ({
     .filter((session) => session.turns > 0)
     .sort((left, right) => right.lastAt - left.lastAt);
 
-  return { sessions, scannedAt: now };
+  return { sessions, retention, scannedAt: now };
 };
 
 interface NarrowHistoryArgs {

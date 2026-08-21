@@ -202,6 +202,34 @@
   mask-image: radial-gradient(circle closest-side at 50% 50%, #000, transparent);
 }
 
+/* The contribution grid's lattice, from one pitch. Every other measurement on that grid is derived
+   from these two: the gaps between squares, the offset of each month label, and where the tooltip
+   points. Declaring it once is what keeps the labels on their columns — they're positioned
+   absolutely, because a label laid out in its own column makes that column as wide as the word and
+   opens a visible gap every four weeks.
+
+   The gap is equal in both directions on purpose. A wider horizontal gap than vertical reads as
+   columns rather than as days. */
+.usage-grid {
+  --grid-cell: 0.625rem;
+  --grid-gap: 3px;
+  --grid-pitch: calc(var(--grid-cell) + var(--grid-gap));
+}
+
+.usage-grid-weeks,
+.usage-grid-days {
+  gap: var(--grid-gap);
+}
+
+/* Sits on the same rhythm as the rows it names, so Mon / Wed / Fri line up with their squares. */
+.usage-grid-weekday {
+  width: 1.5rem;
+  height: var(--grid-cell);
+  font-size: 9px;
+  line-height: var(--grid-cell);
+  color: var(--muted-foreground);
+}
+
 /* One square of the contribution grid. Five states, painted from the surface accent so the grid is
    the usage surface's colour rather than a second palette — and mixed against the editor background
    rather than into transparency, so the squares don't stack where a border runs under them.
@@ -210,8 +238,8 @@
    at `:root`: a custom property resolves where it's used, and `--surface-accent` is only set on the
    surface's own element. */
 .usage-grid-day {
-  width: 0.625rem;
-  height: 0.625rem;
+  width: var(--grid-cell);
+  height: var(--grid-cell);
   border-radius: 2px;
   background: color-mix(in srgb, var(--foreground) 8%, var(--background));
 }
@@ -235,8 +263,8 @@
 /* A day that hasn't happened. The last column runs to Saturday, so up to six of its squares are
    ahead of today — a hole says that, where an empty square would claim a day that cost nothing. */
 .usage-grid-future {
-  width: 0.625rem;
-  height: 0.625rem;
+  width: var(--grid-cell);
+  height: var(--grid-cell);
 }
 
 /* The light itself: the surface accent, wide and faint, under the dots. */
