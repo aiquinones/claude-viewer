@@ -5,7 +5,9 @@ import { findSkillByName } from '../../model/shadowing';
 import { SkillEntry } from '../../model/types';
 import { PRICED_AT } from '../../model/usage/pricing';
 import {
+  SessionUsage,
   UsageBreakdown,
+  UsageHistory,
   UsageMetric,
   UsageReport,
   UsageSlice,
@@ -20,6 +22,8 @@ import { surfaceAccent } from '../surfaces';
 import { UsageBar } from '../UsageBar';
 import { UsageInfo } from '../UsageInfo';
 import { UsageChoice } from '../UsageChoice';
+import { UsageTab, UsageTabs } from '../UsageTabs';
+import { SessionsTab } from '../usage-sessions/SessionsTab';
 import { sliceLabel } from '../usage-format';
 import { WINDOW_OPTIONS } from '../usage-options';
 import { UsageSummary } from '../UsageSummary';
@@ -32,25 +36,40 @@ interface UsageViewProps {
   // Undefined until the first scan lands. Unlike the other surfaces this one isn't sent on `ready`:
   // it reads every session log on disk, so the host starts it in the background and posts it after.
   report: UsageReport | undefined;
+  // Every session on disk, for the Sessions tab. Its own message, and it arrives later than the
+  // report — the tab that shows it is what starts the pass behind it.
+  history: UsageHistory | undefined;
   // What's installed here, so a row can show what its skill is for and open it. A window covering
   // every session on the machine names plenty of skills this workspace doesn't have.
   skills: SkillEntry[];
+  // Where the open folder is, so a session row can print its cwd against it.
+  workspaceRoot: string | undefined;
   // Opens one on the skills surface. The panel owns navigation, so this leaves the view.
   onOpenSkill: (path: string) => void;
+  // Picking one session. There's nothing to show for it yet, so the host says so — the sentence is
+  // the host's, the same way it is for a surface that isn't built.
+  onOpenSession: (session: SessionUsage) => void;
   // Which window the view opens on. The panel never passes it; a story does.
   initialWindow?: UsageWindow;
+  // Which tab it opens on. Same deal.
+  initialTab?: UsageTab;
   onSearch: () => void;
   onRefresh: () => void;
   onBack: () => void;
 }
 
-// What the sessions on this machine have cost, split by the skill that was running. The skill is
-// read off the turn on Claude's side and inferred on Copilot's, which is what the tag on a row says.
+// What the sessions on this machine have cost, two ways. Sessions is every session on disk — a year
+// of days as a grid, and a list you can search. Skills is a window inside that, split by the skill
+// that was running: read off the turn on Claude's side and inferred on Copilot's.
 export const UsageView = ({
   report,
+  history,
   skills,
+  workspaceRoot,
   onOpenSkill,
+  onOpenSession,
   initialWindow = 'day',
+  initialTab = 'sessions',
   onSearch,
   onRefresh,
   onBack
@@ -58,6 +77,7 @@ export const UsageView = ({
   // Component state, not a setting: which window you're looking at is a glance, where the metric is
   // a preference. Same split the skills surface makes between its selection and its budgets.
   const [window, setWindow] = useState<UsageWindow>(initialWindow);
+  const [tab, setTab] = useState<UsageTab>(initialTab);
   const { metric, scope } = useSettings().usage;
   const setUsage = useSetUsage();
 
@@ -75,16 +95,30 @@ export const UsageView = ({
         <div className="mr-auto flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-semibold">Usage</span>
           <span className="truncate text-xs text-muted-foreground">
-            {breakdown
-              ? `${plural(breakdown.sessions, 'session')} · ${WINDOW_BLURB[window].toLowerCase()}`
-              : 'reading every session log'}
+            {subtitle({ tab, breakdown, history, window })}
           </span>
         </div>
-        <UsageChoice label="Window" options={WINDOW_OPTIONS} value={window} onChange={setWindow} />
+        {/* The window is the Skills tab's question. The grid spans a year and the list spans
+            everything, so a Day / Week toggle over them would change nothing. */}
+        {tab === 'skills' && (
+          <UsageChoice label="Window" options={WINDOW_OPTIONS} value={window} onChange={setWindow} />
+        )}
         <PanelActions onSearch={onSearch} onRefresh={onRefresh} />
       </header>
 
-      {!breakdown ? (
+      <div className="border-b border-border px-3">
+        <UsageTabs tab={tab} onChange={setTab} />
+      </div>
+
+      {tab === 'sessions' ? (
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-clip">
+          <SessionsTab
+            history={history}
+            workspaceRoot={workspaceRoot}
+            onOpenSession={onOpenSession}
+          />
+        </div>
+      ) : !breakdown ? (
         <div className="flex flex-1 items-center justify-center">
           <Loading label="Reading session logs…" expectedMs={SCAN_EXPECTED_MS} />
         </div>
@@ -111,6 +145,28 @@ export const UsageView = ({
       )}
     </div>
   );
+};
+
+interface SubtitleArgs {
+  tab: UsageTab;
+  breakdown: UsageBreakdown | undefined;
+  history: UsageHistory | undefined;
+  window: UsageWindow;
+}
+
+// What the header says under "Usage", which is a different sentence per tab: one counts a window,
+// the other counts everything. Both say "reading" rather than nothing while their scan is out —
+// they're separate passes and either can be the one you're waiting on.
+const subtitle = ({ tab, breakdown, history, window }: SubtitleArgs): string => {
+  if (tab === 'sessions') {
+    return history
+      ? `${plural(history.sessions.length, 'session')} on record`
+      : 'reading every session on disk';
+  }
+
+  return breakdown
+    ? `${plural(breakdown.sessions, 'session')} · ${WINDOW_BLURB[window].toLowerCase()}`
+    : 'reading every session log';
 };
 
 interface SlicesProps {

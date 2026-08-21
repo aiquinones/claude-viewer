@@ -1,0 +1,154 @@
+// Synthetic sessions for the Sessions tab's stories — never real config, like every other fixture
+// here. A real session names a real repo and says what you were doing last Tuesday.
+//
+// Built by running the real fold over made-up turns rather than by writing session records out by
+// hand, the same way the usage fixtures build their report: the day buckets, the totals and the
+// grid's shades then agree with each other the way they do in the panel.
+
+import { AgentTool } from '@src/model/types';
+import { foldToSession, foldTurns } from '@src/model/usage/history/fold';
+import { SessionUsage, UsageHistory, UsageTurn } from '@src/model/usage/types';
+
+const DAY_MS: number = 24 * 60 * 60 * 1000;
+
+const TITLES: readonly string[] = [
+  'Add the flow view to the skill surface',
+  'Contribution grid for the usage view',
+  'Fix two agent rows that described a session that was gone',
+  'Token estimator as a setting',
+  'Memory surface, first pass',
+  'Read the context window off the last assistant line',
+  'Skill graph neighbourhood layout',
+  'Spotlight filters',
+  'Copilot session loader',
+  'Landing page card glow'
+];
+
+const CWDS: readonly string[] = [
+  '/Users/dev/repos/example-app',
+  '/Users/dev/repos/example-app/.claude/worktrees/feat+grid',
+  '/Users/dev/repos/other-project'
+];
+
+interface SessionArgs {
+  index: number;
+  daysAgo: number;
+  // How many days the session ran across, from `daysAgo` forwards.
+  spanDays: number;
+  turnsPerDay: number;
+  outputPerTurn: number;
+  tool?: AgentTool;
+  title?: string;
+}
+
+// Deterministic ids, so a story re-renders to the same list.
+const session = ({
+  index,
+  daysAgo,
+  spanDays,
+  turnsPerDay,
+  outputPerTurn,
+  tool = 'claude',
+  title
+}: SessionArgs): SessionUsage => {
+  const turns: UsageTurn[] = [];
+
+  for (let day = 0; day < spanDays; day += 1) {
+    for (let turn = 0; turn < turnsPerDay; turn += 1) {
+      // Noon, so a fixture can't land either side of midnight depending on the reader's clock.
+      const at: number = new Date(Date.now() - (daysAgo - day) * DAY_MS).setHours(
+        12,
+        turn % 50,
+        0,
+        0
+      );
+
+      turns.push({
+        id: `req_${index}_${day}_${turn}`,
+        at,
+        tool,
+        sessionId: `session-${index}`,
+        cwd: CWDS[index % CWDS.length],
+        source: tool === 'claude' ? 'read' : 'inferred',
+        model: tool === 'claude' ? 'claude-opus-5' : 'claude-haiku-4.5',
+        tokens: {
+          input: 12,
+          output: outputPerTurn,
+          cacheRead: outputPerTurn * 30,
+          cacheWrite5m: 0,
+          cacheWrite1h: 0
+        }
+      });
+    }
+  }
+
+  const folded: SessionUsage = foldToSession(foldTurns(turns)[0]);
+  const name: string | undefined = title ?? TITLES[index % TITLES.length];
+
+  return name ? { ...folded, title: name } : folded;
+};
+
+const history = (sessions: SessionUsage[]): UsageHistory => ({
+  sessions: [...sessions].sort((left, right) => right.lastAt - left.lastAt),
+  scannedAt: Date.now()
+});
+
+// Months of work, spread across the year — which is what a real grid looks like, and what makes the
+// rank-based shading worth having.
+//
+// Sessions come in overlapping pairs and threes rather than one to a day. That's what a real week
+// is, and it's the only way the Sessions metric shows anything: every day holding exactly one
+// session is one distinct value, which correctly paints the whole grid a single shade.
+export const busyYear: UsageHistory = history(
+  Array.from({ length: 24 }, (_, index) =>
+    session({
+      index,
+      daysAgo: index === 0 ? 0 : Math.floor(index / 2.5) * 27 + (index % 3),
+      spanDays: (index % 3) + 1,
+      turnsPerDay: 4 + ((index * 7) % 30),
+      outputPerTurn: 400 + ((index * 313) % 2_600),
+      tool: index % 7 === 0 ? 'copilot' : 'claude'
+    })
+  )
+);
+
+// A machine that's only ever run a handful of sessions, all of them this week.
+export const quietHistory: UsageHistory = history([
+  session({ index: 0, daysAgo: 0, spanDays: 1, turnsPerDay: 6, outputPerTurn: 1_200 }),
+  session({ index: 1, daysAgo: 2, spanDays: 1, turnsPerDay: 3, outputPerTurn: 800 }),
+  session({
+    index: 2,
+    daysAgo: 4,
+    spanDays: 1,
+    turnsPerDay: 12,
+    outputPerTurn: 2_400,
+    tool: 'copilot'
+  })
+]);
+
+// The scope filter with nothing under it: this workspace has never been worked in.
+export const emptyHistory: UsageHistory = history([]);
+
+// A session Claude Code never got round to naming — 4 of the 89 measured on a real machine. The row
+// falls back to the folder it ran in.
+export const untitledSession: SessionUsage = {
+  ...session({ index: 3, daysAgo: 1, spanDays: 1, turnsPerDay: 5, outputPerTurn: 900 }),
+  title: undefined
+};
+
+export const oneSession: SessionUsage = session({
+  index: 1,
+  daysAgo: 0,
+  spanDays: 1,
+  turnsPerDay: 18,
+  outputPerTurn: 3_100
+});
+
+export const copilotSession: SessionUsage = session({
+  index: 8,
+  daysAgo: 3,
+  spanDays: 2,
+  turnsPerDay: 7,
+  outputPerTurn: 1_450,
+  tool: 'copilot'
+});

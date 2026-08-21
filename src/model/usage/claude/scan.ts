@@ -68,10 +68,12 @@ const scanFile = async ({ path, since, cache }: ScanFileArgs): Promise<UsageTurn
   if (!stats) return [];
   if (stats.mtimeMs < since && !cache.has(path)) return [];
 
-  return readNewTurns({ path, cache, parse: parseLines });
+  return readNewTurns({ path, cache, parse: parseClaudeTurns });
 };
 
-const parseLines = (lines: string[]): UsageTurn[] => {
+// Exported for the history scan, which reads the same lines and keeps a per-session fold instead of
+// the turns. What counts as a turn has to be the one rule, or the two tabs disagree on a total.
+export const parseClaudeTurns = (lines: string[]): UsageTurn[] => {
   const turns: UsageTurn[] = [];
 
   for (const line of lines) {

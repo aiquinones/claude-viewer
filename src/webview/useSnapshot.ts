@@ -2,7 +2,13 @@ import { useEffect, useState } from 'react';
 import { TokenEstimator } from '../model/estimate-tokens';
 import { DEFAULT_SETTINGS, SettingsSection, ViewerSettings } from '../model/settings/settings';
 import { AgentColor, AgentColors, AgentSession, ConfigSnapshot, Reveal } from '../model/types';
-import { UsageCostBasis, UsageMetric, UsageReport, UsageScope } from '../model/usage/types';
+import {
+  UsageCostBasis,
+  UsageHistory,
+  UsageMetric,
+  UsageReport,
+  UsageScope
+} from '../model/usage/types';
 import { vscode } from './vscodeApi';
 
 // The single bridge to the extension host. The host owns the filesystem and pushes a whole
@@ -21,6 +27,9 @@ export const useSnapshot = () => {
   // Undefined until the first scan lands, which is later than everything else here — it reads every
   // session log on the machine, so the host starts it in the background and posts it when it's done.
   const [usage, setUsage] = useState<UsageReport | undefined>(undefined);
+  // Later still: nothing outside the Sessions tab shows this, so the host doesn't start the pass
+  // behind it until that surface is open.
+  const [usageHistory, setUsageHistory] = useState<UsageHistory | undefined>(undefined);
 
   useEffect(() => {
     const onMessage = (event: MessageEvent): void => {
@@ -32,6 +41,7 @@ export const useSnapshot = () => {
       if (message?.type === 'settings') setSettings(message.settings as ViewerSettings);
       if (message?.type === 'agentColors') setAgentColors(message.colors as AgentColors);
       if (message?.type === 'usage') setUsage(message.report as UsageReport);
+      if (message?.type === 'usageHistory') setUsageHistory(message.history as UsageHistory);
       // A fresh object every time, so an effect keyed on it re-runs for a repeated reveal.
       if (message?.type === 'reveal') {
         setReveal({ path: message.path, section: message.section, nonce: message.nonce });
@@ -86,6 +96,7 @@ export const useSnapshot = () => {
     snapshot,
     agents,
     usage,
+    usageHistory,
     changeUsage,
     changeEstimator,
     settings,

@@ -202,6 +202,43 @@
   mask-image: radial-gradient(circle closest-side at 50% 50%, #000, transparent);
 }
 
+/* One square of the contribution grid. Five states, painted from the surface accent so the grid is
+   the usage surface's colour rather than a second palette — and mixed against the editor background
+   rather than into transparency, so the squares don't stack where a border runs under them.
+
+   The accent is read off the view that sets it, which is why these are classes here and not tokens
+   at `:root`: a custom property resolves where it's used, and `--surface-accent` is only set on the
+   surface's own element. */
+.usage-grid-day {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--foreground) 8%, var(--background));
+}
+
+.usage-grid-day.level-1 {
+  background: color-mix(in srgb, var(--surface-accent, var(--foreground)) 28%, var(--background));
+}
+
+.usage-grid-day.level-2 {
+  background: color-mix(in srgb, var(--surface-accent, var(--foreground)) 50%, var(--background));
+}
+
+.usage-grid-day.level-3 {
+  background: color-mix(in srgb, var(--surface-accent, var(--foreground)) 72%, var(--background));
+}
+
+.usage-grid-day.level-4 {
+  background: var(--surface-accent, var(--foreground));
+}
+
+/* A day that hasn't happened. The last column runs to Saturday, so up to six of its squares are
+   ahead of today — a hole says that, where an empty square would claim a day that cost nothing. */
+.usage-grid-future {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
 /* The light itself: the surface accent, wide and faint, under the dots. */
 .graph-glow {
   background: radial-gradient(

@@ -12,6 +12,7 @@ import {
   unpricedModel,
   usageSkills
 } from '../../usage-fixtures';
+import { busyYear, emptyHistory, quietHistory } from '../../usage-history-fixtures';
 import { UsageView } from '@src/webview/views/UsageView';
 
 // The metric, the scope and the cost basis are settings, so a story that wants one of them has to say
@@ -44,10 +45,15 @@ const meta: Meta<typeof UsageView> = {
   component: UsageView,
   args: {
     report: dayOfWork,
+    history: busyYear,
+    workspaceRoot: '/Users/dev/repos/example-app',
+    // The tab most of these stories are about. Sessions is what the surface actually opens on.
+    initialTab: 'skills',
     // Most rows have a skill behind them and are hoverable; `track` deliberately doesn't, which is
     // the ordinary case for a window covering every session on the machine.
     skills: usageSkills,
     onOpenSkill: () => undefined,
+    onOpenSession: () => undefined,
     onSearch: () => undefined,
     onRefresh: () => undefined,
     onBack: () => undefined
@@ -117,3 +123,23 @@ export const Empty: Story = { args: { report: noUsage } };
 // Before the first scan lands. This surface reads every session log on the machine, so unlike the
 // others it is not sent with the snapshot and the panel spends a moment here.
 export const Scanning: Story = { args: { report: undefined } };
+
+// The tab the surface opens on: a year of days, and every session on the machine under it.
+export const Sessions: Story = { args: { initialTab: 'sessions' } };
+
+// A machine that's run a handful of sessions, all this week. Most of the grid is empty, which is
+// what a rank-based scale still has to read as — the few days there are still get four shades.
+export const SessionsQuiet: Story = {
+  args: { initialTab: 'sessions', history: quietHistory }
+};
+
+// The workspace scope with nothing under it. The grid is a year of holes and the list says so.
+export const SessionsEmpty: Story = {
+  args: { initialTab: 'sessions', history: emptyHistory }
+};
+
+// Before the history pass lands. It reads every transcript on the machine rather than the recent
+// ones, so this tab waits on its own scan — the Skills tab beside it may already have its numbers.
+export const SessionsScanning: Story = {
+  args: { initialTab: 'sessions', history: undefined }
+};

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { buildSearchIndex } from '../model/search/build-index';
 import { AgentSession, ConfigSnapshot, Reveal, SearchDoc } from '../model/types';
-import { UsageReport } from '../model/usage/types';
+import { UsageHistory, UsageReport } from '../model/usage/types';
 import { TokenEstimator } from '../model/estimate-tokens';
 import { AgentColorProvider } from './agent-color/AgentColorContext';
 import { EstimatorDialog } from './EstimatorDialog';
@@ -32,6 +32,7 @@ export const App = () => {
     snapshot,
     agents,
     usage,
+    usageHistory,
     changeUsage,
     changeEstimator,
     settings,
@@ -143,7 +144,9 @@ export const App = () => {
               snapshot={snapshot}
               agents={agents}
               usage={usage}
+              usageHistory={usageHistory}
               onOpenSkill={openSkill}
+              onUnavailable={reportUnavailable}
               reveal={selected}
               onOpenAgent={openAgent}
               onOpenFile={openFile}
@@ -184,8 +187,12 @@ interface DetailProps {
   snapshot: ConfigSnapshot;
   agents: AgentSession[];
   usage: UsageReport | undefined;
+  usageHistory: UsageHistory | undefined;
   // A skill named on another surface — the usage rows do this. Opens it on the skills surface.
   onOpenSkill: (path: string) => void;
+  // Something the panel can't show yet. The host owns the sentence, the same way it does for a
+  // surface that isn't built — a session row is the second thing to say it.
+  onUnavailable: (title: string) => void;
   reveal?: Reveal;
   // Active Agents only: a row goes to the running agent, and the host works out where that is.
   onOpenAgent: (sessionId: string) => void;
@@ -202,7 +209,9 @@ const Detail = ({
   snapshot,
   agents,
   usage,
+  usageHistory,
   onOpenSkill,
+  onUnavailable,
   reveal,
   onOpenAgent,
   onOpenFile,
@@ -262,8 +271,11 @@ const Detail = ({
       return (
         <UsageView
           report={usage}
+          history={usageHistory}
           skills={snapshot.skills}
+          workspaceRoot={snapshot.workspaceRoot}
           onOpenSkill={onOpenSkill}
+          onOpenSession={() => onUnavailable('Session analysis')}
           onSearch={onSearch}
           onRefresh={onRefresh}
           onBack={onBack}
