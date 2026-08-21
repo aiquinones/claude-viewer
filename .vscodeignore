@@ -13,6 +13,7 @@ storybook-static/**
 .claude/**
 
 src/**
+stories/**
 docs/**
 tracking/**
 node_modules/**

@@ -6,7 +6,7 @@ import {
   memoryMarkdown,
   promptMarkdown,
   skillMarkdown
-} from '../src/webview/fixtures';
+} from '../stories/fixtures';
 import { applyTheme, ThemeName } from './vscode-theme';
 
 // App reaches for the webview bridge at module scope, which doesn't exist outside the editor.
