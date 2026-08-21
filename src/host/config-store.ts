@@ -1,5 +1,11 @@
 import * as vscode from 'vscode';
-import { CLAUDE_FILE, LOCAL_CLAUDE_FILE, skillRoots, userClaudeDir } from '../config/paths';
+import {
+  CLAUDE_FILE,
+  LOCAL_CLAUDE_FILE,
+  memoryDir,
+  skillRoots,
+  userClaudeDir
+} from '../config/paths';
 import { buildSnapshot } from '../model/snapshot';
 import { ConfigSnapshot, SkillRoot } from '../model/types';
 import { workspaceRoot } from './workspace';
@@ -39,7 +45,12 @@ export const startWatching = async (): Promise<void> => {
   watch({ dir: userClaudeDir(), glob: CLAUDE_FILE });
 
   const folder: string | undefined = workspaceRoot();
-  if (folder) watch({ dir: folder, glob: `**/{${CLAUDE_FILE},${LOCAL_CLAUDE_FILE}}` });
+  if (!folder) return;
+
+  watch({ dir: folder, glob: `**/{${CLAUDE_FILE},${LOCAL_CLAUDE_FILE}}` });
+  // Claude writes memories mid-session, and a memory appearing while the panel is open is the
+  // surface's best demo. The directory doesn't have to exist yet — the watcher fires when it does.
+  watch({ dir: memoryDir(folder), glob: '*.md' });
 };
 
 interface WatchArgs {

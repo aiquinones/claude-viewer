@@ -9,7 +9,10 @@ This is a VSCode extension for viewing the **RESOLVED** state for your agent, li
 ## Current State
 - [x] Skills View, coming from the user specific `~/.claude/` folder, the project's global `.claude/` folder, and active plugins.
 - [x] System Prompt View, merging CLAUDE.md or similar files.
-- [ ] Memory View, for purging / tracking stale or important memories
+- [x] Memory View, for the files Claude writes about you — grouped by type, with what the
+      `MEMORY.md` index costs every session, and the two ways it goes wrong: a memory nothing points
+      at, and an index line pointing at nothing. Copilot's memories live on GitHub rather than on
+      disk, so that half of the surface says where to find them instead of listing them.
 - [ ] Hooks for tool invocations etc
 - [ ] Permissions
 

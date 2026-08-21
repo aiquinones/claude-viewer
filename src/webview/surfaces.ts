@@ -3,7 +3,13 @@
 //
 // Webview-only, so it lives here rather than in model/types.ts — none of it crosses to the host.
 
-import { AgentSession, ConfigSnapshot, SkillEntry, SystemPromptFile } from '../model/types';
+import {
+  AgentSession,
+  ConfigSnapshot,
+  MemorySet,
+  SkillEntry,
+  SystemPromptFile
+} from '../model/types';
 import { UsageReport } from '../model/usage/types';
 import { formatUsageTokens } from './usage-format';
 import { formatTokens, plural } from './format-size';
@@ -52,6 +58,13 @@ export const SURFACES = [
     blurb: 'What your sessions cost, split by the skill that was running.',
     accent: 'var(--vscode-charts-orange, #d18616)',
     status: 'ready'
+  },
+  {
+    id: 'memory',
+    title: 'Memory',
+    blurb: 'What Claude wrote down about you here, and which of it any session will read.',
+    accent: 'var(--vscode-charts-yellow, #cca700)',
+    status: 'ready'
   }
 ] as const satisfies readonly SurfaceShape[];
 
@@ -89,7 +102,20 @@ export const getDetailForSurface = ({
       return agentsDetail(agents);
     case 'usage':
       return usageDetail(usage);
+    case 'memory':
+      return memoryDetail(snapshot.memory);
   }
+};
+
+// The index cost, which is what memory adds to every session whether or not anything is recalled —
+// the same question the prompt card answers.
+const memoryDetail = (memory: MemorySet | undefined): string => {
+  if (!memory) return 'No folder open';
+  if (memory.memories.length === 0) return 'None written yet';
+
+  return `${plural(memory.memories.length, 'memory', 'memories')} · ~${formatTokens(
+    memory.index.estimatedTokens
+  )} est. tokens`;
 };
 
 // The day's output tokens, which is the default metric and the one figure both CLIs measure. No

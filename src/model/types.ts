@@ -202,11 +202,95 @@ export interface AgentSession {
   issues: ConfigIssue[];
 }
 
+// Auto-memory: the files Claude writes about you, under `~/.claude/projects/<encoded>/memory/`.
+// Nothing here is authored by hand, which is the whole reason the surface exists.
+//
+// The four types the memory instructions name. A file carrying anything else still renders, in its
+// own group — degrade, don't drop.
+//
+// Deliberately not annotated: a type here would erase the literals `MemoryType` derives from.
+export const MEMORY_TYPES = ['user', 'feedback', 'project', 'reference'] as const;
+
+export type MemoryType = (typeof MEMORY_TYPES)[number];
+
+// A `[[name]]` in a memory's body. A link with no target is not a failure — the instructions say it
+// marks something worth writing later — so `resolved` dims the chip rather than flagging it.
+export interface MemoryLink {
+  name: string;
+  resolved: boolean;
+}
+
+// What the body pane renders. A memory is one; so is MEMORY.md, which has no type, no age and no
+// links — which is why this is the shape the pane takes rather than MemoryEntry.
+export interface MemoryDocument {
+  // A memory's frontmatter `name` (falling back to the filename); the filename for the index.
+  name: string;
+  // Empty for the index: the file is its own description.
+  description: string;
+  // Absolute path. What the body is fetched by, and unique, so it doubles as the selection key.
+  path: string;
+  links: MemoryLink[];
+  issues: ConfigIssue[];
+}
+
+// One memory file. Unlike a skill it costs nothing until it's recalled, so there's one cost here
+// rather than two: the index is what carries the price of merely existing.
+export interface MemoryEntry extends MemoryDocument {
+  // Undefined when `metadata.type` is missing or is a word this doesn't know.
+  type?: MemoryType;
+  // What it said instead, when it said something. Printed, so a typo is visible rather than silent.
+  declaredType?: string;
+  chars: number;
+  estimatedTokens: number;
+  // `metadata.modified` where the file has one, else the file's own mtime. Absolute, so the view
+  // ages it against its own clock.
+  modifiedAt: number;
+  // A line in MEMORY.md points at this file. False means it's written but nothing will recall it.
+  indexed: boolean;
+}
+
+// One line of MEMORY.md: `- [Title](file.md) — hook`.
+export interface MemoryIndexEntry {
+  title: string;
+  // The link target as written, relative to the memory directory.
+  target: string;
+  // The trailing clause after the dash, which is most of what the index spends its tokens on.
+  hook?: string;
+  // Absolute path of the file it resolves to, or undefined when nothing is there — an entry still
+  // costing tokens to claim a memory exists.
+  path?: string;
+}
+
+// MEMORY.md itself. It is loaded into every session, so it is the one number on this surface that
+// gets paid whether or not any memory is ever recalled.
+export interface MemoryIndex {
+  path: string;
+  // False when there's no MEMORY.md at all — memories on disk that nothing points at.
+  present: boolean;
+  chars: number;
+  estimatedTokens: number;
+  entries: MemoryIndexEntry[];
+  issues: ConfigIssue[];
+}
+
+// The memory directory for the open workspace, read whole. Keyed on the working directory: with no
+// folder open there's nothing to read, and no user scope to fall back to.
+export interface MemorySet {
+  // The directory that was looked in. The empty state has to say which one — a worktree has its own.
+  dir: string;
+  index: MemoryIndex;
+  // Alphabetical within a type; the view does the grouping.
+  memories: MemoryEntry[];
+}
+
 export interface ConfigSnapshot {
   workspaceRoot: string | undefined;
   skills: SkillEntry[];
   // Flat and already in load order. `depth` is all the view needs to draw the import tree.
   systemPrompt: SystemPromptFile[];
+  // Undefined when no folder is open: the memory directory is keyed on the working directory, so
+  // there is nothing to look in rather than nothing to show.
+  memory: MemorySet | undefined;
   loadedAt: number;
 }
 
@@ -265,7 +349,7 @@ export interface TreeNode {
 //
 // A kind doubles as a filter word — `filter:skill` — so no kind may be a prefix of another, or the
 // shorter one would claim the token before you finished typing the longer one.
-export const SEARCH_KINDS = ['skill'] as const;
+export const SEARCH_KINDS = ['skill', 'memory'] as const;
 
 export type SearchKind = (typeof SEARCH_KINDS)[number];
 
