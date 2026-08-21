@@ -2,6 +2,7 @@ import { AgentSession, ConfigSnapshot } from '../../model/types';
 import { UsageReport } from '../../model/usage/types';
 import { PanelActions } from '../PanelActions';
 import { SurfaceCard } from '../SurfaceCard';
+import { useEstimate } from '../settings/SettingsContext';
 import { SURFACES, Surface, SurfaceId, getDetailForSurface } from '../surfaces';
 
 interface LandingViewProps {
@@ -27,6 +28,8 @@ export const LandingView = ({
   onSearch,
   onRefresh
 }: LandingViewProps) => {
+  const estimate = useEstimate();
+
   const open = (surface: Surface): void =>
     surface.status === 'ready'
       ? onOpenSurface(surface.id)
@@ -48,7 +51,7 @@ export const LandingView = ({
           <SurfaceCard
             key={surface.id}
             surface={surface}
-            detail={getDetailForSurface({ surface, snapshot, agents, usage })}
+            detail={getDetailForSurface({ surface, snapshot, agents, usage, estimate })}
             onOpen={open}
           />
         ))}

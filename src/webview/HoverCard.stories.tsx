@@ -50,3 +50,22 @@ export const NearTheRightEdge: Story = {
     )
   ]
 };
+
+
+// A card you can reach with the pointer. The default is `pointer-events-none`, which is right for a
+// label and fatal for one holding a button — this variant swaps that for `invisible`, so the card
+// takes the pointer while it's open and keeps its button out of the tab order while it isn't.
+export const Interactive: Story = {
+  args: {
+    interactive: true,
+    card: (
+      <span>
+        <HoverCardTitle>Standard estimator</HoverCardTitle>
+        <HoverCardBody>Characters divided by four.</HoverCardBody>
+        <button type="button" className="mt-2 block cursor-pointer text-link hover:underline">
+          Edit token estimator
+        </button>
+      </span>
+    )
+  }
+};

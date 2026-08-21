@@ -1,4 +1,5 @@
-import { createContext, ReactNode, useContext } from 'react';
+import { createContext, ReactNode, useCallback, useContext } from 'react';
+import { estimateTokens, TokenEstimator } from '../../model/estimate-tokens';
 import { DEFAULT_SETTINGS, SettingsSection, ViewerSettings } from '../../model/settings/settings';
 import { UsageCostBasis, UsageMetric, UsageScope } from '../../model/usage/types';
 
@@ -18,6 +19,10 @@ interface SettingsBridge {
   settings: ViewerSettings;
   openSettings: (section: SettingsSection) => void;
   setUsage: (change: UsageSettingsChange) => void;
+  // The estimator dialog. It opens from any surface, so App owns it and this is how a number
+  // buried in a row asks for it.
+  openEstimator: () => void;
+  setEstimator: (estimator: TokenEstimator) => void;
 }
 
 // The defaults are the context's default value, not `undefined`, so a component below no provider
@@ -26,7 +31,9 @@ interface SettingsBridge {
 const SettingsContext = createContext<SettingsBridge>({
   settings: DEFAULT_SETTINGS,
   openSettings: () => undefined,
-  setUsage: () => undefined
+  setUsage: () => undefined,
+  openEstimator: () => undefined,
+  setEstimator: () => undefined
 });
 
 interface SettingsProviderProps extends Partial<SettingsBridge> {
@@ -37,9 +44,13 @@ export const SettingsProvider = ({
   settings = DEFAULT_SETTINGS,
   openSettings = () => undefined,
   setUsage = () => undefined,
+  openEstimator = () => undefined,
+  setEstimator = () => undefined,
   children
 }: SettingsProviderProps) => (
-  <SettingsContext.Provider value={{ settings, openSettings, setUsage }}>
+  <SettingsContext.Provider
+    value={{ settings, openSettings, setUsage, openEstimator, setEstimator }}
+  >
     {children}
   </SettingsContext.Provider>
 );
@@ -51,3 +62,18 @@ export const useOpenSettings = (): ((section: SettingsSection) => void) =>
 
 export const useSetUsage = (): ((change: UsageSettingsChange) => void) =>
   useContext(SettingsContext).setUsage;
+
+export const useOpenEstimator = (): (() => void) => useContext(SettingsContext).openEstimator;
+
+export const useSetEstimator = (): ((estimator: TokenEstimator) => void) =>
+  useContext(SettingsContext).setEstimator;
+
+export const useEstimator = (): TokenEstimator =>
+  useContext(SettingsContext).settings.tokens.estimator.value;
+
+// Chars → est. tokens under whatever estimator is set. The host reports what it read and this is
+// where that becomes a number, so switching estimators costs no disk read at all.
+export const useEstimate = (): ((chars: number) => number) => {
+  const estimator: TokenEstimator = useEstimator();
+  return useCallback((chars: number): number => estimateTokens({ chars, estimator }), [estimator]);
+};

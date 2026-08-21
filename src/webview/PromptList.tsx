@@ -1,8 +1,9 @@
-import { RefObject, useState } from 'react';
+import { ReactNode, RefObject, useState } from 'react';
 import { SystemPromptFile } from '../model/types';
 import { CollapsibleHeading } from './CollapsibleHeading';
 import { PromptFileRow } from './PromptFileRow';
-import { formatTokens, plural } from './format-size';
+import { TokenEstimate } from './TokenEstimate';
+import { plural } from './format-size';
 import { alwaysLoads, conditional, totals } from './prompt-totals';
 
 // The two sections, keyed so collapsing one doesn't have to know about the other.
@@ -42,7 +43,12 @@ export const PromptList = ({
       <PromptSection
         id="always"
         title="Always loads"
-        note={`${plural(always.length, 'file')} · ~${formatTokens(totals(always).estimatedTokens)} est. tokens`}
+        note={
+          <>
+            {plural(always.length, 'file')} ·{' '}
+            <TokenEstimate chars={totals(always).chars} long />
+          </>
+        }
         files={always}
         collapsed={collapsed.includes('always')}
         selectedOrder={selectedOrder}
@@ -54,7 +60,12 @@ export const PromptList = ({
       <PromptSection
         id="conditional"
         title="Loads conditionally"
-        note={`${plural(maybe.length, 'file')} · ~${formatTokens(totals(maybe).estimatedTokens)} est. tokens, only under their own directory`}
+        note={
+          <>
+            {plural(maybe.length, 'file')} · <TokenEstimate chars={totals(maybe).chars} long />,
+            only under their own directory
+          </>
+        }
         files={maybe}
         collapsed={collapsed.includes('conditional')}
         selectedOrder={selectedOrder}
@@ -70,7 +81,7 @@ export const PromptList = ({
 interface PromptSectionProps {
   id: PromptSectionId;
   title: string;
-  note: string;
+  note: ReactNode;
   files: SystemPromptFile[];
   collapsed: boolean;
   selectedOrder: number | undefined;

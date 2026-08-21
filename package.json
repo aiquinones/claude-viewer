@@ -36,6 +36,19 @@
     "configuration": {
       "title": "Claude Viewer",
       "properties": {
+        "claudeViewer.tokens.estimator": {
+          "type": "string",
+          "enum": [
+            "standard",
+            "anthropic"
+          ],
+          "enumDescriptions": [
+            "Characters divided by 4 — the published rule of thumb, and what this panel has always shown.",
+            "The same rule times 1.35, adjusted for Claude's current tokenizer, which runs denser than 4 characters per token."
+          ],
+          "default": "standard",
+          "markdownDescription": "Which approximation every **est. tokens** figure in the panel uses. Nothing here runs a real tokenizer — the point of an estimate is that it costs one division — so both options are claims, and `anthropic` is the one adjusted for how Claude actually reads text. Budgets are read in whichever units this produces."
+        },
         "claudeViewer.budgets.skills.description": {
           "type": "number",
           "default": 100,

@@ -10,7 +10,7 @@ import { SkillDetail } from '../SkillDetail';
 import { SkillNav } from '../SkillNav';
 import { ModeBlockers } from '../view-mode';
 import { SkillFlow, toSkillFlow } from '../flow/steps';
-import { formatTokens } from '../format-size';
+import { TokenEstimate } from '../TokenEstimate';
 import { useSkillGraph } from '../graph/useSkillGraph';
 import { resolveSection, SectionTarget } from '../markdown/find-section';
 import { Section, toSections } from '../markdown/sections';
@@ -72,7 +72,7 @@ export const SkillView = ({
   const shadowedCount: number = skills.filter((skill) => skill.shadowedBy).length;
   // Only the skills that are actually listed — a shadowed one costs nothing, the same way a
   // conditional CLAUDE.md stays out of the prompt surface's headline.
-  const listingTokens: number = listingTotals(listed(skills)).estimatedTokens;
+  const listingChars: number = listingTotals(listed(skills)).chars;
   const { body, error, loading } = useFileBody({
     path: selected?.path,
     loadedAt: snapshot.loadedAt
@@ -132,7 +132,7 @@ export const SkillView = ({
         <div className="mr-auto flex flex-col gap-0.5">
           <span className="text-sm font-semibold">Skills</span>
           <span className="text-xs text-muted-foreground">
-            {skills.length} found · ~{formatTokens(listingTokens)} est. tokens listed
+            {skills.length} found · <TokenEstimate chars={listingChars} long /> listed
             {shadowedCount > 0 && ` · ${shadowedCount} shadowed`}
             {!snapshot.workspaceRoot && ' · no folder open, user + plugin scopes only'}
           </span>

@@ -1,6 +1,7 @@
 // Shared shapes for the host and the webview. The host builds these from disk; the webview
 // only ever reads them.
 
+import { TokenEstimator } from './estimate-tokens';
 import { SettingsSection, ViewerSettings } from './settings/settings';
 import { UsageCostBasis, UsageMetric, UsageReport, UsageScope } from './usage/types';
 
@@ -50,14 +51,15 @@ export interface SkillEntry {
   pluginName?: string;
   // Files under references/ and scripts/, counted so the row can say a skill ships extras.
   bundledFiles: number;
-  // The whole SKILL.md — what the skill costs once Claude opens it. Same field names as
+  // The whole SKILL.md — what the skill costs once Claude opens it. Same field name as
   // SystemPromptFile, because it's the same measurement.
+  //
+  // Chars rather than tokens: the estimate is a setting, so it's derived in the webview where the
+  // setting lives. The host only ever reports what it read.
   chars: number;
-  estimatedTokens: number;
   // Just the name and the description, which sit in the system prompt on every request whether or
   // not the skill ever runs.
   listingChars: number;
-  listingEstimatedTokens: number;
   // Path of the same-named skill that wins, when this one is shadowed.
   shadowedBy?: string;
   issues: ConfigIssue[];
@@ -79,9 +81,8 @@ export interface SystemPromptFile {
   scope: PromptScope;
   // Position in the flattened load order, imports included.
   order: number;
+  // What it costs is estimated from this in the webview, under whichever estimator is set.
   chars: number;
-  // chars / 4. A heuristic, not a tokenizer — the UI says "est." wherever it shows.
-  estimatedTokens: number;
   // Path of the file whose `@` line pulled this one in.
   importedBy?: string;
   // 0 for a file found on disk, +1 per import hop.
@@ -362,6 +363,9 @@ export type WebviewMessage =
   | { type: 'setAgentColor'; sessionId: string; color?: AgentColor }
   // The usage surface's own toggles. They write `claudeViewer.usage.*` — the extension's settings,
   // not Claude's — and the host owns which layer that lands in.
+  // The estimator dialog's Apply. Writes `claudeViewer.tokens.estimator` — the extension's own
+  // settings, not Claude's.
+  | { type: 'setEstimator'; estimator: TokenEstimator }
   | {
       type: 'setUsage';
       metric?: UsageMetric;

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { TokenEstimator } from '../model/estimate-tokens';
 import {
   BudgetValue,
   DEFAULT_CONTENT_BUDGET,
@@ -6,6 +7,7 @@ import {
   DEFAULT_CONTEXT_WARN_AT,
   DEFAULT_CONTEXT_WINDOW_FALLBACK,
   DEFAULT_DESCRIPTION_BUDGET,
+  DEFAULT_TOKEN_ESTIMATOR,
   DEFAULT_USAGE_COST_BASIS,
   DEFAULT_USAGE_METRIC,
   DEFAULT_USAGE_SCOPE,
@@ -13,6 +15,7 @@ import {
   parseContextTokens,
   parseContextWindows,
   parseOverrides,
+  parseTokenEstimator,
   parseUsageCostBasis,
   parseUsageMetric,
   parseUsageScope,
@@ -35,6 +38,7 @@ const CONTEXT_WARN_KEY: string = 'context.warnAt';
 const CONTEXT_ERROR_KEY: string = 'context.errorAt';
 const CONTEXT_WINDOW_KEY: string = 'context.window';
 const CONTEXT_FALLBACK_KEY: string = 'context.windowFallback';
+const ESTIMATOR_KEY: string = 'tokens.estimator';
 
 // What the Settings UI opens filtered to. A plain query rather than `@ext:`, so it doesn't carry a
 // second copy of the publisher id.
@@ -51,6 +55,14 @@ export const currentSettings = (): ViewerSettings => {
   const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(SECTION);
 
   return {
+    tokens: {
+      estimator: readValue({
+        config,
+        key: ESTIMATOR_KEY,
+        parse: parseTokenEstimator,
+        fallback: DEFAULT_TOKEN_ESTIMATOR
+      })
+    },
     budgets: {
       skills: {
         description: readBudget({
@@ -106,6 +118,18 @@ export const currentSettings = (): ViewerSettings => {
   };
 };
 
+// The estimator dialog's Apply. Global layer for the reason the usage toggles are: which
+// approximation you want to read is a preference, not a property of the repo.
+export const writeEstimator = async (estimator: TokenEstimator): Promise<void> => {
+  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(SECTION);
+
+  try {
+    await config.update(ESTIMATOR_KEY, estimator, vscode.ConfigurationTarget.Global);
+  } catch (error) {
+    await reportWriteFailure(error);
+  }
+};
+
 interface WriteUsageArgs {
   metric?: UsageMetric;
   scope?: UsageScope;
@@ -157,7 +181,7 @@ const reportWriteFailure = async (error: unknown): Promise<void> => {
   }
 
   const picked: string | undefined = await vscode.window.showWarningMessage(
-    'Claude Viewer was updated while this window was open, so its settings aren’t registered yet — the Usage toggles can’t save until the window reloads.',
+    'Claude Viewer was updated while this window was open, so its settings aren’t registered yet — the panel’s own controls can’t save until the window reloads.',
     RELOAD_ACTION
   );
   if (picked === RELOAD_ACTION) {

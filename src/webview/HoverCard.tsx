@@ -7,13 +7,27 @@ interface HoverCardProps {
   // Extra classes for the wrapper. A name in a row has to be allowed to shrink; a chip in a
   // wrapping row must not.
   className?: string;
+  // A card you can reach with the pointer. Off by default, because a label that swallows clicks
+  // meant for whatever it's floating over is worse than one you can't press — turn it on only when
+  // the card holds something to press, and the group's hover is what keeps it open on the way there.
+  interactive?: boolean;
+  // The card's own z-index, as a class. Named rather than merged with the default: two z utilities
+  // on one element resolve by the order Tailwind emitted them, not by the order they're written.
+  // A card inside the skills detail pane wants `OVER_STICKY_CLASS`, which clears the pinned rows.
+  cardZClass?: string;
   children: ReactNode;
 }
 
 // A wrapping hover card on whatever it's given. The mechanics only — hover, keyboard focus, a box
 // that opens below, and the side it opens toward — so everything that explains itself this way
 // shares one implementation and none of them owns it.
-export const HoverCard = ({ card, className = '', children }: HoverCardProps) => {
+export const HoverCard = ({
+  card,
+  className = '',
+  interactive = false,
+  cardZClass = 'z-30',
+  children
+}: HoverCardProps) => {
   const trigger = useRef<HTMLSpanElement>(null);
   const { side, measure } = useCardSide(trigger);
 
@@ -26,15 +40,26 @@ export const HoverCard = ({ card, className = '', children }: HoverCardProps) =>
     >
       {children}
 
-      {/* `w-max` with a max: a two-word hint gets a small box and a paragraph wraps at 16rem, rather
-          than every card being the width of the longest one. */}
+      {/* An interactive card is not a tooltip and mustn't be announced as one — a screen reader
+          would read the button inside it as part of the label. `invisible` rather than
+          `pointer-events-none` there: the card has to take the pointer once it's open, and nothing
+          but visibility keeps it out of the tab order while it's closed.
+
+          `pt-1` rather than a margin, so the gap under the trigger is still inside the group — with
+          a margin the pointer leaves the group crossing it and the card shuts on the way to it. */}
       <span
-        role="tooltip"
-        className={`pointer-events-none absolute top-full z-30 mt-1 w-max max-w-[min(16rem,calc(100vw-1.5rem))] rounded-md border border-border bg-popover p-2 text-xs leading-relaxed text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-has-focus-visible:opacity-100 ${
-          side === 'end' ? 'right-0' : 'left-0'
-        }`}
+        role={interactive ? undefined : 'tooltip'}
+        className={`absolute top-full ${cardZClass} pt-1 opacity-0 transition-opacity group-hover:opacity-100 group-has-focus-visible:opacity-100 ${
+          interactive
+            ? 'invisible group-hover:visible group-has-focus-visible:visible'
+            : 'pointer-events-none'
+        } ${side === 'end' ? 'right-0' : 'left-0'}`}
       >
-        {card}
+        {/* `w-max` with a max: a two-word hint gets a small box and a paragraph wraps at 16rem,
+            rather than every card being the width of the longest one. */}
+        <span className="block w-max max-w-[min(16rem,calc(100vw-1.5rem))] rounded-md border border-border bg-popover p-2 text-xs leading-relaxed text-popover-foreground shadow-lg">
+          {card}
+        </span>
       </span>
     </span>
   );

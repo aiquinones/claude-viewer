@@ -1,0 +1,153 @@
+import { useEffect, useRef, useState } from 'react';
+import { X } from 'lucide-react';
+import { TOKEN_ESTIMATORS, TokenEstimator } from '../model/estimate-tokens';
+import { Button } from '@/components/ui/button';
+import { EstimatorFormula } from './EstimatorFormula';
+import {
+  ESTIMATOR_CAVEAT,
+  ESTIMATOR_FORMULAS,
+  ESTIMATOR_HINTS,
+  ESTIMATOR_LABELS
+} from './estimator-labels';
+
+interface EstimatorDialogProps {
+  // What's set today. Seeds the draft, and what Apply is measured against.
+  current: TokenEstimator;
+  onApply: (estimator: TokenEstimator) => void;
+  onDismiss: () => void;
+}
+
+// Picking which approximation every "est. tokens" in the panel means.
+//
+// It holds a draft: the radios move the picture, and nothing is written until Apply. That's the
+// difference from the usage toggles, which write on the press — a usage toggle changes which number
+// you're reading on the surface behind it, and this changes every number in the panel. Closing on
+// `x`, Escape or the backdrop discards the draft, so the dialog is somewhere to compare the two
+// formulas without committing to either.
+export const EstimatorDialog = ({ current, onApply, onDismiss }: EstimatorDialogProps) => {
+  const [draft, setDraft] = useState<TokenEstimator>(current);
+  const unchanged: boolean = draft === current;
+  const box = useRef<HTMLDivElement>(null);
+
+  // On the window rather than on the box: the box is focusable but nothing inside it is focused on
+  // open, and a keydown that never reaches it would leave Escape doing whatever the panel behind
+  // does with it.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      onDismiss();
+    };
+
+    box.current?.focus();
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onDismiss]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex justify-center bg-scrim px-4 pt-[15vh]"
+      onMouseDown={onDismiss}
+    >
+      <div
+        ref={box}
+        role="dialog"
+        aria-modal
+        aria-labelledby={TITLE_ID}
+        tabIndex={-1}
+        className="flat-focus flex h-fit w-full max-w-md flex-col overflow-clip rounded-xl border border-border bg-popover shadow-2xl outline-none"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <header className="flex items-start gap-3 border-b border-border px-4 py-3">
+          <div className="mr-auto flex flex-col gap-1">
+            <h2 id={TITLE_ID} className="text-sm font-semibold">
+              Token estimator
+            </h2>
+            <p className="text-xs leading-relaxed text-muted-foreground">{ESTIMATOR_CAVEAT}</p>
+          </div>
+          <Button variant="ghost" size="icon" title="Close" onClick={onDismiss}>
+            <X />
+          </Button>
+        </header>
+
+        <div role="radiogroup" aria-labelledby={TITLE_ID} className="flex flex-col p-2">
+          {TOKEN_ESTIMATORS.map((estimator) => (
+            <EstimatorOption
+              key={estimator}
+              estimator={estimator}
+              selected={estimator === draft}
+              onSelect={setDraft}
+            />
+          ))}
+        </div>
+
+        <div className="px-4 pb-4">
+          <EstimatorFormula estimator={draft} />
+        </div>
+
+        {/* Disabled while the draft is what's already set, so the button says whether pressing it
+            would do anything rather than only doing nothing. */}
+        <footer className="flex justify-end border-t border-border px-4 py-3">
+          {/* Grey rather than a faded blue: the shared `disabled:opacity-50` on a primary button
+              still reads as the accent, and this one is off most of the time it's on screen. A
+              `disabled:` variant carries a pseudo-class, so it outranks the base `bg-primary`
+              whichever order Tailwind emitted them in. */}
+          <Button
+            size="sm"
+            disabled={unchanged}
+            onClick={() => onApply(draft)}
+            className="disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+          >
+            Apply
+          </Button>
+        </footer>
+      </div>
+    </div>
+  );
+};
+
+const TITLE_ID: string = 'estimator-dialog-title';
+
+interface EstimatorOptionProps {
+  estimator: TokenEstimator;
+  selected: boolean;
+  onSelect: (estimator: TokenEstimator) => void;
+}
+
+// One radio: the circle, the name, the formula, and what picking it claims.
+const EstimatorOption = ({ estimator, selected, onSelect }: EstimatorOptionProps) => (
+  <button
+    type="button"
+    role="radio"
+    aria-checked={selected}
+    onClick={() => onSelect(estimator)}
+    className={`flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
+      selected ? 'bg-accent' : 'hover:bg-accent'
+    }`}
+  >
+    {/* `mt-0.5` lines the circle up with the cap height of the label beside it rather than with the
+        line box, which sits a little higher than the letters do. */}
+    <span
+      className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors ${
+        selected ? 'border-primary' : 'border-border'
+      }`}
+    >
+      <span
+        className={`size-2 rounded-full bg-primary transition-transform ${
+          selected ? 'scale-100' : 'scale-0'
+        }`}
+      />
+    </span>
+    <span className="flex min-w-0 flex-col gap-0.5">
+      <span className="flex items-baseline gap-2 text-sm font-medium">
+        {ESTIMATOR_LABELS[estimator]}
+        <span className="mono text-xs font-normal text-muted-foreground">
+          {ESTIMATOR_FORMULAS[estimator]}
+        </span>
+      </span>
+      <span className="text-xs leading-relaxed text-muted-foreground">
+        {ESTIMATOR_HINTS[estimator]}
+      </span>
+    </span>
+  </button>
+);

@@ -3,13 +3,15 @@ import {
   getBudget,
   SKILL_BUDGET_FIELDS,
   SkillBudgetField,
-  skillTokens
+  skillChars
 } from '../model/settings/skill-budget';
 import { SkillEntry } from '../model/types';
 import { BudgetBar, budgetTextClass } from './BudgetBar';
 import { BudgetInfo } from './BudgetInfo';
-import { formatBytes, formatTokens } from './format-size';
-import { useSettings } from './settings/SettingsContext';
+import { formatBytes } from './format-size';
+import { TokenEstimate } from './TokenEstimate';
+import { useEstimate, useSettings } from './settings/SettingsContext';
+import { OVER_STICKY_CLASS } from './z-layers';
 import { FIELD_LABELS, FIELD_NOTES } from './skill-budget-labels';
 
 interface SkillCostProps {
@@ -41,7 +43,9 @@ interface CostRowProps {
 
 const CostRow = ({ skill, field }: CostRowProps) => {
   const { budgets } = useSettings();
-  const tokens: number = skillTokens({ skill, field });
+  const estimate = useEstimate();
+  const chars: number = skillChars({ skill, field });
+  const tokens: number = estimate(chars);
   // A shadowed skill is never listed, so its description costs nothing and there's no budget to
   // read — a bar under a struck-through number would be measuring a cost you don't pay.
   const shadowed: boolean = field === 'description' && skill.shadowedBy !== undefined;
@@ -54,12 +58,16 @@ const CostRow = ({ skill, field }: CostRowProps) => {
       <div className="flex flex-wrap items-baseline justify-between gap-x-2">
         <span className="font-medium">{FIELD_LABELS[field]}</span>
         {/* What it costs, and nothing else. The bar carries the share of the budget and the (i)
-            card carries the limit — printing `x / y` here said the same thing a third time. */}
-        <span
-          className={`mono ${shadowed ? 'line-through opacity-60' : budgetTextClass(reading?.level)}`}
-        >
-          ~{formatTokens(tokens)} est. tokens
-        </span>
+            card carries the limit — printing `x / y` here said the same thing a third time.
+
+            Its own card hangs down across the Content bar pinned below it, so it wears the class
+            that clears the whole pinned scale — the default `z-30` would put it behind. */}
+        <TokenEstimate
+          chars={chars}
+          long
+          cardZClass={OVER_STICKY_CLASS}
+          className={shadowed ? 'line-through opacity-60' : budgetTextClass(reading?.level)}
+        />
       </div>
       {reading && <BudgetBar reading={reading} />}
       <span className="text-muted-foreground">{noteFor({ skill, field, shadowed })}</span>

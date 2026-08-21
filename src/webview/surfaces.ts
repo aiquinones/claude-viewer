@@ -70,6 +70,9 @@ interface DetailForSurfaceArgs {
   // Nor is this one, and it arrives later than the rest — the scan behind it reads every session
   // log on the machine. Undefined means it hasn't landed yet.
   usage: UsageReport | undefined;
+  // Chars → est. tokens under the estimator that's set. Passed in rather than read here: this file
+  // is plain data plus a switch, and a hook would make it a component's dependency.
+  estimate: (chars: number) => number;
 }
 
 // The line under a card's blurb: whatever that surface counts. Switching on the id means adding a
@@ -78,13 +81,14 @@ export const getDetailForSurface = ({
   surface,
   snapshot,
   agents,
-  usage
+  usage,
+  estimate
 }: DetailForSurfaceArgs): string => {
   switch (surface.id) {
     case 'skills':
-      return skillsDetail(snapshot.skills);
+      return skillsDetail({ skills: snapshot.skills, estimate });
     case 'system-prompt':
-      return promptDetail(snapshot.systemPrompt);
+      return promptDetail({ files: snapshot.systemPrompt, estimate });
     case 'active-agents':
       return agentsDetail(agents);
     case 'usage':
@@ -112,20 +116,30 @@ const agentsDetail = (agents: AgentSession[]): string =>
 export const surfaceAccent = (id: SurfaceId): string =>
   SURFACES.find((surface) => surface.id === id)?.accent ?? 'var(--vscode-foreground)';
 
+interface PromptDetailArgs {
+  files: SystemPromptFile[];
+  estimate: (chars: number) => number;
+}
+
 // Only the files that always load, matching the surface's own headline number.
-const promptDetail = (files: SystemPromptFile[]): string => {
+const promptDetail = ({ files, estimate }: PromptDetailArgs): string => {
   const always = totals(alwaysLoads(files));
   if (always.files === 0) return 'None found';
 
-  return `${plural(always.files, 'file')} · ~${formatTokens(always.estimatedTokens)} est. tokens`;
+  return `${plural(always.files, 'file')} · ~${formatTokens(estimate(always.chars))} est. tokens`;
 };
+
+interface SkillsDetailArgs {
+  skills: SkillEntry[];
+  estimate: (chars: number) => number;
+}
 
 // Tokens here are the listing cost — what having these skills installed adds to every request,
 // which is the same question the prompt card answers. Shadowing is a detail for the surface, not
 // for a card whose job is to say whether it's worth opening.
-const skillsDetail = (skills: SkillEntry[]): string => {
+const skillsDetail = ({ skills, estimate }: SkillsDetailArgs): string => {
   if (skills.length === 0) return 'None found';
 
-  const tokens: number = listingTotals(listed(skills)).estimatedTokens;
+  const tokens: number = estimate(listingTotals(listed(skills)).chars);
   return `${skills.length} found · ~${formatTokens(tokens)} est. tokens`;
 };
