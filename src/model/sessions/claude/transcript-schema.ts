@@ -26,6 +26,9 @@ const transcriptLineSchema = z
     lastPrompt: z.string().optional(),
     // An assistant turn that ended in an API error. The turn is over either way.
     isApiErrorMessage: z.boolean().optional(),
+    // Set on a `user` line the CLI wrote itself rather than one you typed — the caveat block a
+    // slash command emits ahead of the command. Never a prompt.
+    isMeta: z.boolean().optional(),
     // `pr-link` lines. Rewritten like the title is, and always the same PR within one session.
     prNumber: z.number().optional(),
     prUrl: z.string().optional(),
