@@ -1,12 +1,12 @@
 import { CircleAlert } from 'lucide-react';
-import { MemoryEntry, MemoryLink } from '../model/types';
+import { MemoryDocument, MemoryLink } from '../model/types';
 import { Loading } from './loading/Loading';
 import { Markdown, STICKY_ROW_CLASS } from './markdown/Markdown';
-import { MemoryTypeBadge } from './MemoryTypeBadge';
 
 interface MemoryBodyProps {
-  // The selected memory, or undefined when nothing is selected — in which case nothing renders.
-  memory: MemoryEntry | undefined;
+  // The selected document, or undefined when nothing is selected — in which case nothing renders.
+  // MEMORY.md is one of these too, which is why it's a MemoryDocument and not a MemoryEntry.
+  memory: MemoryDocument | undefined;
   // The file's text below its frontmatter. Undefined while the host is still reading it.
   body: string | undefined;
   error: string | undefined;
@@ -15,8 +15,9 @@ interface MemoryBodyProps {
   onOpenLink: (name: string) => void;
 }
 
-// The selected memory, rendered under the list. Its frontmatter is stripped host-side: the name,
-// the description and the type are already the row, so the body is the fact itself.
+// The selected document, rendered under the list. A memory's frontmatter is stripped host-side —
+// the name and the description are already the row, so the body is the fact itself. MEMORY.md comes
+// down whole, because every line of it reaches a session.
 //
 // `px-5` is what the sticky headings inside reach back through, so the two have to agree.
 export const MemoryBody = ({ memory, body, error, loading, onOpenLink }: MemoryBodyProps) => {
@@ -30,7 +31,6 @@ export const MemoryBody = ({ memory, body, error, loading, onOpenLink }: MemoryB
         className={`mono sticky top-0 -mx-5 flex ${STICKY_ROW_CLASS} items-center gap-2 border-b border-border bg-background px-5 text-xs text-muted-foreground`}
       >
         <span className="shrink-0 font-semibold text-foreground">{memory.name}</span>
-        <MemoryTypeBadge type={memory.type} declaredType={memory.declaredType} />
       </h2>
 
       {memory.description && (
@@ -47,7 +47,7 @@ export const MemoryBody = ({ memory, body, error, loading, onOpenLink }: MemoryB
 };
 
 interface ContentProps {
-  memory: MemoryEntry;
+  memory: MemoryDocument;
   body: string | undefined;
   error: string | undefined;
   loading: boolean;

@@ -1,14 +1,20 @@
-import { CSSProperties, useEffect, useState } from 'react';
+import { CSSProperties, useEffect, useMemo, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
-import { ConfigSnapshot, MemoryEntry, MemorySet, Reveal } from '../../model/types';
+import {
+  AgentTool,
+  ConfigSnapshot,
+  MemoryDocument,
+  MemoryEntry,
+  MemorySet,
+  Reveal
+} from '../../model/types';
 import { Button } from '@/components/ui/button';
+import { ClaudeMemoryPane } from '../ClaudeMemoryPane';
 import { CopilotMemoryCard } from '../CopilotMemoryCard';
-import { MemoryBody } from '../MemoryBody';
-import { MemoryIndexCard } from '../MemoryIndexCard';
-import { MemoryList } from '../MemoryList';
+import { MemoryTabs } from '../MemoryTabs';
 import { PanelActions } from '../PanelActions';
-import { displayFolder } from '../display-path';
 import { formatTokens, plural } from '../format-size';
+import { indexDocument } from '../memory-document';
 import { MemoryTotals, memoryTotals } from '../memory-totals';
 import { surfaceAccent } from '../surfaces';
 import { useFileBody } from '../useFileBody';
@@ -31,9 +37,9 @@ interface Selection {
   nonce: number;
 }
 
-// The memories Claude wrote about this workspace, grouped by type, with the selected one rendered
-// underneath. One column, the same shape as the system-prompt surface: the list is the view and the
-// body sits below it in the same scroll.
+// The memories Claude wrote about this workspace, split by which CLI wrote them. Claude's are files
+// on disk; Copilot's are on GitHub and there is nothing here to list, which is why the two are tabs
+// rather than one column.
 export const MemoryView = ({
   snapshot,
   reveal,
@@ -48,16 +54,26 @@ export const MemoryView = ({
   // index's per-session floor.
   const recalled: MemoryTotals = memoryTotals(memories);
 
+  const [tool, setTool] = useState<AgentTool>('claude');
   const [selection, setSelection] = useState<Selection | undefined>(undefined);
-  const selected: MemoryEntry | undefined = memories.find(
-    (entry) => entry.path === selection?.path
-  );
+
+  // A pick is a path, and it resolves to either a memory or the index — both of which the body pane
+  // renders, and only one of which is in `memories`. Memoized because the index branch builds its
+  // document: a fresh object every render would re-fire the effects that watch this.
+  const selected: MemoryDocument | undefined = useMemo(() => {
+    if (!selection) return undefined;
+    if (memory && selection.path === memory.index.path) return indexDocument(memory.index);
+    return memories.find((entry) => entry.path === selection.path);
+  }, [memory, memories, selection]);
 
   const select = (path: string): void => setSelection({ path, nonce: Date.now() });
 
-  // Naming a memory from the spotlight selects it here, the same way a reveal selects a skill.
+  // Naming a memory from the spotlight selects it here, the same way a reveal selects a skill. It
+  // also puts the tab it lives on up front, or the pick would land out of sight.
   useEffect(() => {
-    if (reveal) setSelection({ path: reveal.path, nonce: reveal.nonce });
+    if (!reveal) return;
+    setTool('claude');
+    setSelection({ path: reveal.path, nonce: reveal.nonce });
   }, [reveal]);
 
   // A refresh can drop the file entirely — Claude deletes memories that turn out to be wrong.
@@ -95,74 +111,65 @@ export const MemoryView = ({
         <div className="mr-auto flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-semibold">Memory</span>
           <span className="truncate text-xs text-muted-foreground">
-            {memory
-              ? `${plural(memories.length, 'memory', 'memories')} · ~${formatTokens(
-                  memory.index.estimatedTokens
-                )} est. tokens every session · ~${formatTokens(
-                  recalled.estimatedTokens
-                )} if all recalled`
-              : 'no folder open — memory is keyed on the working directory'}
+            {subtitle({ tool, memory, recalled })}
           </span>
         </div>
         <PanelActions
-          onGoToSelection={inBody ? goToSelection : undefined}
+          // Only Claude's tab has something to scroll back to — the other holds one card.
+          onGoToSelection={tool === 'claude' && inBody ? goToSelection : undefined}
           onSearch={onSearch}
           onRefresh={onRefresh}
         />
       </header>
 
-      {!memory ? (
+      <div className="border-b border-border px-3">
+        <MemoryTabs tool={tool} onChange={setTool} />
+      </div>
+
+      {tool === 'copilot' ? (
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-clip px-2 pt-3">
+          <CopilotMemoryCard />
+        </div>
+      ) : !memory ? (
         <NoWorkspace />
       ) : (
-        // This pane, not its children, is the scroll container the body's sticky headings resolve
-        // against. `relative z-0` keeps their z-scale contained here rather than panel-wide.
-        <div ref={paneRef} className="relative z-0 min-h-0 flex-1 overflow-y-auto overflow-x-clip">
-          <div className="flex flex-col gap-3 px-2 pt-3">
-            <MemoryIndexCard index={memory.index} onOpenFile={onOpenFile} />
-            {memories.length === 0 && <Empty dir={memory.dir} />}
-            <CopilotMemoryCard />
-          </div>
-
-          <div className="px-2">
-            <MemoryList
-              memories={memories}
-              selectedPath={selection?.path}
-              // The snapshot's own clock. A memory written four hours ago is still four hours ago a
-              // minute later, so nothing here ticks — unlike the agents surface.
-              now={snapshot.loadedAt}
-              selectionRef={selectionRef}
-              onSelect={(entry) => select(entry.path)}
-            />
-          </div>
-
-          {/* Zero height, at the body's top edge: what the pick scrolls to, and what says you got
-              there. A ref on the body itself would still count as on screen halfway down it. */}
-          <div ref={bodyAnchorRef} />
-          <MemoryBody
-            memory={selected}
-            body={body}
-            error={error}
-            loading={loading}
-            onOpenLink={openLink}
-          />
-        </div>
+        <ClaudeMemoryPane
+          memory={memory}
+          // The snapshot's own clock — see ClaudeMemoryPane, which is where it's used.
+          now={snapshot.loadedAt}
+          selectedPath={selection?.path}
+          document={selected}
+          body={body}
+          error={error}
+          loading={loading}
+          paneRef={paneRef}
+          bodyAnchorRef={bodyAnchorRef}
+          selectionRef={selectionRef}
+          onSelect={select}
+          onOpenFile={onOpenFile}
+          onOpenLink={openLink}
+        />
       )}
     </div>
   );
 };
 
-interface EmptyProps {
-  dir: string;
+interface SubtitleArgs {
+  tool: AgentTool;
+  memory: MemorySet | undefined;
+  recalled: MemoryTotals;
 }
 
-// Which directory was looked in, not just that it was empty: a worktree is its own working
-// directory and gets its own memories, so "nothing here" is a claim about one path.
-const Empty = ({ dir }: EmptyProps) => (
-  <p className="px-3 py-2 text-sm text-muted-foreground">
-    No memories yet in <span className="mono">{displayFolder({ path: dir, workspaceRoot: undefined })}</span> — Claude
-    writes them itself as it learns something worth keeping.
-  </p>
-);
+// The two token figures are a claim about Claude's files, so they don't follow the Copilot tab —
+// there is nothing on this machine for them to count.
+const subtitle = ({ tool, memory, recalled }: SubtitleArgs): string => {
+  if (tool === 'copilot') return 'kept on GitHub, fetched per session — nothing is stored here';
+  if (!memory) return 'no folder open — memory is keyed on the working directory';
+
+  return `${plural(memory.memories.length, 'memory', 'memories')} · ~${formatTokens(
+    memory.index.estimatedTokens
+  )} est. tokens every session · ~${formatTokens(recalled.estimatedTokens)} if all recalled`;
+};
 
 const NoWorkspace = () => (
   <div className="flex flex-1 items-center justify-center p-5 text-center text-sm text-muted-foreground">

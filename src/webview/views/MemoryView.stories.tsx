@@ -58,3 +58,15 @@ export const NoWorkspace: Story = {
 export const ClickARowToRender: Story = {
   args: { snapshot: snapshot({ skills: allSkills, memory: memorySet }) }
 };
+
+// MEMORY.md reads below the list like a memory does — click the card's filename. The icon at the
+// end of that row is the other route, into the editor, which the panel can't do from a story.
+export const ClickTheIndexToRender: Story = {
+  args: { snapshot: snapshot({ skills: allSkills, memory: memorySet }) }
+};
+
+// The tab is internal state too. Click "Copilot CLI": that half has nothing to list, because those
+// memories are on GitHub rather than on this machine.
+export const ClickTheCopilotTab: Story = {
+  args: { snapshot: snapshot({ skills: allSkills, memory: memorySet }) }
+};

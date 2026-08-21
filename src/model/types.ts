@@ -203,27 +203,33 @@ export interface MemoryLink {
   resolved: boolean;
 }
 
+// What the body pane renders. A memory is one; so is MEMORY.md, which has no type, no age and no
+// links — which is why this is the shape the pane takes rather than MemoryEntry.
+export interface MemoryDocument {
+  // A memory's frontmatter `name` (falling back to the filename); the filename for the index.
+  name: string;
+  // Empty for the index: the file is its own description.
+  description: string;
+  // Absolute path. What the body is fetched by, and unique, so it doubles as the selection key.
+  path: string;
+  links: MemoryLink[];
+  issues: ConfigIssue[];
+}
+
 // One memory file. Unlike a skill it costs nothing until it's recalled, so there's one cost here
 // rather than two: the index is what carries the price of merely existing.
-export interface MemoryEntry {
-  // Frontmatter `name`, falling back to the filename without its extension.
-  name: string;
-  description: string;
+export interface MemoryEntry extends MemoryDocument {
   // Undefined when `metadata.type` is missing or is a word this doesn't know.
   type?: MemoryType;
   // What it said instead, when it said something. Printed, so a typo is visible rather than silent.
   declaredType?: string;
-  // Absolute path. Unique per entry, so it doubles as the row key.
-  path: string;
   chars: number;
   estimatedTokens: number;
   // `metadata.modified` where the file has one, else the file's own mtime. Absolute, so the view
   // ages it against its own clock.
   modifiedAt: number;
-  links: MemoryLink[];
   // A line in MEMORY.md points at this file. False means it's written but nothing will recall it.
   indexed: boolean;
-  issues: ConfigIssue[];
 }
 
 // One line of MEMORY.md: `- [Title](file.md) — hook`.

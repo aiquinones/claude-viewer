@@ -5,7 +5,7 @@ import { emptyMemoryIndex, memoryIndex, memoryIndexWithDangling } from './memory
 const meta: Meta<typeof MemoryIndexCard> = {
   title: 'Memory/MemoryIndexCard',
   component: MemoryIndexCard,
-  args: { onOpenFile: () => undefined },
+  args: { selected: false, onSelect: () => undefined, onOpenFile: () => undefined },
   decorators: [
     (Story) => (
       <div className="w-[620px] p-3">
@@ -21,6 +21,11 @@ type Story = StoryObj<typeof MemoryIndexCard>;
 
 export const Default: Story = {
   args: { index: memoryIndex }
+};
+
+// Picked, so its text is rendering below the list — the same state a picked memory row is in.
+export const Selected: Story = {
+  args: { index: memoryIndex, selected: true }
 };
 
 // The second failure mode: a line still spending tokens on a memory that isn't on disk.

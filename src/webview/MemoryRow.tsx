@@ -3,7 +3,6 @@ import { Link2Off } from 'lucide-react';
 import { MemoryEntry } from '../model/types';
 import { cn } from '@/lib/utils';
 import { IssueList } from './IssueList';
-import { MemoryTypeBadge } from './MemoryTypeBadge';
 import { formatAge } from './format-age';
 import { formatTokens } from './format-size';
 
@@ -50,7 +49,6 @@ export const MemoryRow = ({ memory, selected, now, selectionRef, onSelect }: Mem
           >
             {memory.name}
           </span>
-          <MemoryTypeBadge type={memory.type} declaredType={memory.declaredType} />
           <span className="mono ml-auto flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
             {/* Absolute on the entry, aged here — the same rule the agents surface follows. */}
             <span>{memory.modifiedAt ? formatAge(Math.max(0, now - memory.modifiedAt)) : '—'}</span>

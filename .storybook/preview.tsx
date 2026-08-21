@@ -1,7 +1,12 @@
 import { useEffect } from 'react';
 import type { Decorator, Preview } from '@storybook/react-vite';
 import '../src/webview/styles.css';
-import { memoryMarkdown, promptMarkdown, skillMarkdown } from '../src/webview/fixtures';
+import {
+  memoryIndexMarkdown,
+  memoryMarkdown,
+  promptMarkdown,
+  skillMarkdown
+} from '../src/webview/fixtures';
 import { applyTheme, ThemeName } from './vscode-theme';
 
 // App reaches for the webview bridge at module scope, which doesn't exist outside the editor.
@@ -10,7 +15,7 @@ import { applyTheme, ThemeName } from './vscode-theme';
 // "Reading…", so the stub plays host and posts a fixture back.
 //
 // Which fixture follows the same split the host makes: a SKILL.md and a memory come back below
-// their frontmatter, anything else — a CLAUDE.md — comes back whole.
+// their frontmatter, anything else — a CLAUDE.md, and MEMORY.md — comes back whole.
 (window as unknown as { acquireVsCodeApi: () => { postMessage: (message: unknown) => void } })
   .acquireVsCodeApi = () => ({
   postMessage: (message: unknown) => {
@@ -24,6 +29,8 @@ import { applyTheme, ThemeName } from './vscode-theme';
 
 const bodyFor = (path: string): string => {
   if (path.endsWith('SKILL.md')) return skillMarkdown;
+  // Before the directory check: MEMORY.md lives in there too, and it is an index, not a memory.
+  if (path.endsWith('MEMORY.md')) return memoryIndexMarkdown;
   if (path.includes('/memory/')) return memoryMarkdown;
   return promptMarkdown;
 };

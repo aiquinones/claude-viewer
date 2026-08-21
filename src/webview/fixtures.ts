@@ -558,6 +558,16 @@ behind.
 [[seed-the-test-database]] for where the fixture data comes from.
 `;
 
+// MEMORY.md, matching the entries `memoryIndex` carries. Flat, one line per memory — this is the
+// only file in the directory that reaches a session unasked, so the body pane shows it whole.
+export const memoryIndexMarkdown: string = `- [Keeps pull requests small](prefers-small-pull-requests.md) — a few hundred lines, and say so in review.
+- [Migrate before the suite](run-migrations-before-the-suite.md) — the tests assume a migrated database.
+- [Seed from the script](seed-the-test-database.md) — never from a snapshot of the dev database.
+- [The checkout flag](checkout-flow-is-flagged.md) — both paths keep working until it lands.
+- [Payment contract](payment-provider-contract.md) — where it lives and what it settles.
+- [Unfinished](half-written-note.md) — no type, no description.
+`;
+
 // The spotlight's input: the real index, over the same synthetic skills.
 export const searchDocs: SearchDoc[] = buildSearchIndex(snapshot({ skills: allSkills }));
 
