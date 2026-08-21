@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { CollapsibleHeading } from './CollapsibleHeading';
+import { TokenEstimate } from './TokenEstimate';
 
 // The heading four grouped lists share. Every caller's shape is here, so a change to the row can
 // be read against all of them at once rather than by opening four surfaces.
@@ -47,7 +48,22 @@ export const SplitAcrossBoth: Story = {
   args: {
     title: 'Plugin · 24',
     note: '~1.8k',
-    tooltip: 'Plugin skills · ~1.8k est. tokens of descriptions in the system prompt',
+    tooltip: 'Plugin skills · what their descriptions cost in the system prompt',
+    collapsed: false
+  }
+};
+
+// The reason the note is a node and sits outside the toggle: a token estimate opens a card with a
+// button in it, and a `<button>` can't legally hold one. Hovering the number here is the check that
+// it opens over the heading rather than inside it.
+export const NoteWithEstimate: Story = {
+  args: {
+    title: 'Always loads',
+    note: (
+      <>
+        5 files · <TokenEstimate chars={8400} long />
+      </>
+    ),
     collapsed: false
   }
 };

@@ -35,6 +35,7 @@ import {
   currentSettings,
   onDidChangeSettings,
   revealSettings,
+  writeEstimator,
   writeUsageSettings
 } from './settings-store';
 import { focusAgent } from './focus-agent/focus-agent';
@@ -205,6 +206,7 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'surfaceUnavailable') return _surfaceUnavailable(message.title);
   if (message.type === 'surfaceChanged') return _onSurfaceChanged(message.surface);
   if (message.type === 'openSettings') return revealSettings(message.section);
+  if (message.type === 'setEstimator') return writeEstimator(message.estimator);
   if (message.type === 'setUsage') {
     return writeUsageSettings({
       metric: message.metric,

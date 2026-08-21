@@ -11,15 +11,18 @@ export const SKILL_BUDGET_FIELDS = ['description', 'content'] as const;
 
 export type SkillBudgetField = (typeof SKILL_BUDGET_FIELDS)[number];
 
-interface SkillTokensArgs {
+interface SkillCharsArgs {
   skill: SkillEntry;
   field: SkillBudgetField;
 }
 
 // `description` is the name-and-description line that sits in the system prompt on every request;
 // `content` is the whole SKILL.md, read only once Claude picks the skill.
-export const skillTokens = ({ skill, field }: SkillTokensArgs): number =>
-  field === 'description' ? skill.listingEstimatedTokens : skill.estimatedTokens;
+//
+// Chars rather than tokens, so this file stays as free of the estimator as `budget.ts` is of
+// skills — turning it into a token count is the webview's job, because that's where the setting is.
+export const skillChars = ({ skill, field }: SkillCharsArgs): number =>
+  field === 'description' ? skill.listingChars : skill.chars;
 
 interface GetBudgetArgs {
   skill: SkillEntry;

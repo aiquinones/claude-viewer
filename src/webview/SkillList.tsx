@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { SKILL_SCOPES, Reveal, SkillEntry, SkillScope } from '../model/types';
 import { CollapsibleHeading } from './CollapsibleHeading';
 import { SkillRow } from './SkillRow';
-import { formatTokens } from './format-size';
+import { TokenEstimate } from './TokenEstimate';
 import { listed } from '../model/shadowing';
 import { listingTotals } from './skill-totals';
 
@@ -52,14 +52,14 @@ export const SkillList = ({ skills, selectedPath, reveal, onSelect }: SkillListP
         // A collapsed group still says what the skills in it cost — plugin scope being the long
         // tail is the thing worth seeing. Which of them are shadowed is a per-row matter, and the
         // rows already say so.
-        const listingTokens: number = listingTotals(listed(inScope)).estimatedTokens;
+        const listingChars: number = listingTotals(listed(inScope)).chars;
 
         return (
           <section key={scope} className="flex flex-col gap-1">
             <CollapsibleHeading
               title={`${SCOPE_LABEL[scope]} · ${inScope.length}`}
-              note={`~${formatTokens(listingTokens)}`}
-              tooltip={`${SCOPE_LABEL[scope]} skills · ~${formatTokens(listingTokens)} est. tokens of descriptions in the system prompt`}
+              note={<TokenEstimate chars={listingChars} />}
+              tooltip={`${SCOPE_LABEL[scope]} skills · what their descriptions cost in the system prompt`}
               collapsed={isCollapsed}
               onToggle={() => toggle(scope)}
             />

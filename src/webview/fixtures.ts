@@ -1,4 +1,3 @@
-import { estimateTokens } from '../model/estimate-tokens';
 import { buildSearchIndex } from '../model/search/build-index';
 import { searchIndex } from '../model/search/search';
 import { listed } from '../model/shadowing';
@@ -47,9 +46,7 @@ const makeSkill = (
     issues: [],
     ...overrides,
     chars,
-    estimatedTokens: estimateTokens(chars),
-    listingChars: listing.length,
-    listingEstimatedTokens: estimateTokens(listing.length)
+    listingChars: listing.length
   };
 };
 
@@ -153,13 +150,12 @@ export const allSkills: SkillEntry[] = [
   longDescription
 ];
 
-// One CLAUDE.md. `chars` drives the size, the token estimate, and the share bar, so the stories
-// derive it the same way the loader does rather than carrying two numbers that can disagree.
+// One CLAUDE.md. `chars` is the whole measurement — the size, the estimate and the share bar all
+// come off it, the same way the loader reports it.
 const makePromptFile = (
   overrides: Partial<SystemPromptFile> & Pick<SystemPromptFile, 'path' | 'scope' | 'chars'>
 ): SystemPromptFile => ({
   order: 0,
-  estimatedTokens: estimateTokens(overrides.chars),
   depth: 0,
   issues: [],
   ...overrides
@@ -320,6 +316,7 @@ export const budgetSettings = ({
   content,
   overrides
 }: BudgetSettingsArgs = {}): ViewerSettings => ({
+  tokens: DEFAULT_SETTINGS.tokens,
   budgets: {
     skills: {
       description: description ?? DEFAULT_SETTINGS.budgets.skills.description,

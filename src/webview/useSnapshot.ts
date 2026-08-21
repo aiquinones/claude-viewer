@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { TokenEstimator } from '../model/estimate-tokens';
 import { DEFAULT_SETTINGS, SettingsSection, ViewerSettings } from '../model/settings/settings';
 import { AgentColor, AgentColors, AgentSession, ConfigSnapshot, Reveal } from '../model/types';
 import { UsageCostBasis, UsageMetric, UsageReport, UsageScope } from '../model/usage/types';
@@ -71,6 +72,11 @@ export const useSnapshot = () => {
     costBasis?: UsageCostBasis;
   }): void => vscode.postMessage({ type: 'setUsage', ...change });
 
+  // The estimator dialog's Apply. Same deal as the usage toggles: the host writes it and posts the
+  // whole settings object back, so every number in the panel re-derives from one message.
+  const changeEstimator = (estimator: TokenEstimator): void =>
+    vscode.postMessage({ type: 'setEstimator', estimator });
+
   // One row's colour. The host stores it and posts the whole map back, so nothing here guesses at
   // what it wrote.
   const setAgentColor = (args: { sessionId: string; color?: AgentColor }): void =>
@@ -81,6 +87,7 @@ export const useSnapshot = () => {
     agents,
     usage,
     changeUsage,
+    changeEstimator,
     settings,
     agentColors,
     setAgentColor,

@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { buildSearchIndex } from '../model/search/build-index';
 import { AgentSession, ConfigSnapshot, Reveal, SearchDoc } from '../model/types';
 import { UsageReport } from '../model/usage/types';
+import { TokenEstimator } from '../model/estimate-tokens';
 import { AgentColorProvider } from './agent-color/AgentColorContext';
+import { EstimatorDialog } from './EstimatorDialog';
+import { useEstimatorDialog } from './useEstimatorDialog';
 import { Loading } from './loading/Loading';
 import { SettingsProvider } from './settings/SettingsContext';
 import { Spotlight } from './spotlight/Spotlight';
@@ -30,6 +33,7 @@ export const App = () => {
     agents,
     usage,
     changeUsage,
+    changeEstimator,
     settings,
     agentColors,
     setAgentColor,
@@ -48,6 +52,15 @@ export const App = () => {
   // A skill picked in here. Same shape as the host's reveal, so SkillView takes one prop either way.
   const [selected, setSelected] = useState<Reveal | undefined>(undefined);
   const { spotlightOpenedAt, openSpotlight, dismissSpotlight } = useSpotlight();
+  // Opened from any number in the panel, so it lives here rather than on a surface.
+  const { estimatorOpenedAt, openEstimator, dismissEstimator } = useEstimatorDialog();
+
+  // Applying writes the setting and closes. The number on screen moves when the host posts the
+  // settings back, not here — nothing in the webview guesses at what was written.
+  const applyEstimator = (estimator: TokenEstimator): void => {
+    changeEstimator(estimator);
+    dismissEstimator();
+  };
 
   const openSurface = (id: SurfaceId): void => {
     setSurface(id);
@@ -103,7 +116,13 @@ export const App = () => {
   }
 
   return (
-    <SettingsProvider settings={settings} openSettings={openSettings} setUsage={changeUsage}>
+    <SettingsProvider
+      settings={settings}
+      openSettings={openSettings}
+      setUsage={changeUsage}
+      openEstimator={openEstimator}
+      setEstimator={changeEstimator}
+    >
       <AgentColorProvider colors={agentColors} setColor={setAgentColor}>
         <ViewSlider
           showDetail={showDetail}
@@ -143,6 +162,16 @@ export const App = () => {
             initialFilters={kindForSurface(showDetail ? surface : undefined)}
             onChoose={chooseResult}
             onDismiss={dismissSpotlight}
+          />
+        )}
+
+        {/* Keyed on the open, so a dialog reopened after applying starts from a fresh draft. */}
+        {estimatorOpenedAt !== undefined && (
+          <EstimatorDialog
+            key={estimatorOpenedAt}
+            current={settings.tokens.estimator.value}
+            onApply={applyEstimator}
+            onDismiss={dismissEstimator}
           />
         )}
       </AgentColorProvider>

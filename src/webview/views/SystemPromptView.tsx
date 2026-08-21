@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { PanelActions } from '../PanelActions';
 import { PromptBody } from '../PromptBody';
 import { PromptList } from '../PromptList';
-import { formatTokens, plural } from '../format-size';
+import { plural } from '../format-size';
+import { TokenEstimate } from '../TokenEstimate';
 import { alwaysLoads, totals } from '../prompt-totals';
 import { surfaceAccent } from '../surfaces';
 import { useFileBody } from '../useFileBody';
@@ -75,8 +76,8 @@ export const SystemPromptView = ({
         <div className="mr-auto flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-semibold">System Prompt</span>
           <span className="truncate text-xs text-muted-foreground">
-            {plural(always.files, 'file')} · ~{formatTokens(always.estimatedTokens)} est. tokens on
-            every request
+            {plural(always.files, 'file')} · <TokenEstimate chars={always.chars} long /> on every
+            request
             {!snapshot.workspaceRoot && ' · no folder open, user scope only'}
           </span>
         </div>

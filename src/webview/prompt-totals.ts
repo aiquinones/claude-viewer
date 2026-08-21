@@ -3,7 +3,6 @@ import { SystemPromptFile } from '../model/types';
 export interface PromptTotals {
   files: number;
   chars: number;
-  estimatedTokens: number;
 }
 
 // Files with no `conditionalOn` load on every request — that split is the whole reason the
@@ -18,8 +17,7 @@ export const totals = (files: SystemPromptFile[]): PromptTotals =>
   files.reduce(
     (running: PromptTotals, file) => ({
       files: running.files + 1,
-      chars: running.chars + file.chars,
-      estimatedTokens: running.estimatedTokens + file.estimatedTokens
+      chars: running.chars + file.chars
     }),
-    { files: 0, chars: 0, estimatedTokens: 0 }
+    { files: 0, chars: 0 }
   );

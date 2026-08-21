@@ -2,6 +2,7 @@
 // is Claude's config: these are `claudeViewer.*` keys, and `~/.claude` is still never written.
 
 import { z } from 'zod';
+import { TOKEN_ESTIMATORS, TokenEstimator } from '../estimate-tokens';
 import {
   USAGE_COST_BASES,
   USAGE_METRICS,
@@ -15,7 +16,7 @@ import {
 // into the query it filters by, so a section that isn't listed here can't be asked for.
 //
 // Deliberately not annotated: a type here would erase the literals `SettingsSection` derives from.
-export const SETTINGS_SECTIONS = ['budgets', 'usage', 'context'] as const;
+export const SETTINGS_SECTIONS = ['budgets', 'usage', 'context', 'tokens'] as const;
 
 export type SettingsSection = (typeof SETTINGS_SECTIONS)[number];
 
@@ -88,7 +89,14 @@ export interface ContextSettings {
   windows: Record<string, number>;
 }
 
+// Which approximation every "est. tokens" in the panel is. One key rather than a factor you type:
+// the two estimators are two claims about the same tokenizer, and a free number would be a third.
+export interface TokenSettings {
+  estimator: SettingValue<TokenEstimator>;
+}
+
 export interface ViewerSettings {
+  tokens: TokenSettings;
   budgets: Budgets;
   usage: UsageSettings;
   context: ContextSettings;
@@ -124,7 +132,14 @@ export const DEFAULT_CONTEXT_ERROR_AT: number = 300_000;
 // room left is the one failure worth avoiding here.
 export const DEFAULT_CONTEXT_WINDOW_FALLBACK: number = 200_000;
 
+// The published rule of thumb, because it's what every number here has always meant. Switching the
+// default would silently restate every figure in the panel as something a third larger.
+export const DEFAULT_TOKEN_ESTIMATOR: TokenEstimator = 'standard';
+
 export const DEFAULT_SETTINGS: ViewerSettings = {
+  tokens: {
+    estimator: { value: DEFAULT_TOKEN_ESTIMATOR, source: 'default' }
+  },
   budgets: {
     skills: {
       description: { tokens: DEFAULT_DESCRIPTION_BUDGET, source: 'default' },
@@ -195,9 +210,15 @@ export const parseContextWindows = (raw: unknown): Record<string, number> => {
 // A settings.json that names a metric this version doesn't have falls through to the next layer
 // rather than to the default in place, so the source a card prints always names the layer whose
 // value is on screen.
+const estimatorSchema = z.enum(TOKEN_ESTIMATORS);
 const metricSchema = z.enum(USAGE_METRICS);
 const scopeSchema = z.enum(USAGE_SCOPES);
 const costBasisSchema = z.enum(USAGE_COST_BASES);
+
+export const parseTokenEstimator = (raw: unknown): TokenEstimator | undefined => {
+  const parsed = estimatorSchema.safeParse(raw);
+  return parsed.success ? parsed.data : undefined;
+};
 
 export const parseUsageMetric = (raw: unknown): UsageMetric | undefined => {
   const parsed = metricSchema.safeParse(raw);

@@ -3,7 +3,6 @@ import { parseFrontmatter, Frontmatter } from '../config/frontmatter';
 import { SKILL_FILE, skillRoots } from '../config/paths';
 import { countFiles, listDirectories, readTextFile } from '../config/read';
 import { ConfigError, Result } from '../config/result';
-import { estimateTokens } from './estimate-tokens';
 import { parseSkillFrontmatter, SkillFrontmatter } from './skill-schema';
 import { resolveShadowing, scopeRank } from './shadowing';
 import { ConfigIssue, SkillEntry, SkillRoot } from './types';
@@ -40,9 +39,7 @@ const loadSkill = async ({ root, dirName }: LoadSkillArgs): Promise<SkillEntry> 
     pluginName: root.pluginName,
     bundledFiles,
     chars: 0,
-    estimatedTokens: 0,
     listingChars: 0,
-    listingEstimatedTokens: 0,
     issues: []
   };
 
@@ -56,11 +53,7 @@ const loadSkill = async ({ root, dirName }: LoadSkillArgs): Promise<SkillEntry> 
   }
 
   // The file was read, so it has a size even when nothing below this parses.
-  const sized: SkillEntry = {
-    ...base,
-    chars: read.value.length,
-    estimatedTokens: estimateTokens(read.value.length)
-  };
+  const sized: SkillEntry = { ...base, chars: read.value.length };
 
   const parsed: Result<Frontmatter, string> = parseFrontmatter(read.value);
   if (!parsed.ok) {
@@ -92,11 +85,7 @@ const loadSkill = async ({ root, dirName }: LoadSkillArgs): Promise<SkillEntry> 
 // description is what the number is there to show.
 const withListingCost = (entry: SkillEntry): SkillEntry => {
   const listing: string = `${entry.name}: ${entry.description}`;
-  return {
-    ...entry,
-    listingChars: listing.length,
-    listingEstimatedTokens: estimateTokens(listing.length)
-  };
+  return { ...entry, listingChars: listing.length };
 };
 
 interface CollectIssuesArgs {
