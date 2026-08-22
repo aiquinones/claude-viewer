@@ -55,12 +55,12 @@ export const Idle: Story = { args: { agent: idleAgent } };
 // Truncates rather than wrapping: a row that grows a second line breaks the rhythm of the list.
 export const LongTitle: Story = { args: { agent: longTitleAgent } };
 
-// A live process with nothing written yet — the warning is the icon beside the age, and the label
+// A live process with nothing written yet — the warning is the icon beside the badge, and the label
 // falls back to the folder.
 export const NoTranscript: Story = { args: { agent: noTranscriptAgent } };
 
 // A second process on the same conversation, which `--resume` leaves behind. The red flag beside
-// the age is the only sign — one conversation is still one row.
+// the badge is the only sign — one conversation is still one row.
 export const Resumed: Story = { args: { agent: resumedAgent } };
 
 // Working in another repo, so the path prints absolute with the home folded to `~`.

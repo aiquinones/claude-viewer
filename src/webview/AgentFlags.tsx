@@ -8,8 +8,8 @@ interface AgentFlagsProps {
   agent: AgentSession;
 }
 
-// Everything wrong with one row, as icons beside the age. The messages are sentences — "no event
-// log on disk yet", "two processes hold this session" — and a row that prints them costs three
+// Everything wrong with one row, as icons beside its badge. The messages are sentences — "no event
+// log on disk yet", "2 extra processes hold this session" — and a row that prints them costs three
 // lines to say something that is usually fine, so the sentence moves into the hover and the icon
 // keeps the place.
 //
@@ -46,9 +46,11 @@ interface FlagProps {
 }
 
 // One icon and the sentence behind it. `wrap`, because every label here is prose rather than a
-// name, and a nowrap bubble on a row would run past the panel's edge.
+// name, and a nowrap bubble on a row would run past the panel's edge. `align="left"` for the same
+// reason from the other side: these sit near the row's left edge, and the default bubble hangs
+// leftwards off it.
 const Flag = ({ label, severity, children }: FlagProps) => (
-  <Tooltip label={label} wrap>
+  <Tooltip label={label} wrap align="left">
     <span
       role="img"
       aria-label={label}

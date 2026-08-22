@@ -11,7 +11,7 @@ import { RowColor, useRowColor } from './agent-color/useRowColor';
 import { AgentRowFooter } from './AgentRowFooter';
 import { AgentToolTag } from './AgentToolTag';
 import { activityOf } from './agent-activity';
-import { agentLabel, agentTooltip } from './agent-row-text';
+import { agentLabel } from './agent-row-text';
 import { displayFolder } from './display-path';
 import { formatAge } from './format-age';
 
@@ -52,27 +52,25 @@ export const AgentRow = ({
     >
       <button
         type="button"
-        title={agentTooltip(agent)}
         className="flex w-full min-w-0 flex-col gap-1.5 rounded-md px-3 py-2 text-left cursor-pointer"
       >
         <span className="flex w-full min-w-0 items-center gap-2">
           <ActivityBadge activity={activity} tail={agent.tail} />
+          {/* Anything wrong with the row, as icons. On this side rather than by the age: the age
+              is a word whose width changes as it counts up, so an icon anchored to it slides
+              around while you're reading. They sit inside the button, unlike the PR link — a
+              tooltip is spans, and a `<button>` can hold those. */}
+          <AgentFlags agent={agent} />
           <span
-            // `flex-1` rather than `ml-auto` on the age: the flags sit between the two, and two
-            // auto margins would share the free space and split them apart.
             className={cn(
-              'min-w-0 flex-1 truncate text-sm font-medium',
+              'truncate text-sm font-medium',
               activity === 'idle' && 'text-muted-foreground'
             )}
           >
             {agentLabel(agent)}
           </span>
-          {/* Anything wrong with the row, as icons — the corner where its status already lives.
-              They sit inside the button, unlike the PR link: a tooltip is spans, and a `<button>`
-              can hold those. */}
-          <AgentFlags agent={agent} />
           {/* The age earns its place next to the badge: most states here are inferred from it. */}
-          <span className="mono shrink-0 text-xs text-muted-foreground">
+          <span className="mono ml-auto shrink-0 text-xs text-muted-foreground">
             {formatAge(now - agent.lastActivityAt)}
           </span>
         </span>

@@ -2,14 +2,14 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { AgentFlags } from '@src/webview/AgentFlags';
 import { noTranscriptAgent, resumedAgent, workingAgent } from '../agent-fixtures';
 
-// The icons that sit beside a row's age. Right-aligned in the decorator, because the bubble hangs
-// off the right edge the way it does on a row.
+// The icons that sit beside a row's activity badge. Left-aligned in the decorator, the way they sit
+// on a row — which is also which way the bubble hangs.
 const meta: Meta<typeof AgentFlags> = {
   title: 'Agents/AgentFlags',
   component: AgentFlags,
   decorators: [
     (Story) => (
-      <div className="flex justify-end p-6 pb-40">
+      <div className="flex justify-start p-6 pb-40">
         <Story />
       </div>
     )

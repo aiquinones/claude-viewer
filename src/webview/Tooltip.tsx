@@ -11,6 +11,10 @@ interface TooltipProps {
   // For a label that's a sentence rather than a name. The default is one line at whatever width it
   // needs, which is right for "Refresh" and runs off the panel for anything explaining itself.
   wrap?: boolean;
+  // Which edge the bubble is pinned to. The default hangs it leftwards from the trigger's right
+  // edge, which is what a control in a header wants; a trigger near the panel's left edge wants
+  // the other one, or a wide bubble is drawn off the side.
+  align?: 'left' | 'right';
   children: ReactNode;
 }
 
@@ -29,6 +33,7 @@ export const Tooltip = ({
   hint,
   disabled = false,
   wrap = false,
+  align = 'right',
   children
 }: TooltipProps) => (
   <span className="group/tip relative inline-flex">
@@ -37,9 +42,9 @@ export const Tooltip = ({
       <span
         role="tooltip"
         style={{ zIndex: Z.card }}
-        className={`pointer-events-none absolute right-0 top-full mt-1 flex items-center gap-1.5 rounded-md border border-border bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover/tip:opacity-100 group-has-focus-visible/tip:opacity-100 ${
-          wrap ? 'w-max max-w-[min(28rem,calc(100vw-2rem))]' : 'whitespace-nowrap'
-        }`}
+        className={`pointer-events-none absolute top-full mt-1 flex items-center gap-1.5 rounded-md border border-border bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover/tip:opacity-100 group-has-focus-visible/tip:opacity-100 ${
+          align === 'left' ? 'left-0' : 'right-0'
+        } ${wrap ? 'w-max max-w-[min(28rem,calc(100vw-2rem))]' : 'whitespace-nowrap'}`}
       >
         {label}
         {hint && (
