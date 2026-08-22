@@ -73,6 +73,11 @@ export const copilotWorkspacePath = (sessionDir: string): string =>
 // The session's append-only event log — the conversation and its lifecycle in one stream.
 export const copilotEventsPath = (sessionDir: string): string => join(sessionDir, 'events.jsonl');
 
+// One SQLite file for every session on the machine, not one per session. It's where the CLI puts
+// `assistant.usage` — an event marked ephemeral, so it never reaches `events.jsonl` — and that row
+// carries the only live context size Copilot writes down anywhere.
+export const copilotSessionStorePath = (): string => join(copilotDir(), 'session-store.db');
+
 // A process holds a session by writing `inuse.<pid>.lock` into its directory, and removes the file
 // on a clean exit. The pid is read from the name rather than the contents: both carry it and they
 // agree, but the name is there after one readdir and the contents cost an open.

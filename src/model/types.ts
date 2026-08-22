@@ -146,15 +146,20 @@ export type AgentColors = Record<string, AgentColor>;
 
 // How full a session's context was on its last real request, and which model was answering. The
 // model travels with the number because the window it's read against depends on it, and only the
-// transcript line knows which one ran.
+// log line knows which one ran.
 //
-// Claude only. Copilot's event log carries per-message output tokens and a running billed total,
-// and neither can be turned into a context size — so a Copilot session simply has none of this.
+// Both CLIs, read out of two different files. Claude's is on the last assistant line of the
+// transcript. Copilot's is not in its event log at all — the event carrying it is marked ephemeral
+// and never written there — but the CLI routes that one event to `~/.copilot/session-store.db`
+// instead, which is what `copilot/usage-db.ts` reads.
 export interface AgentContext {
-  // input + cache_read + cache_creation on the last non-synthetic assistant line.
+  // The whole prompt the next request carries. Both CLIs record it, in their own arithmetic: for
+  // Claude it's input + cache_read + cache_creation on the last non-synthetic assistant line, for
+  // Copilot it's `input_tokens` on the last usage row, which already includes both cache figures.
   tokens: number;
-  // The alias the transcript recorded, `claude-opus-5` rather than a dated snapshot id. Empty when
-  // the line carried usage but no model, which shouldn't happen and isn't worth failing over.
+  // The alias the log recorded — `claude-opus-5` or `gpt-5.6-luna` rather than a dated snapshot id.
+  // Empty when the row carried usage but no model, which shouldn't happen and isn't worth failing
+  // over.
   model: string;
 }
 
@@ -198,8 +203,8 @@ export interface AgentSession {
   // name only: the input is arbitrary text from the agent's own work, and this panel gets
   // screenshotted.
   pendingTool?: string;
-  // How full the model's context is. Claude only, and absent until the session finishes one
-  // assistant turn.
+  // How full the model's context is. Both CLIs, and absent until the session finishes one assistant
+  // turn — or, for Copilot, when the usage database can't be read at all.
   context?: AgentContext;
   // When the log was last written, and when the process started.
   lastActivityAt: number;

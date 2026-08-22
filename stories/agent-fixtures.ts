@@ -178,7 +178,10 @@ export const copilotWorkingAgent: AgentSession = makeCopilotAgent({
   lastPrompt: 'the upload test fails about one run in five on CI',
   tail: 'working',
   pendingTool: 'bash',
-  lastActivityAt: ago(2_000)
+  lastActivityAt: ago(2_000),
+  // A Copilot reading, out of the usage database rather than the event log. GPT-5.6 spells its id
+  // with a dot, which the window table normalizes away.
+  context: { tokens: 96_400, model: 'gpt-5.6-luna' }
 });
 
 // The state only Copilot can state. `tail: 'blocked'` is an unanswered `permission.requested` in
@@ -192,7 +195,10 @@ export const copilotBlockedAgent: AgentSession = makeCopilotAgent({
   branch: 'feat/schema-v4',
   tail: 'blocked',
   pendingTool: 'bash',
-  lastActivityAt: ago(6_000)
+  lastActivityAt: ago(6_000),
+  // The same model Claude Code writes as `claude-haiku-4-5`. Copilot's dotted spelling has to reach
+  // the same 200k row, which is the case the normalization exists for.
+  context: { tokens: 148_000, model: 'claude-haiku-4.5' }
 });
 
 // An MCP tool, which prints server-qualified so a remote `create_pull_request` doesn't read like a
