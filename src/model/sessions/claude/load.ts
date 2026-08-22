@@ -1,14 +1,13 @@
 import { transcriptPath } from '../../../config/paths';
 import { AgentSession } from '../../types';
-import { liveSessions } from './live';
-import { SessionFile } from './session-schema';
+import { LiveClaudeSession, liveSessions } from './live';
 import { TranscriptSummary, readTranscript } from './transcript';
 
 // Locate → parse → validate → typed entries, the same shape every other loader uses. Two sources
 // joined — the session files and the transcript each one names — and a process that no longer
 // exists is simply not in the list.
 export const loadClaudeSessions = async (): Promise<AgentSession[]> => {
-  const sessions: SessionFile[] = await liveSessions();
+  const sessions: LiveClaudeSession[] = await liveSessions();
   const entries: (AgentSession | undefined)[] = await Promise.all(sessions.map(toEntry));
 
   return entries.filter((entry): entry is AgentSession => entry !== undefined);
@@ -17,7 +16,10 @@ export const loadClaudeSessions = async (): Promise<AgentSession[]> => {
 // A live process whose transcript doesn't exist has never been prompted — no title, no turn, no
 // context — so it isn't a row. Claude Code leaves these behind: resuming a conversation spawns a
 // second process and abandons the first, which stays alive attached to nothing.
-const toEntry = async (session: SessionFile): Promise<AgentSession | undefined> => {
+const toEntry = async ({
+  session,
+  otherPids
+}: LiveClaudeSession): Promise<AgentSession | undefined> => {
   const path: string = transcriptPath({ cwd: session.cwd, sessionId: session.sessionId });
   const summary: TranscriptSummary = await readTranscript(path);
   if (summary.missing) return undefined;
@@ -28,6 +30,7 @@ const toEntry = async (session: SessionFile): Promise<AgentSession | undefined> 
     sessionId: session.sessionId,
     tool: 'claude',
     pid: session.pid,
+    otherPids,
     cwd: session.cwd,
     transcriptPath: path,
     title: summary.title,

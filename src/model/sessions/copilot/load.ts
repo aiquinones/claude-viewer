@@ -33,6 +33,7 @@ const toEntry = async ({ session, contexts }: ToEntryArgs): Promise<AgentSession
     sessionId: session.sessionId,
     tool: 'copilot',
     pid: session.pid,
+    otherPids: session.otherPids,
     cwd: session.workspace.cwd,
     transcriptPath: path,
     title: session.workspace.name,
