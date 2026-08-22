@@ -13,9 +13,13 @@ const meta: Meta<typeof RetentionInfo> = {
   decorators: [
     (Story) => (
       // Room below it, since the card opens downward and these stories are about the card.
+      //
+      // The heading is the real one, uppercase and all: the card is a descendant of it and
+      // typography inherits, so this is the context that decides how the card reads. `HoverCard`
+      // resets its own — before that, every sentence here was set in the heading's face.
       <div className="p-4 pb-64">
-        <h2 className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-muted-foreground">
-          <span className="uppercase">Last 5 weeks</span>
+        <h2 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Last 5 weeks
           <Story />
         </h2>
       </div>

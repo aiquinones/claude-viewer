@@ -77,6 +77,21 @@ export const OverAPinnedBar: Story = {
   ]
 };
 
+// Inside an uppercase, semibold, wide-tracked heading — the shape the retention (i) sits in on the
+// Sessions tab. The card is a descendant of that heading and typography inherits, so the whole
+// explanation used to be set in the heading's face while the identical card on a plain control
+// beside it was not. The box resets all three; the title puts its own weight back.
+export const InsideAHeading: Story = {
+  decorators: [
+    (Story) => (
+      <h2 className="flex items-center gap-1.5 p-6 pb-40 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        the last 12 weeks
+        <Story />
+      </h2>
+    )
+  ]
+};
+
 // A card you can reach with the pointer. The default is `pointer-events-none`, which is right for a
 // label and fatal for one holding a button — this variant swaps that for `invisible`, so the card
 // takes the pointer while it's open and keeps its button out of the tab order while it isn't.
