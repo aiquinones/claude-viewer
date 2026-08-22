@@ -3,6 +3,7 @@ import { DEFAULT_SETTINGS } from '@src/model/settings/settings';
 import { AgentContext } from '@src/webview/AgentContext';
 import {
   askingAgent,
+  copilotBlockedAgent,
   copilotWorkingAgent,
   noTranscriptAgent,
   overWindowAgent,
@@ -65,9 +66,14 @@ export const YourOwnThresholds: Story = {
   ]
 };
 
-// Copilot records no context size anywhere on disk, so the row has no bar at all. Renders nothing —
-// an empty track would be a claim that the session is empty.
+// A Copilot row, which reads identically to a Claude one — the two CLIs record the number in
+// different places and different arithmetic, and none of that should reach the card.
 export const Copilot: Story = { args: { agent: copilotWorkingAgent } };
 
-// A Claude session that hasn't finished an assistant turn. Also nothing.
+// Copilot spells this model `claude-haiku-4.5` where Claude Code writes `claude-haiku-4-5`. Both
+// reach the same 200k row, so the card names a window rather than falling back.
+export const CopilotDottedModelId: Story = { args: { agent: copilotBlockedAgent } };
+
+// A session that hasn't finished an assistant turn — and, for Copilot, one whose usage database
+// couldn't be opened. Renders nothing: an empty track would be a claim that the session is empty.
 export const NothingMeasuredYet: Story = { args: { agent: noTranscriptAgent } };

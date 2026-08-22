@@ -24,8 +24,9 @@ interface AgentContextProps {
 // How full this agent's context is, and what the two numbers behind that mean. Both row modes
 // render this and nothing else of the feature.
 //
-// Absent rather than empty when there's nothing to measure: a Copilot session, which records no
-// context size anywhere on disk, and a Claude one that hasn't finished an assistant turn yet.
+// Absent rather than empty when there's nothing to measure: a session of either CLI that hasn't
+// finished an assistant turn, and a Copilot one whose usage database couldn't be read. An empty
+// track would be a claim that the session is empty.
 //
 // The bar is the trigger — there's no (i) beside it. An info icon would be a second thing to aim at
 // for one thing to read, and the bar is already the only part of a row whose meaning isn't spelled

@@ -73,8 +73,8 @@ export const CopilotBlocked: Story = { args: { agent: copilotBlockedAgent } };
 export const CopilotMcpTool: Story = { args: { agent: copilotMcpAgent } };
 
 // The context bar across its three levels, stacked so the colours can be compared. The Copilot row
-// at the bottom has no bar — it records no context size anywhere on disk — which is what the gap
-// between the rows is saying.
+// at the bottom is in it deliberately: its number comes from a different file and different
+// arithmetic, and the row should give no sign of that.
 export const ContextLevels: Story = {
   render: (args) => (
     <div className="flex flex-col gap-1">
