@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react';
 import { SettingSource } from '../../model/settings/settings';
 import { CodeText } from '../CodeText';
-import { ChoiceOption } from '../usage-options';
+import { ChoiceOption } from './choice-option';
 
 // Where the setting came from, said in the menu rather than only in the Settings UI — the same
 // reason the budgets card names its source.
@@ -54,6 +54,9 @@ interface MenuChoiceItemProps<Id extends string> {
 
 // A check on the active one, which a contributed VS Code menu can't do — this is a webview, so the
 // menu is ours and it can say which option is on.
+//
+// A `soon` row dims and still fires: it can't be the active one, so nothing here shows it as picked,
+// and what the click means is the parent's to decide.
 const MenuChoiceItem = <Id extends string>({
   option,
   active,
@@ -64,13 +67,18 @@ const MenuChoiceItem = <Id extends string>({
     role="menuitemradio"
     aria-checked={active}
     onClick={() => onChoose(option.id)}
-    className="flex cursor-pointer items-start gap-1.5 rounded px-1.5 py-1 text-left transition-colors hover:bg-accent"
+    className={`flex cursor-pointer items-start gap-1.5 rounded px-1.5 py-1 text-left transition-colors hover:bg-accent ${
+      option.soon ? 'opacity-50' : ''
+    }`}
   >
     <Check
       className={`mt-0.5 size-3.5 shrink-0 ${active ? 'text-foreground' : 'text-transparent'}`}
     />
     <span className="flex flex-col gap-0.5">
-      <span className={active ? 'text-foreground' : ''}>{option.label}</span>
+      <span className="flex items-baseline gap-1.5">
+        <span className={active ? 'text-foreground' : ''}>{option.label}</span>
+        {option.soon && <span className="text-[0.6875rem] text-muted-foreground">soon</span>}
+      </span>
       <span className="text-muted-foreground">
         <CodeText text={option.hint} />
       </span>
