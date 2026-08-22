@@ -75,11 +75,10 @@ export const SessionsTab = ({
   return (
     <div className="flex flex-col gap-4 px-4 py-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        {/* `uppercase` sits on the label, not the heading: the (i)'s card is a descendant, and
-            text-transform inherits — a heading-wide rule shouts the whole explanation. Same split
-            CollapsibleHeading makes for the note beside its title. */}
-        <h2 className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-muted-foreground">
-          <span className="uppercase">{spanLabel(grid.weeks.length)}</span>
+        {/* The (i)'s card is a descendant of this heading, and every one of these rules inherits.
+            `HoverCard` resets its own typography for that reason, so the heading can carry them. */}
+        <h2 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {spanLabel(grid.weeks.length)}
           {/* Only Claude's window has a rule behind it to explain. */}
           {tool === 'claude' && (
             <RetentionInfo

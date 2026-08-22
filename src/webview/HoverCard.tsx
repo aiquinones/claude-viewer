@@ -57,8 +57,13 @@ export const HoverCard = ({
         } ${side === 'end' ? 'right-0' : 'left-0'}`}
       >
         {/* `w-max` with a max: a two-word hint gets a small box and a paragraph wraps at 16rem,
-            rather than every card being the width of the longest one. */}
-        <span className="block w-max max-w-[min(16rem,calc(100vw-1.5rem))] rounded-md border border-border bg-popover p-2 text-xs leading-relaxed text-popover-foreground shadow-lg">
+            rather than every card being the width of the longest one.
+
+            The typography is reset, not inherited. A card floats out of wherever its trigger was
+            mounted — the retention (i) sits inside a `font-semibold uppercase tracking-wide`
+            heading, and its whole explanation came out in the heading's face while the identical
+            card on a plain toggle beside it did not. `HoverCardTitle` puts its own weight back. */}
+        <span className="block w-max max-w-[min(16rem,calc(100vw-1.5rem))] rounded-md border border-border bg-popover p-2 text-xs font-normal normal-case leading-relaxed tracking-normal text-popover-foreground shadow-lg">
           {card}
         </span>
       </span>
