@@ -3,6 +3,7 @@ import { AgentActivity } from '../model/types';
 import { cn } from '@/lib/utils';
 import { ActivityBadge } from './ActivityBadge';
 import { AgentContext } from './AgentContext';
+import { AgentFlags } from './AgentFlags';
 import { AgentMenu } from './agent-menu/AgentMenu';
 import { useAgentMenu } from './agent-menu/useAgentMenu';
 import { AgentRowProps } from './agent-row-props';
@@ -57,24 +58,36 @@ export const AgentRow = ({
         <span className="flex w-full min-w-0 items-center gap-2">
           <ActivityBadge activity={activity} tail={agent.tail} />
           <span
+            // `flex-1` rather than `ml-auto` on the age: the flags sit between the two, and two
+            // auto margins would share the free space and split them apart.
             className={cn(
-              'truncate text-sm font-medium',
+              'min-w-0 flex-1 truncate text-sm font-medium',
               activity === 'idle' && 'text-muted-foreground'
             )}
           >
             {agentLabel(agent)}
           </span>
+          {/* Anything wrong with the row, as icons — the corner where its status already lives.
+              They sit inside the button, unlike the PR link: a tooltip is spans, and a `<button>`
+              can hold those. */}
+          <AgentFlags agent={agent} />
           {/* The age earns its place next to the badge: most states here are inferred from it. */}
-          <span className="mono ml-auto shrink-0 text-xs text-muted-foreground">
+          <span className="mono shrink-0 text-xs text-muted-foreground">
             {formatAge(now - agent.lastActivityAt)}
           </span>
         </span>
 
         <span className="flex w-full min-w-0 items-center gap-2 pl-3.5">
           <AgentToolTag tool={agent.tool} />
-          <span className="mono truncate text-xs text-muted-foreground">
-            {displayFolder({ path: agent.cwd, workspaceRoot })}
-          </span>
+          {/* Only where it says something the panel hasn't. An agent sitting in the open folder
+              would print that folder's name back at you — the header already did. A worktree is
+              under the same root and still prints, since which worktree is the whole question when
+              two agents share a repo. */}
+          {agent.cwd !== workspaceRoot && (
+            <span className="mono truncate text-xs text-muted-foreground">
+              {displayFolder({ path: agent.cwd, workspaceRoot })}
+            </span>
+          )}
           {/* Only Copilot records the branch. It's the thing you want to know about an agent
               working somewhere else, so it goes on the row when it's there. */}
           {agent.branch && (

@@ -43,6 +43,20 @@ export const LabelOnly: Story = {
   }
 };
 
+// A label that's a sentence rather than a name. Without `wrap` this runs off the panel's edge in
+// one line, which is what the agent rows' flags needed.
+export const Wrapped: Story = {
+  args: {
+    label: 'no event log on disk yet — nothing has been written for this session',
+    wrap: true,
+    children: (
+      <Button variant="ghost" size="icon" aria-label="Warning">
+        <Search />
+      </Button>
+    )
+  }
+};
+
 // What the color picker does while its swatches are open — the trigger keeps its tooltip, the
 // tooltip just doesn't draw.
 export const Disabled: Story = {

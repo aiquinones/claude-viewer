@@ -8,6 +8,9 @@ interface TooltipProps {
   // No bubble, for as long as whatever this labels is explaining itself another way — the color
   // picker's popover opens exactly where the bubble sits.
   disabled?: boolean;
+  // For a label that's a sentence rather than a name. The default is one line at whatever width it
+  // needs, which is right for "Refresh" and runs off the panel for anything explaining itself.
+  wrap?: boolean;
   children: ReactNode;
 }
 
@@ -21,14 +24,22 @@ interface TooltipProps {
 // `group-has-focus-visible/tip` is what makes it reachable by keyboard, since the thing it wraps
 // is a button. Focus-visible rather than focus-within: a click focuses that button too, and a
 // focus-within bubble stays up after the pointer has gone until you focus something else.
-export const Tooltip = ({ label, hint, disabled = false, children }: TooltipProps) => (
+export const Tooltip = ({
+  label,
+  hint,
+  disabled = false,
+  wrap = false,
+  children
+}: TooltipProps) => (
   <span className="group/tip relative inline-flex">
     {children}
     {!disabled && (
       <span
         role="tooltip"
         style={{ zIndex: Z.card }}
-        className="pointer-events-none absolute right-0 top-full mt-1 flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover/tip:opacity-100 group-has-focus-visible/tip:opacity-100"
+        className={`pointer-events-none absolute right-0 top-full mt-1 flex items-center gap-1.5 rounded-md border border-border bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 shadow-lg transition-opacity group-hover/tip:opacity-100 group-has-focus-visible/tip:opacity-100 ${
+          wrap ? 'w-max max-w-[min(28rem,calc(100vw-2rem))]' : 'whitespace-nowrap'
+        }`}
       >
         {label}
         {hint && (

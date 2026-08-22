@@ -9,6 +9,7 @@ import {
   idleAgent,
   longTitleAgent,
   noTranscriptAgent,
+  resumedAgent,
   waitingAgent,
   workingAgent
 } from '../agent-fixtures';
@@ -54,12 +55,21 @@ export const Idle: Story = { args: { agent: idleAgent } };
 // Truncates rather than wrapping: a row that grows a second line breaks the rhythm of the list.
 export const LongTitle: Story = { args: { agent: longTitleAgent } };
 
-// A live process with nothing written yet — the issue shows under the row, and the label falls back
-// to the folder.
+// A live process with nothing written yet — the warning is the icon beside the age, and the label
+// falls back to the folder.
 export const NoTranscript: Story = { args: { agent: noTranscriptAgent } };
+
+// A second process on the same conversation, which `--resume` leaves behind. The red flag beside
+// the age is the only sign — one conversation is still one row.
+export const Resumed: Story = { args: { agent: resumedAgent } };
 
 // Working in another repo, so the path prints absolute with the home folded to `~`.
 export const OtherWorkspace: Story = { args: { agent: elsewhereAgent } };
+
+// An agent sitting in the open folder prints no path at all: the panel header already says which
+// folder this is, and repeating it on every row said nothing. `Waiting` above is the worktree case
+// — same root, and the path is what tells the two apart.
+export const InWorkspaceRoot: Story = { args: { agent: idleAgent } };
 
 // A Copilot row next to the Claude ones above: same shape, different tag, plus the branch that
 // only this CLI records.
