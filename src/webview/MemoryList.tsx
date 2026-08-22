@@ -1,5 +1,5 @@
 import { RefObject, useState } from 'react';
-import { MemoryEntry, MemoryType } from '../model/types';
+import { MemoryEntry } from '../model/types';
 import { CollapsibleHeading } from './CollapsibleHeading';
 import { MemoryRow } from './MemoryRow';
 import { TokenEstimate } from './TokenEstimate';
@@ -14,15 +14,6 @@ interface MemoryListProps {
   selectionRef: RefObject<HTMLDivElement>;
   onSelect: (memory: MemoryEntry) => void;
 }
-
-// The four types the memory instructions name is not a display order anyone would guess, so each
-// heading says what its group is for as well as what it costs.
-const GROUP_NOTE: Record<MemoryType, string> = {
-  user: 'who you are',
-  feedback: 'how to work with you',
-  project: 'what the work is',
-  reference: 'where things live'
-};
 
 // One group per type, each folding from its heading and keeping its subtotal folded — PromptList's
 // rule, for the same reason: a collapsed group still has to say what it costs.
@@ -50,7 +41,6 @@ export const MemoryList = ({
           <MemoryGroupSection
             key={id}
             id={id}
-            note={group.type ? GROUP_NOTE[group.type] : 'no type Claude Code recognises'}
             group={group}
             collapsed={collapsed.includes(id)}
             selectedPath={selectedPath}
@@ -67,7 +57,6 @@ export const MemoryList = ({
 
 interface MemoryGroupSectionProps {
   id: string;
-  note: string;
   group: MemoryGroup;
   collapsed: boolean;
   selectedPath: string | undefined;
@@ -79,7 +68,6 @@ interface MemoryGroupSectionProps {
 
 const MemoryGroupSection = ({
   id,
-  note,
   group,
   collapsed,
   selectedPath,
@@ -93,8 +81,8 @@ const MemoryGroupSection = ({
       title={id}
       note={
         <>
-          {note} · {plural(group.memories.length, 'memory', 'memories')} ·{' '}
-          <TokenEstimate chars={memoryTotals(group.memories).chars} long /> if recalled
+          {plural(group.memories.length, 'memory', 'memories')} ·{' '}
+          <TokenEstimate chars={memoryTotals(group.memories).chars} long />
         </>
       }
       collapsed={collapsed}
