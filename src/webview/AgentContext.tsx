@@ -38,7 +38,7 @@ export const AgentContext = ({ agent, className = '' }: AgentContextProps) => {
   const reading: ContextReading = readContext({ context: agent.context, settings });
 
   return (
-    <span className={`group/context relative block ${className}`}>
+    <span className={`group/context context-hover relative block ${className}`}>
       {/* Not a button — nothing happens on click, and the CTA lives inside the card. Tabbing here
           opens it, and tabbing on walks into that button. Its own group name: this sits inside the
           row's `group`, and an unnamed one here would answer to the row's hover as well. */}
@@ -51,11 +51,15 @@ export const AgentContext = ({ agent, className = '' }: AgentContextProps) => {
       </span>
 
       {/* `pt-1.5` rather than a margin: the gap stays inside the group, so the card survives the
-          pointer crossing it on the way down. */}
+          pointer crossing it on the way down.
+
+          The transition is `.context-card` in styles.css rather than a utility here — it waits
+          before opening, and a delay that applies on the way in but not on the way out has to be
+          written as two rules. */}
       <div
         id={CARD_ID}
         style={{ zIndex: Z.card }}
-        className="invisible absolute left-0 top-full pt-1.5 opacity-0 transition-opacity group-hover/context:visible group-hover/context:opacity-100 group-focus-within/context:visible group-focus-within/context:opacity-100"
+        className="context-card invisible absolute left-0 top-full pt-1.5 opacity-0 group-hover/context:visible group-hover/context:opacity-100 group-focus-within/context:visible group-focus-within/context:opacity-100"
       >
         <div className="flex w-max max-w-[min(22rem,calc(100vw-2rem))] flex-col gap-2 rounded-md border border-border bg-popover p-3 text-left text-xs shadow-lg">
           <Headline reading={reading} />

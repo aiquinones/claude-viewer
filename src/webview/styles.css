@@ -134,6 +134,32 @@
   }
 }
 
+/* The context card on an agent row waits before it opens. The bar it hangs off spans the row, so
+   you cross it moving down the list rather than aiming at it, and a card that opens on contact
+   opens on the way past.
+
+   The delay lives in the hovered state, not the base rule: a transition reads the delay of the
+   state it's heading *toward*, so this waits on the way in and closes the moment you leave. On the
+   base rule it would do the opposite — open at once and linger after the pointer's gone.
+
+   `visibility` is transitioned alongside `opacity` and with the same delay. Left to flip on its
+   own it would turn the card on immediately and leave it transparent for the whole wait — an
+   invisible box over the row, eating the clicks meant for it. */
+.context-card {
+  transition-property: opacity, visibility;
+  transition-duration: 120ms, 0s;
+}
+
+.context-hover:hover .context-card {
+  transition-delay: 400ms;
+}
+
+/* Tabbing to the bar is deliberate, so it opens with no wait. After the :hover rule, since the two
+   have the same specificity and a keyboard focus can land under the pointer. */
+.context-hover:focus-within .context-card {
+  transition-delay: 0ms;
+}
+
 /* The skills nav sliding back from the left edge on a narrow panel. Timing lives here for the
    same reason .view-pane's does — an inline transition would beat the reduced-motion query.
    The property is `translate`, not `transform`: Tailwind v4's translate-x-* utilities set the
