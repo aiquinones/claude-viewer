@@ -7,8 +7,8 @@ import {
   CANCEL_LABEL,
   KILL_CONFIRM_TITLE,
   KILL_LABEL,
-  MENU_ITEMS,
-  killWarning
+  KILL_WARNING,
+  MENU_ITEMS
 } from './menu-labels';
 import { Point, clampToViewport } from './placement';
 
@@ -65,19 +65,13 @@ export const AgentMenu = ({
       className="fixed flex w-64 flex-col rounded-md border border-border bg-popover p-1 text-xs shadow-lg"
     >
       {confirming ? (
-        <KillConfirm agent={agent} onCancel={() => setConfirming(false)} onKill={() => run(onKill)} />
+        <KillConfirm onCancel={() => setConfirming(false)} onKill={() => run(onKill)} />
       ) : (
         <>
-          <MenuItem
-            icon={ScrollText}
-            label={MENU_ITEMS.log.label}
-            hint={MENU_ITEMS.log.hint}
-            onClick={() => run(onOpenLog)}
-          />
+          <MenuItem icon={ScrollText} label={MENU_ITEMS.log.label} onClick={() => run(onOpenLog)} />
           <MenuItem
             icon={Copy}
             label={MENU_ITEMS.copy.label}
-            hint={MENU_ITEMS.copy.hint}
             note={agent.sessionId.slice(0, 8)}
             onClick={() => run(onCopySessionId)}
           />
@@ -86,7 +80,6 @@ export const AgentMenu = ({
           <MenuItem
             icon={OctagonX}
             label={MENU_ITEMS.kill.label}
-            hint={MENU_ITEMS.kill.hint}
             note={String(agent.pid)}
             destructive
             onClick={() => setConfirming(true)}
@@ -132,52 +125,44 @@ const usePlacement = ({ anchor, confirming }: UsePlacementArgs): Placement => {
 interface MenuItemProps {
   icon: LucideIcon;
   label: string;
-  hint: string;
   // The value the command acts on — a pid, the head of a session id. Absent where there isn't one.
   note?: string;
   destructive?: boolean;
   onClick: () => void;
 }
 
-// One command: an icon, what it does, and what it does it to. The hint is a line rather than a
-// tooltip — a menu you opened on purpose can afford to say what its items mean.
-const MenuItem = ({ icon: Icon, label, hint, note, destructive = false, onClick }: MenuItemProps) => (
+// One command, on one line: what it does, and what it does it to. `items-center` rather than
+// `items-start` — with nothing under the label there's one line to centre the icon against, and an
+// icon aligned to the top of a single line sits above it.
+const MenuItem = ({ icon: Icon, label, note, destructive = false, onClick }: MenuItemProps) => (
   <button
     type="button"
     role="menuitem"
     onClick={onClick}
-    className={`flex cursor-pointer items-start gap-2 rounded px-2 py-1.5 text-left transition-colors hover:bg-accent ${
+    className={`flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-left transition-colors hover:bg-accent ${
       destructive ? 'text-error' : ''
     }`}
   >
-    <Icon className="mt-0.5 size-3.5 shrink-0" />
-    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-      <span className="flex items-baseline gap-2">
-        <span className="font-medium">{label}</span>
-        {note && <span className="mono ml-auto shrink-0 text-[0.6875rem] opacity-70">{note}</span>}
-      </span>
-      <span className={destructive ? 'opacity-70' : 'text-muted-foreground'}>{hint}</span>
-    </span>
+    <Icon className="size-3.5 shrink-0" />
+    <span className="truncate font-medium">{label}</span>
+    {note && <span className="mono ml-auto shrink-0 text-[0.6875rem] opacity-70">{note}</span>}
   </button>
 );
 
 interface KillConfirmProps {
-  agent: AgentSession;
   onCancel: () => void;
   onKill: () => void;
 }
 
 // The second press. Cancel is first and Kill is last, so the button nearest where the pointer
 // already was is the harmless one.
-const KillConfirm = ({ agent, onCancel, onKill }: KillConfirmProps) => (
+const KillConfirm = ({ onCancel, onKill }: KillConfirmProps) => (
   <div className="flex flex-col gap-2 p-1.5">
     <span className="flex items-center gap-2 font-medium text-error">
       <OctagonX className="size-3.5 shrink-0" />
       {KILL_CONFIRM_TITLE}
     </span>
-    <p className="leading-relaxed text-muted-foreground">
-      {killWarning({ tool: agent.tool, pid: agent.pid })}
-    </p>
+    <p className="leading-relaxed text-muted-foreground">{KILL_WARNING}</p>
     <div className="flex justify-end gap-2">
       <Button variant="ghost" size="sm" onClick={onCancel}>
         {CANCEL_LABEL}

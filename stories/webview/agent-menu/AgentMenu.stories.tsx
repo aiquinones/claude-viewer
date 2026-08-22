@@ -32,8 +32,8 @@ export default meta;
 
 type Story = StoryObj<typeof AgentMenu>;
 
-// The three commands. Each one names what it acts on — the head of the session id, the pid — so
-// pressing it isn't the first time you see the value.
+// The three commands, one line each. The value a command acts on — the head of the session id, the
+// pid — sits beside its label rather than under it.
 export const Default: Story = {};
 
 // A Copilot row. The menu is the same three commands: both CLIs write a log, carry a session id and
@@ -47,6 +47,6 @@ export const NearTheEdge: Story = {
 };
 
 // The second press. It replaces the menu rather than opening over it, so there's nothing behind to
-// mis-click — and the sentence says what SIGTERM actually does instead of only that the button is
-// serious. Cancel sits nearest the pointer, which is still where the kill item was.
+// mis-click, and it says what you lose rather than only that the button is serious. Cancel sits
+// nearest the pointer, which is still where the kill item was.
 export const Confirming: Story = { args: { initialConfirming: true } };
