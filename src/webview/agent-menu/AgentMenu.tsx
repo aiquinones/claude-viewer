@@ -2,6 +2,8 @@ import { CSSProperties, RefObject, useLayoutEffect, useRef, useState } from 'rea
 import { Copy, LucideIcon, OctagonX, ScrollText } from 'lucide-react';
 import { AgentSession } from '../../model/types';
 import { Button } from '@/components/ui/button';
+import { ColorSwatches } from '../agent-color/ColorSwatches';
+import { RowColor, useRowColor } from '../agent-color/useRowColor';
 import { Z } from '../z-layers';
 import {
   CANCEL_LABEL,
@@ -30,6 +32,10 @@ interface AgentMenuProps {
 // rather than about the config the rest of the panel shows, which is why it's a menu on the row and
 // not a column of buttons: two of the three are things you do once and one of them ends a session.
 //
+// The row colour is under them. It used to be a dot in the row's corner, next to a button for the
+// log — both of which appeared on hover, which is a lot of chrome for a list you leave open. The
+// menu already holds the log, so the colour joined it and the corner emptied.
+//
 // `fixed` rather than absolute, so the pane's scrollport can't clip it. That resolves against the
 // `.view-pane`, which is transformed and therefore the containing block — the pane is pinned to the
 // panel's own box, so a client coordinate still lands where the pointer was.
@@ -46,6 +52,7 @@ export const AgentMenu = ({
   // asked it, so there's nothing to mis-click behind and no second thing to dismiss.
   const [confirming, setConfirming] = useState<boolean>(initialConfirming);
   const { box, point } = usePlacement({ anchor, confirming });
+  const row: RowColor = useRowColor(agent.sessionId);
 
   const run = (command: () => void): void => {
     command();
@@ -84,6 +91,12 @@ export const AgentMenu = ({
             destructive
             onClick={() => setConfirming(true)}
           />
+
+          {/* Not a command — it's the one thing here that changes how the row looks rather than
+              what the process is doing, so it sits under a rule instead of in the list. */}
+          <div className="mt-1 border-t border-border pt-1">
+            <ColorSwatches color={row.color} onPick={row.pick} />
+          </div>
         </>
       )}
     </div>

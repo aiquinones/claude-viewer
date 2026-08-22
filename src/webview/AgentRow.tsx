@@ -2,9 +2,7 @@ import { GitBranch } from 'lucide-react';
 import { AgentActivity } from '../model/types';
 import { cn } from '@/lib/utils';
 import { ActivityBadge } from './ActivityBadge';
-import { AgentColorPicker } from './agent-color/AgentColorPicker';
 import { AgentContext } from './AgentContext';
-import { AgentLogButton } from './AgentLogButton';
 import { AgentMenu } from './agent-menu/AgentMenu';
 import { useAgentMenu } from './agent-menu/useAgentMenu';
 import { AgentRowProps } from './agent-row-props';
@@ -18,16 +16,16 @@ import { formatAge } from './format-age';
 
 // One live agent: what it's doing, what it's called, where it's working, and how long ago it last
 // wrote anything. Clicking goes to the agent itself — its Claude Code tab, or the terminal it runs
-// in — and the log button is the way to its transcript.
+// in.
 //
-// Right-clicking it opens the commands that are about the process rather than about the config —
-// the log, the session id, and ending it.
+// Everything else is behind a right-click: the transcript, the session id, killing the process, and
+// the row's colour. Those used to be two buttons that faded in at the corner, which is a lot of
+// chrome on every row of a list you leave open — and a menu can name what it does, where an icon
+// has to be hovered to say.
 //
-// The PR link, the issues, the log button and the colour picker all sit outside the row's button —
-// a <button> can't legally hold an <a>, a <ul>, or another button. So the whole row is the hover
-// and click surface and the button carries no handler of its own: a click on it bubbles up to the
-// wrapper, which is also what a keyboard Enter does. Everything outside it stops the bubble, or
-// using any of them would focus the agent as well.
+// The PR link and the issues still sit outside the row's button — a <button> can hold neither an
+// <a> nor a <ul>. So the whole row is the hover and click surface and the button carries no handler
+// of its own: a click on it bubbles up to the wrapper, which is also what a keyboard Enter does.
 export const AgentRow = ({
   agent,
   now,
@@ -54,9 +52,7 @@ export const AgentRow = ({
       <button
         type="button"
         title={agentTooltip(agent)}
-        // `pr-14` leaves the log button and the picker their corner. A constant gap rather than one
-        // that appears on hover: the row must not reflow as the pointer crosses it.
-        className="flex w-full min-w-0 flex-col gap-1.5 rounded-md px-3 py-2 pr-14 text-left cursor-pointer"
+        className="flex w-full min-w-0 flex-col gap-1.5 rounded-md px-3 py-2 text-left cursor-pointer"
       >
         <span className="flex w-full min-w-0 items-center gap-2">
           <ActivityBadge activity={activity} tail={agent.tail} />
@@ -97,13 +93,8 @@ export const AgentRow = ({
         </span>
       </button>
 
-      <div className="absolute right-2 top-2.5 flex items-center gap-1">
-        <AgentLogButton onOpen={() => onOpenLog(agent)} />
-        <AgentColorPicker color={row.color} onPick={row.pick} />
-      </div>
-
-      {/* Outside the button like everything else that isn't plain text: its card holds a CTA, and a
-          `<button>` can't hold a `<button>`. Indented to the footer's left edge so the row has one
+      {/* Outside the button, like everything else that isn't plain text: its card holds a CTA, and
+          a `<button>` can't hold a `<button>`. Indented to the footer's left edge so the row has one
           text column rather than two. */}
       <AgentContext agent={agent} className="px-3 pb-2 pl-6" />
 

@@ -1,8 +1,6 @@
 import { AgentActivity, AgentSession } from '../model/types';
 import { cn } from '@/lib/utils';
-import { AgentColorPicker } from './agent-color/AgentColorPicker';
 import { AgentContext } from './AgentContext';
-import { AgentLogButton } from './AgentLogButton';
 import { AgentMenu } from './agent-menu/AgentMenu';
 import { useAgentMenu } from './agent-menu/useAgentMenu';
 import { AgentRowProps } from './agent-row-props';
@@ -81,15 +79,10 @@ export const AgentRobotRow = ({
         <AgentContext agent={agent} className="pointer-events-auto w-28" />
       </div>
 
-      {/* All three sit outside the button: a `<button>` can hold neither an `<a>` nor the picker's
-          popup nor another button. Their clicks stop bubbling, so none of them focuses the agent. */}
+      {/* Outside the button: a `<button>` can hold neither an `<a>` nor another button. Its clicks
+          stop bubbling, so it doesn't focus the agent. */}
       <div className="absolute right-6 top-1/2 -translate-y-1/2">
         <AgentSquircles agent={agent} />
-      </div>
-
-      <div className="absolute right-3 top-3 flex items-center gap-1">
-        <AgentLogButton onOpen={() => onOpenLog(agent)} />
-        <AgentColorPicker color={row.color} onPick={row.pick} />
       </div>
 
       {menu.anchor && (
