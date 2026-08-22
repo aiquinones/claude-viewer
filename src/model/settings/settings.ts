@@ -3,6 +3,7 @@
 
 import { z } from 'zod';
 import { TOKEN_ESTIMATORS, TokenEstimator } from '../estimate-tokens';
+import { DEFAULT_PANEL_THEME, PANEL_THEMES, PanelTheme } from './theme';
 import {
   USAGE_COST_BASES,
   USAGE_METRICS,
@@ -16,7 +17,7 @@ import {
 // into the query it filters by, so a section that isn't listed here can't be asked for.
 //
 // Deliberately not annotated: a type here would erase the literals `SettingsSection` derives from.
-export const SETTINGS_SECTIONS = ['budgets', 'usage', 'context', 'tokens'] as const;
+export const SETTINGS_SECTIONS = ['budgets', 'usage', 'context', 'tokens', 'theme'] as const;
 
 export type SettingsSection = (typeof SETTINGS_SECTIONS)[number];
 
@@ -95,8 +96,15 @@ export interface TokenSettings {
   estimator: SettingValue<TokenEstimator>;
 }
 
+// Which palette the panel draws in. One key, and today it has one legal value — the modes without
+// a palette behind them are menu rows, not settings. See model/settings/theme.ts.
+export interface ThemeSettings {
+  mode: SettingValue<PanelTheme>;
+}
+
 export interface ViewerSettings {
   tokens: TokenSettings;
+  theme: ThemeSettings;
   budgets: Budgets;
   usage: UsageSettings;
   context: ContextSettings;
@@ -139,6 +147,9 @@ export const DEFAULT_TOKEN_ESTIMATOR: TokenEstimator = 'standard';
 export const DEFAULT_SETTINGS: ViewerSettings = {
   tokens: {
     estimator: { value: DEFAULT_TOKEN_ESTIMATOR, source: 'default' }
+  },
+  theme: {
+    mode: { value: DEFAULT_PANEL_THEME, source: 'default' }
   },
   budgets: {
     skills: {
@@ -211,12 +222,18 @@ export const parseContextWindows = (raw: unknown): Record<string, number> => {
 // rather than to the default in place, so the source a card prints always names the layer whose
 // value is on screen.
 const estimatorSchema = z.enum(TOKEN_ESTIMATORS);
+const panelThemeSchema = z.enum(PANEL_THEMES);
 const metricSchema = z.enum(USAGE_METRICS);
 const scopeSchema = z.enum(USAGE_SCOPES);
 const costBasisSchema = z.enum(USAGE_COST_BASES);
 
 export const parseTokenEstimator = (raw: unknown): TokenEstimator | undefined => {
   const parsed = estimatorSchema.safeParse(raw);
+  return parsed.success ? parsed.data : undefined;
+};
+
+export const parsePanelTheme = (raw: unknown): PanelTheme | undefined => {
+  const parsed = panelThemeSchema.safeParse(raw);
   return parsed.success ? parsed.data : undefined;
 };
 

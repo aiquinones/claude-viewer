@@ -15,6 +15,7 @@ import {
   parseContextTokens,
   parseContextWindows,
   parseOverrides,
+  parsePanelTheme,
   parseTokenEstimator,
   parseUsageCostBasis,
   parseUsageMetric,
@@ -23,6 +24,7 @@ import {
   SettingValue,
   ViewerSettings
 } from '../model/settings/settings';
+import { DEFAULT_PANEL_THEME, PanelTheme } from '../model/settings/theme';
 import { UsageCostBasis, UsageMetric, UsageScope } from '../model/usage/types';
 
 // Registered in package.json under contributes.configuration — the section, the keys and the
@@ -39,6 +41,7 @@ const CONTEXT_ERROR_KEY: string = 'context.errorAt';
 const CONTEXT_WINDOW_KEY: string = 'context.window';
 const CONTEXT_FALLBACK_KEY: string = 'context.windowFallback';
 const ESTIMATOR_KEY: string = 'tokens.estimator';
+const THEME_MODE_KEY: string = 'theme.mode';
 
 // What the Settings UI opens filtered to. A plain query rather than `@ext:`, so it doesn't carry a
 // second copy of the publisher id.
@@ -61,6 +64,14 @@ export const currentSettings = (): ViewerSettings => {
         key: ESTIMATOR_KEY,
         parse: parseTokenEstimator,
         fallback: DEFAULT_TOKEN_ESTIMATOR
+      })
+    },
+    theme: {
+      mode: readValue({
+        config,
+        key: THEME_MODE_KEY,
+        parse: parsePanelTheme,
+        fallback: DEFAULT_PANEL_THEME
       })
     },
     budgets: {
@@ -125,6 +136,18 @@ export const writeEstimator = async (estimator: TokenEstimator): Promise<void> =
 
   try {
     await config.update(ESTIMATOR_KEY, estimator, vscode.ConfigurationTarget.Global);
+  } catch (error) {
+    await reportWriteFailure(error);
+  }
+};
+
+// The theme menu's pick. Global layer for the reason the estimator's is: which palette you want to
+// read in is a preference, not a property of the repo.
+export const writePanelTheme = async (mode: PanelTheme): Promise<void> => {
+  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(SECTION);
+
+  try {
+    await config.update(THEME_MODE_KEY, mode, vscode.ConfigurationTarget.Global);
   } catch (error) {
     await reportWriteFailure(error);
   }

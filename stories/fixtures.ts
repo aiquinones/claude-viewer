@@ -317,6 +317,7 @@ export const budgetSettings = ({
   overrides
 }: BudgetSettingsArgs = {}): ViewerSettings => ({
   tokens: DEFAULT_SETTINGS.tokens,
+  theme: DEFAULT_SETTINGS.theme,
   budgets: {
     skills: {
       description: description ?? DEFAULT_SETTINGS.budgets.skills.description,

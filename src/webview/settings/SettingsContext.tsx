@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useCallback, useContext } from 'react';
 import { estimateTokens, TokenEstimator } from '../../model/estimate-tokens';
 import { DEFAULT_SETTINGS, SettingsSection, ViewerSettings } from '../../model/settings/settings';
+import { ThemeMode } from '../../model/settings/theme';
 import { UsageCostBasis, UsageMetric, UsageScope } from '../../model/usage/types';
 
 // The usage surface's toggles write settings back. Every other setting here is read-only to the
@@ -23,6 +24,10 @@ interface SettingsBridge {
   // buried in a row asks for it.
   openEstimator: () => void;
   setEstimator: (estimator: TokenEstimator) => void;
+  // The panel menu's theme pick. A `ThemeMode` rather than a `PanelTheme`: the menu draws every mode
+  // it offers, and whether one is settable or is answered with "not built yet" is decided above, at
+  // the one place holding both channels.
+  setTheme: (mode: ThemeMode) => void;
 }
 
 // The defaults are the context's default value, not `undefined`, so a component below no provider
@@ -33,7 +38,8 @@ const SettingsContext = createContext<SettingsBridge>({
   openSettings: () => undefined,
   setUsage: () => undefined,
   openEstimator: () => undefined,
-  setEstimator: () => undefined
+  setEstimator: () => undefined,
+  setTheme: () => undefined
 });
 
 interface SettingsProviderProps extends Partial<SettingsBridge> {
@@ -46,10 +52,11 @@ export const SettingsProvider = ({
   setUsage = () => undefined,
   openEstimator = () => undefined,
   setEstimator = () => undefined,
+  setTheme = () => undefined,
   children
 }: SettingsProviderProps) => (
   <SettingsContext.Provider
-    value={{ settings, openSettings, setUsage, openEstimator, setEstimator }}
+    value={{ settings, openSettings, setUsage, openEstimator, setEstimator, setTheme }}
   >
     {children}
   </SettingsContext.Provider>
@@ -67,6 +74,8 @@ export const useOpenEstimator = (): (() => void) => useContext(SettingsContext).
 
 export const useSetEstimator = (): ((estimator: TokenEstimator) => void) =>
   useContext(SettingsContext).setEstimator;
+
+export const useSetTheme = (): ((mode: ThemeMode) => void) => useContext(SettingsContext).setTheme;
 
 export const useEstimator = (): TokenEstimator =>
   useContext(SettingsContext).settings.tokens.estimator.value;
