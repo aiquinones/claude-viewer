@@ -13,6 +13,7 @@ const makeAgent = (
 ): AgentSession => ({
   tool: 'claude',
   pid: 10700,
+  otherPids: [],
   transcriptPath: `/Users/dev/.claude/projects/-Users-dev-repos-example-app/${overrides.sessionId}.jsonl`,
   tail: 'settled',
   lastActivityAt: ago(4 * 60_000),
@@ -109,6 +110,21 @@ export const noTranscriptAgent: AgentSession = makeAgent({
       message: 'no transcript on disk yet — nothing has been written for this session'
     }
   ]
+});
+
+// Two live processes on one conversation, which is what `--resume` leaves behind when the process
+// it was opened from doesn't exit. One row, and a red flag saying the pid it names isn't the only
+// one — the loaders find this and used to drop it silently.
+export const resumedAgent: AgentSession = makeAgent({
+  sessionId: '2f8e1a94-6c30-4b7d-a5e2-c94f0d18b673',
+  pid: 11402,
+  otherPids: [10988],
+  cwd: `${WORKSPACE}/services/api`,
+  title: 'Pick up the migration from yesterday',
+  tail: 'working',
+  pendingTool: 'Bash',
+  lastActivityAt: ago(45_000),
+  context: { tokens: 187_000, model: 'claude-opus-5' }
 });
 
 // Blocked, but on you rather than on a machine: `AskUserQuestion` is the tool an agent stops at
@@ -224,6 +240,7 @@ export const allAgents: AgentSession[] = [
   longTitleAgent,
   copilotMcpAgent,
   noTranscriptAgent,
+  resumedAgent,
   elsewhereAgent,
   askingAgent,
   waitingAgent,

@@ -43,6 +43,42 @@ export const LabelOnly: Story = {
   }
 };
 
+// A label that's a sentence rather than a name. Without `wrap` this runs off the panel's edge in
+// one line, which is what the agent rows' flags needed.
+export const Wrapped: Story = {
+  args: {
+    label: 'no event log on disk yet — nothing has been written for this session',
+    wrap: true,
+    children: (
+      <Button variant="ghost" size="icon" aria-label="Warning">
+        <Search />
+      </Button>
+    )
+  }
+};
+
+// Pinned to the trigger's left edge instead, for a trigger sitting near the panel's own left edge —
+// the agent rows' flags. The decorator flips with it, or the story wouldn't show the problem.
+export const AlignedLeft: Story = {
+  args: {
+    label: '2 extra processes hold this session: 10988, 10990',
+    wrap: true,
+    align: 'left',
+    children: (
+      <Button variant="ghost" size="icon" aria-label="Warning">
+        <Search />
+      </Button>
+    )
+  },
+  decorators: [
+    (Story) => (
+      <div className="flex justify-start p-6 pb-24">
+        <Story />
+      </div>
+    )
+  ]
+};
+
 // What the color picker does while its swatches are open — the trigger keeps its tooltip, the
 // tooltip just doesn't draw.
 export const Disabled: Story = {

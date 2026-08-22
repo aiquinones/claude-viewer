@@ -182,6 +182,11 @@ export interface AgentSession {
   sessionId: string;
   tool: AgentTool;
   pid: number;
+  // Other live processes holding this same session. Resuming starts a second process and the first
+  // stays alive attached to the same conversation, so the surface picks one to draw and keeps the
+  // rest here — every field a row shows comes off the shared transcript, so listing them twice
+  // would be the same row twice. Empty in the normal case.
+  otherPids: number[];
   // Where the agent is working. A session inside a worktree reports the worktree, not the repo.
   cwd: string;
   // The log this session is appending to: a `.jsonl` transcript for Claude, `events.jsonl` for

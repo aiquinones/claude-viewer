@@ -9,7 +9,7 @@ import { AgentRobot } from './agent-robot/AgentRobot';
 import { RobotMood, robotMood } from './agent-robot/moods';
 import { AgentSquircles } from './agent-squircle/AgentSquircles';
 import { activityOf } from './agent-activity';
-import { agentLabel, agentTooltip } from './agent-row-text';
+import { agentLabel } from './agent-row-text';
 
 // The same session as `AgentRow`, acted out instead of listed. The robot carries the state, so
 // everything the dense row spells out — the badge, the tool, the age, the folder, the branch —
@@ -45,7 +45,6 @@ export const AgentRobotRow = ({
     >
       <button
         type="button"
-        title={agentTooltip(agent)}
         // The tall one. The robot needs room to be the thing you see first, and the padding is
         // wider on the right so a name never runs under the squircles.
         //
