@@ -14,6 +14,7 @@ storybook-static/**
 
 src/**
 stories/**
+tests/**
 docs/**
 tracking/**
 node_modules/**
@@ -23,6 +24,7 @@ node_modules/**
 images/**
 
 build.mjs
+vitest.config.mts
 components.json
 tsconfig.json
 pnpm-lock.yaml

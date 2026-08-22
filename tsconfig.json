@@ -6,6 +6,7 @@
     "jsx": "react-jsx",
     "strict": true,
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "baseUrl": ".",
@@ -14,5 +15,5 @@
       "@src/*": ["src/*"]
     }
   },
-  "include": ["src", "stories", ".storybook"]
+  "include": ["src", "stories", "tests", ".storybook", "vitest.config.mts"]
 }
