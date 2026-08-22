@@ -12,6 +12,7 @@ import {
   WebviewMessage
 } from '../model/types';
 import { UsageHistory, UsageReport } from '../model/usage/types';
+import { copySessionId, killAgent } from './agent-commands';
 import {
   currentAgentColors,
   onDidChangeAgentColors,
@@ -221,6 +222,8 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   }
   if (message.type === 'openFile') return _openFile(message.path);
   if (message.type === 'openAgent') return _openAgent(message.sessionId);
+  if (message.type === 'copySessionId') return copySessionId(message.sessionId);
+  if (message.type === 'killAgent') return killAgent(message.sessionId);
   if (message.type === 'requestBody') return _sendBody(message.path);
   if (message.type === 'requestGraph') return _sendGraph();
   if (message.type === 'surfaceUnavailable') return _surfaceUnavailable(message.title);

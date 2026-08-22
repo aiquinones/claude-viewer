@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { AgentColor } from '@src/model/types';
 import { AgentColorPicker } from '@src/webview/agent-color/AgentColorPicker';
 
-// The swatch and the six behind it. On a row it's invisible until you hover — here it's on its own,
-// so it shows.
+// The swatch and the six behind it. It used to sit at the end of every agent row, invisible until
+// you hovered; nothing mounts it now, so this file is the only place it's drawn — and the reason
+// the component doesn't rot while there's no way into it.
 const meta: Meta<typeof AgentColorPicker> = {
   title: 'Agents/AgentColorPicker',
   component: AgentColorPicker,

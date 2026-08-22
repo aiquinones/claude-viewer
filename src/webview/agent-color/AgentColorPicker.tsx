@@ -14,6 +14,12 @@ interface AgentColorPickerProps {
 // The swatch at the end of a row, and the six behind it. A plain absolutely-positioned div rather
 // than a popover library, the same call `Tooltip` made for one bubble.
 //
+// Nothing mounts it today. It came off the agent row with the log button — a pair of icons fading
+// in at every row's corner is a lot of chrome for a list you leave open — and no other surface has
+// asked for a colour yet. The component, the store behind it and the tint CSS are all whole, so
+// putting it back is one line in whichever row wants it; a row that already carries a colour still
+// paints with it in the meantime. Its story is where it's drawn.
+//
 // Every click in here stops bubbling: the row's own click opens the transcript, and picking a
 // color would otherwise open a file behind the panel.
 export const AgentColorPicker = ({ color, onPick }: AgentColorPickerProps) => {

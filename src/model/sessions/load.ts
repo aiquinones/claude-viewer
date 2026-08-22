@@ -11,7 +11,14 @@ export const loadAgentSessions = async (): Promise<AgentSession[]> => {
     loadCopilotSessions()
   ]);
 
-  // Most recently active first — the agent that just did something is the one being looked for.
-  // Sorted across both, so the list reads as one thing rather than two lists stacked.
-  return [...claude, ...copilot].sort((left, right) => right.lastActivityAt - left.lastActivityAt);
+  // Newest session first, and sorted across both so the list reads as one thing rather than two
+  // stacked. Ordering by activity instead put whichever agent just wrote a line on top, which
+  // reshuffles the list on every poll — the row you're reading moves out from under you. A start
+  // time doesn't change, so a row keeps its place for as long as the session is alive.
+  return [...claude, ...copilot].sort((left, right) => startRank(right) - startRank(left));
 };
+
+// When the session began. Claude's session file records it and Copilot's `workspace.yaml` does too,
+// but either can be missing — and a session that sorted as epoch zero would sit at the bottom
+// forever, which is worse than the small amount of movement its last write brings.
+const startRank = (agent: AgentSession): number => agent.startedAt || agent.lastActivityAt;

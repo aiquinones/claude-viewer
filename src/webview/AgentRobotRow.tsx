@@ -1,22 +1,15 @@
 import { AgentActivity, AgentSession } from '../model/types';
 import { cn } from '@/lib/utils';
-import { AgentColorPicker } from './agent-color/AgentColorPicker';
 import { AgentContext } from './AgentContext';
-import { AgentLogButton } from './AgentLogButton';
+import { AgentMenu } from './agent-menu/AgentMenu';
+import { useAgentMenu } from './agent-menu/useAgentMenu';
+import { AgentRowProps } from './agent-row-props';
 import { RowColor, useRowColor } from './agent-color/useRowColor';
 import { AgentRobot } from './agent-robot/AgentRobot';
 import { RobotMood, robotMood } from './agent-robot/moods';
 import { AgentSquircles } from './agent-squircle/AgentSquircles';
 import { activityOf } from './agent-activity';
 import { agentLabel, agentTooltip } from './agent-row-text';
-
-interface AgentRobotRowProps {
-  agent: AgentSession;
-  now: number;
-  workspaceRoot: string | undefined;
-  onOpen: (agent: AgentSession) => void;
-  onOpenLog: (agent: AgentSession) => void;
-}
 
 // The same session as `AgentRow`, acted out instead of listed. The robot carries the state, so
 // everything the dense row spells out — the badge, the tool, the age, the folder, the branch —
@@ -25,16 +18,25 @@ interface AgentRobotRowProps {
 // The pending tool still decides the pose: it's what separates an agent waiting on a command from
 // one waiting on you.
 //
-// `workspaceRoot` is unused here and stays in the props: `AgentList` picks between this and
-// `AgentRow` by mode and hands both the same four things.
-export const AgentRobotRow = ({ agent, now, onOpen, onOpenLog }: AgentRobotRowProps) => {
+// `workspaceRoot` is unused here and still arrives: `AgentList` picks between this and `AgentRow`
+// by mode and hands both the same props, which is why that shape lives in `agent-row-props.ts`.
+export const AgentRobotRow = ({
+  agent,
+  now,
+  onOpen,
+  onOpenLog,
+  onCopySessionId,
+  onKill
+}: AgentRowProps) => {
   const activity: AgentActivity = activityOf({ agent, now });
   const mood: RobotMood = robotMood({ activity, pendingTool: agent.pendingTool });
   const row: RowColor = useRowColor(agent.sessionId);
+  const menu = useAgentMenu();
 
   return (
     <div
       onClick={() => onOpen(agent)}
+      onContextMenu={menu.open}
       style={row.style}
       className={cn(
         'group relative cursor-pointer rounded-md hover:bg-accent',
@@ -77,16 +79,22 @@ export const AgentRobotRow = ({ agent, now, onOpen, onOpenLog }: AgentRobotRowPr
         <AgentContext agent={agent} className="pointer-events-auto w-28" />
       </div>
 
-      {/* All three sit outside the button: a `<button>` can hold neither an `<a>` nor the picker's
-          popup nor another button. Their clicks stop bubbling, so none of them focuses the agent. */}
+      {/* Outside the button: a `<button>` can hold neither an `<a>` nor another button. Its clicks
+          stop bubbling, so it doesn't focus the agent. */}
       <div className="absolute right-6 top-1/2 -translate-y-1/2">
         <AgentSquircles agent={agent} />
       </div>
 
-      <div className="absolute right-3 top-3 flex items-center gap-1">
-        <AgentLogButton onOpen={() => onOpenLog(agent)} />
-        <AgentColorPicker color={row.color} onPick={row.pick} />
-      </div>
+      {menu.anchor && (
+        <AgentMenu
+          agent={agent}
+          anchor={menu.anchor}
+          onClose={menu.close}
+          onOpenLog={() => onOpenLog(agent)}
+          onCopySessionId={() => onCopySessionId(agent)}
+          onKill={() => onKill(agent)}
+        />
+      )}
     </div>
   );
 };

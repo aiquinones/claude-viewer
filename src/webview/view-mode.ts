@@ -3,6 +3,8 @@
 
 import { LucideIcon } from 'lucide-react';
 
+// `soon` is not drawn at all, which is the difference from a ModeBlockers entry: a blocked mode is
+// one you can't pick *here*, and a `soon` mode is one that doesn't exist yet.
 export type ViewModeStatus = 'ready' | 'soon';
 
 export interface ViewModeShape {

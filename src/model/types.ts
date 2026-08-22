@@ -446,6 +446,13 @@ export type WebviewMessage =
   // than anything about how to reach it: what this window can reach is the host's question, and
   // the answer changes between one click and the next.
   | { type: 'openAgent'; sessionId: string }
+  // Put one session's id on the clipboard. A session id rather than the text to copy, for the same
+  // reason `openFile` takes a path the host itself found — the webview names a row, and the host
+  // decides what leaves the panel.
+  | { type: 'copySessionId'; sessionId: string }
+  // End the process behind a row. The pid is deliberately not in the message: the host resolves it
+  // from its own cache, so a stale webview can't name one.
+  | { type: 'killAgent'; sessionId: string }
   | { type: 'requestBody'; path: string }
   // No path: the graph is over every listed skill, and the host caches it per snapshot.
   | { type: 'requestGraph' }
