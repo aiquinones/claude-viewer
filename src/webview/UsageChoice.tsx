@@ -1,6 +1,6 @@
 import { CodeText } from './CodeText';
 import { HoverCard, HoverCardBody } from './HoverCard';
-import { ChoiceOption } from './usage-options';
+import { ChoiceOption } from './menu/choice-option';
 
 interface UsageChoiceProps<Id extends string> {
   label: string;

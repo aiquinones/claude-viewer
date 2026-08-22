@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { TokenEstimator } from '../model/estimate-tokens';
 import { DEFAULT_SETTINGS, SettingsSection, ViewerSettings } from '../model/settings/settings';
+import { PanelTheme } from '../model/settings/theme';
 import { AgentColor, AgentColors, AgentSession, ConfigSnapshot, Reveal } from '../model/types';
 import {
   UsageCostBasis,
@@ -72,9 +73,9 @@ export const useSnapshot = () => {
   const reportSurface = (surface: string | undefined): void =>
     vscode.postMessage({ type: 'surfaceChanged', surface });
 
-  // Asks the host to say a surface isn't built. The host writes the sentence and shows it.
-  const reportUnavailable = (title: string): void =>
-    vscode.postMessage({ type: 'surfaceUnavailable', title });
+  // Asks the host to say something isn't built yet — a surface with no view, a theme with no
+  // palette. The host writes the sentence and shows it.
+  const reportNotBuilt = (title: string): void => vscode.postMessage({ type: 'notBuilt', title });
 
   // Asks for the Settings UI, filtered to the section the caller came from. The host turns the
   // section into the query.
@@ -94,6 +95,10 @@ export const useSnapshot = () => {
   const changeEstimator = (estimator: TokenEstimator): void =>
     vscode.postMessage({ type: 'setEstimator', estimator });
 
+  // The theme menu's pick. Only ever a mode with a palette behind it — the rest go through
+  // `reportNotBuilt` and write nothing.
+  const changeTheme = (mode: PanelTheme): void => vscode.postMessage({ type: 'setTheme', mode });
+
   // One row's colour. The host stores it and posts the whole map back, so nothing here guesses at
   // what it wrote.
   const setAgentColor = (args: { sessionId: string; color?: AgentColor }): void =>
@@ -106,6 +111,7 @@ export const useSnapshot = () => {
     usageHistory,
     changeUsage,
     changeEstimator,
+    changeTheme,
     settings,
     agentColors,
     setAgentColor,
@@ -116,7 +122,7 @@ export const useSnapshot = () => {
     copySessionId,
     killAgent,
     reportSurface,
-    reportUnavailable,
+    reportNotBuilt,
     openSettings
   };
 };

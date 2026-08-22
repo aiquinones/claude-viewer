@@ -1,6 +1,7 @@
 import { CornerLeftUp, RefreshCw, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { PanelMenu } from './panel-menu/PanelMenu';
 import { Tooltip } from './Tooltip';
 import { CHORD_HINT } from './spotlight/chord';
 
@@ -14,6 +15,9 @@ interface PanelActionsProps {
 
 // The buttons every view's header ends with. The magnifier is there because a chord nobody presses
 // is a feature nobody has — the tooltip is what teaches the chord.
+//
+// The `...` is last and carries no tooltip: it opens on click and its contents name themselves, so
+// a label saying "Panel options" over a menu headed Theme would be a second word for the same thing.
 export const PanelActions = ({ onGoToSelection, onSearch, onRefresh }: PanelActionsProps) => {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
@@ -42,6 +46,7 @@ export const PanelActions = ({ onGoToSelection, onSearch, onRefresh }: PanelActi
           <RefreshCw className={isRefreshing ? 'refresh-rotating' : ''} />
         </Button>
       </Tooltip>
+      <PanelMenu />
     </div>
   );
 };

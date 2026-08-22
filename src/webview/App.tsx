@@ -7,6 +7,8 @@ import { AgentColorProvider } from './agent-color/AgentColorContext';
 import { EstimatorDialog } from './EstimatorDialog';
 import { useEstimatorDialog } from './useEstimatorDialog';
 import { Loading } from './loading/Loading';
+import { isPanelTheme, ThemeMode } from '../model/settings/theme';
+import { themeTitle } from './panel-menu/theme-options';
 import { SettingsProvider } from './settings/SettingsContext';
 import { Spotlight } from './spotlight/Spotlight';
 import { kindForSurface, surfaceForKind } from './spotlight/surface-kind';
@@ -35,6 +37,7 @@ export const App = () => {
     usageHistory,
     changeUsage,
     changeEstimator,
+    changeTheme,
     settings,
     agentColors,
     setAgentColor,
@@ -45,7 +48,7 @@ export const App = () => {
     copySessionId,
     killAgent,
     reportSurface,
-    reportUnavailable,
+    reportNotBuilt,
     openSettings
   } = useSnapshot();
   // Which surface the detail pane renders, and whether the slider is showing it. Separate signals
@@ -63,6 +66,17 @@ export const App = () => {
   const applyEstimator = (estimator: TokenEstimator): void => {
     changeEstimator(estimator);
     dismissEstimator();
+  };
+
+  // The menu offers three modes and only one has a palette behind it. The split is here rather than
+  // in the menu because this is the one place holding both channels — the setting write and the
+  // host's "not built yet" — and the menu shouldn't have to know which is which.
+  const applyTheme = (mode: ThemeMode): void => {
+    if (isPanelTheme(mode)) {
+      changeTheme(mode);
+      return;
+    }
+    reportNotBuilt(themeTitle(mode));
   };
 
   const openSurface = (id: SurfaceId): void => {
@@ -125,6 +139,7 @@ export const App = () => {
       setUsage={changeUsage}
       openEstimator={openEstimator}
       setEstimator={changeEstimator}
+      setTheme={applyTheme}
     >
       <AgentColorProvider colors={agentColors} setColor={setAgentColor}>
         <ViewSlider
@@ -135,7 +150,7 @@ export const App = () => {
               agents={agents}
               usage={usage}
               onOpenSurface={openSurface}
-              onUnavailableSurface={reportUnavailable}
+              onUnavailableSurface={reportNotBuilt}
               onSearch={openSpotlight}
               onRefresh={refresh}
             />
@@ -148,7 +163,7 @@ export const App = () => {
               usage={usage}
               usageHistory={usageHistory}
               onOpenSkill={openSkill}
-              onUnavailable={reportUnavailable}
+              onUnavailable={reportNotBuilt}
               reveal={selected}
               onOpenAgent={openAgent}
               onCopySessionId={copySessionId}
