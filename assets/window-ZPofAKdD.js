@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";var t,n,r,i,a;function o(){return(o=e((()=>{t=36e5,n={day:24*t,week:168*t},r={day:`Day`,week:`Week`},i={day:`Last 24 hours`,week:`Last 7 days`},a=({window:e,now:t})=>t-n[e]})))()}export{o as a,a as i,r as n,n as r,i as t};
