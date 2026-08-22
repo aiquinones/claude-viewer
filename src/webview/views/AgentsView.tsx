@@ -35,6 +35,13 @@ interface AgentsViewProps {
   // decides what "the agent itself" resolves to, so this carries a session id and nothing more.
   onOpenAgent: (sessionId: string) => void;
   onOpenFile: (path: string) => void;
+  // The two commands on a row's menu that aren't a file. Session ids, for the same reason
+  // `onOpenAgent` takes one: what the host does with a session is the host's business.
+  onCopySessionId: (sessionId: string) => void;
+  onKillAgent: (sessionId: string) => void;
+  // A mode that isn't built yet. The host owns the sentence — same channel a `soon` surface card
+  // uses, and the toggle is the second thing to say it.
+  onUnavailable: (title: string) => void;
   onSearch: () => void;
   onRefresh: () => void;
   onBack: () => void;
@@ -50,6 +57,9 @@ export const AgentsView = ({
   initialCollapsed = [],
   onOpenAgent,
   onOpenFile,
+  onCopySessionId,
+  onKillAgent,
+  onUnavailable,
   onSearch,
   onRefresh,
   onBack
@@ -93,7 +103,12 @@ export const AgentsView = ({
               : `${plural(agents.length, 'session')} · ${busy} working`}
           </span>
         </div>
-        <ViewModeToggle modes={AGENT_VIEW_MODES} mode={mode} onChange={setMode} />
+        <ViewModeToggle
+          modes={AGENT_VIEW_MODES}
+          mode={mode}
+          onChange={setMode}
+          onBlocked={(entry) => onUnavailable(`${entry.label} view`)}
+        />
         <PanelActions onSearch={onSearch} onRefresh={onRefresh} />
       </header>
 
@@ -112,6 +127,8 @@ export const AgentsView = ({
               onToggle={() => toggle('here')}
               onOpen={(agent) => onOpenAgent(agent.sessionId)}
               onOpenLog={(agent) => onOpenFile(agent.transcriptPath)}
+              onCopySessionId={(agent) => onCopySessionId(agent.sessionId)}
+              onKill={(agent) => onKillAgent(agent.sessionId)}
             />
             <AgentList
               title={snapshot.workspaceRoot ? 'Elsewhere' : undefined}
@@ -123,6 +140,8 @@ export const AgentsView = ({
               onToggle={() => toggle('elsewhere')}
               onOpen={(agent) => onOpenAgent(agent.sessionId)}
               onOpenLog={(agent) => onOpenFile(agent.transcriptPath)}
+              onCopySessionId={(agent) => onCopySessionId(agent.sessionId)}
+              onKill={(agent) => onKillAgent(agent.sessionId)}
             />
           </div>
         </div>

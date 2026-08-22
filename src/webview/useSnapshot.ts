@@ -60,6 +60,13 @@ export const useSnapshot = () => {
   // only the host can answer, so the row sends a session id and hears nothing back.
   const openAgent = (sessionId: string): void => vscode.postMessage({ type: 'openAgent', sessionId });
 
+  // The two commands on an agent row that aren't a file. Both name a session and hear nothing back:
+  // the host holds the clipboard and the pid, and neither answer is something the panel draws.
+  const copySessionId = (sessionId: string): void =>
+    vscode.postMessage({ type: 'copySessionId', sessionId });
+
+  const killAgent = (sessionId: string): void => vscode.postMessage({ type: 'killAgent', sessionId });
+
   // Says which surface is on screen. The host polls the agent transcripts faster while theirs is
   // up, and it has no other way to know — a webview reports nothing about its own navigation.
   const reportSurface = (surface: string | undefined): void =>
@@ -106,6 +113,8 @@ export const useSnapshot = () => {
     refresh,
     openFile,
     openAgent,
+    copySessionId,
+    killAgent,
     reportSurface,
     reportUnavailable,
     openSettings

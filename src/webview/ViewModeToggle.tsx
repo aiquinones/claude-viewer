@@ -9,6 +9,10 @@ interface ViewModeToggleProps<Id extends string> {
   mode: Id;
   blockers?: ModeBlockers<Id>;
   onChange: (mode: Id) => void;
+  // A press on a mode that can't be picked. Optional: dimming plus the tooltip is the whole answer
+  // for a mode blocked by what's on screen, and only a mode that isn't built yet has somewhere else
+  // to say so.
+  onBlocked?: (entry: ViewModeEntry<Id>) => void;
 }
 
 // A segmented control over whatever modes it's handed. A map rather than written-out buttons, so
@@ -17,7 +21,8 @@ export const ViewModeToggle = <Id extends string>({
   modes,
   mode,
   blockers,
-  onChange
+  onChange,
+  onBlocked
 }: ViewModeToggleProps<Id>) => (
   <div
     role="group"
@@ -35,6 +40,7 @@ export const ViewModeToggle = <Id extends string>({
         active={entry.id === mode}
         blocker={blockerFor({ entry, blockers })}
         onChange={onChange}
+        onBlocked={onBlocked}
       />
     ))}
   </div>
@@ -57,6 +63,7 @@ interface ModeButtonProps<Id extends string> {
   active: boolean;
   blocker: string | undefined;
   onChange: (mode: Id) => void;
+  onBlocked: ((entry: ViewModeEntry<Id>) => void) | undefined;
 }
 
 // Blocked buttons keep their hover so the tooltip can explain them — which is the whole point of
@@ -67,7 +74,8 @@ const ModeButton = <Id extends string>({
   entry,
   active,
   blocker,
-  onChange
+  onChange,
+  onBlocked
 }: ModeButtonProps<Id>) => {
   const Icon = entry.icon;
 
@@ -78,7 +86,7 @@ const ModeButton = <Id extends string>({
         aria-label={entry.label}
         aria-pressed={active}
         aria-disabled={Boolean(blocker)}
-        onClick={() => !blocker && onChange(entry.id)}
+        onClick={() => (blocker ? onBlocked?.(entry) : onChange(entry.id))}
         className={`relative flex size-7 items-center justify-center rounded-md transition-colors ${modeClass(
           { active, blocked: Boolean(blocker) }
         )}`}

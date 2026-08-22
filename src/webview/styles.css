@@ -48,6 +48,12 @@
   --warn: var(--vscode-editorWarning-foreground, #cca700);
   --error: var(--vscode-editorError-foreground, #f14c4c);
 
+  /* The same red as a fill, for the one button that ends something. Hover mixes toward the
+     foreground rather than toward the background, so it gains contrast in either theme — mixing
+     toward the background lightens a light theme and would fade the button as you reach it. */
+  --error-foreground: var(--vscode-button-foreground, #ffffff);
+  --error-hover: color-mix(in srgb, var(--error) 85%, var(--vscode-foreground));
+
   /* What an agent is doing. Working is a state, not a problem, so it comes from the chart palette
      rather than the diagnostic one; waiting borrows the warning color because it might be. */
   --activity-running: var(--vscode-charts-green, #89d185);
@@ -88,6 +94,7 @@
   --color-link: var(--link);
   --color-warn: var(--warn);
   --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
   --color-activity-running: var(--activity-running);
   --color-activity-blocked: var(--activity-blocked);
   --color-activity-idle: var(--activity-idle);

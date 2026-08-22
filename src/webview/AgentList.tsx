@@ -19,6 +19,8 @@ interface AgentListProps {
   onToggle: () => void;
   onOpen: (agent: AgentSession) => void;
   onOpenLog: (agent: AgentSession) => void;
+  onCopySessionId: (agent: AgentSession) => void;
+  onKill: (agent: AgentSession) => void;
 }
 
 // One group of agents under its heading, folding from it. The count stays in the heading, so a
@@ -35,7 +37,9 @@ export const AgentList = ({
   collapsed,
   onToggle,
   onOpen,
-  onOpenLog
+  onOpenLog,
+  onCopySessionId,
+  onKill
 }: AgentListProps) => {
   if (agents.length === 0) return null;
 
@@ -62,6 +66,8 @@ export const AgentList = ({
             workspaceRoot={workspaceRoot}
             onOpen={onOpen}
             onOpenLog={onOpenLog}
+            onCopySessionId={onCopySessionId}
+            onKill={onKill}
           />
         ))}
     </section>

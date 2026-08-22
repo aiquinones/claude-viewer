@@ -1,10 +1,13 @@
 import { GitBranch } from 'lucide-react';
-import { AgentActivity, AgentSession } from '../model/types';
+import { AgentActivity } from '../model/types';
 import { cn } from '@/lib/utils';
 import { ActivityBadge } from './ActivityBadge';
 import { AgentColorPicker } from './agent-color/AgentColorPicker';
 import { AgentContext } from './AgentContext';
 import { AgentLogButton } from './AgentLogButton';
+import { AgentMenu } from './agent-menu/AgentMenu';
+import { useAgentMenu } from './agent-menu/useAgentMenu';
+import { AgentRowProps } from './agent-row-props';
 import { RowColor, useRowColor } from './agent-color/useRowColor';
 import { AgentRowFooter } from './AgentRowFooter';
 import { AgentToolTag } from './AgentToolTag';
@@ -13,31 +16,35 @@ import { agentLabel, agentTooltip } from './agent-row-text';
 import { displayFolder } from './display-path';
 import { formatAge } from './format-age';
 
-interface AgentRowProps {
-  agent: AgentSession;
-  // Passed in rather than read here, so every row on the surface ages against the same instant.
-  now: number;
-  workspaceRoot: string | undefined;
-  onOpen: (agent: AgentSession) => void;
-  onOpenLog: (agent: AgentSession) => void;
-}
-
 // One live agent: what it's doing, what it's called, where it's working, and how long ago it last
 // wrote anything. Clicking goes to the agent itself — its Claude Code tab, or the terminal it runs
 // in — and the log button is the way to its transcript.
+//
+// Right-clicking it opens the commands that are about the process rather than about the config —
+// the log, the session id, and ending it.
 //
 // The PR link, the issues, the log button and the colour picker all sit outside the row's button —
 // a <button> can't legally hold an <a>, a <ul>, or another button. So the whole row is the hover
 // and click surface and the button carries no handler of its own: a click on it bubbles up to the
 // wrapper, which is also what a keyboard Enter does. Everything outside it stops the bubble, or
 // using any of them would focus the agent as well.
-export const AgentRow = ({ agent, now, workspaceRoot, onOpen, onOpenLog }: AgentRowProps) => {
+export const AgentRow = ({
+  agent,
+  now,
+  workspaceRoot,
+  onOpen,
+  onOpenLog,
+  onCopySessionId,
+  onKill
+}: AgentRowProps) => {
   const activity: AgentActivity = activityOf({ agent, now });
   const row: RowColor = useRowColor(agent.sessionId);
+  const menu = useAgentMenu();
 
   return (
     <div
       onClick={() => onOpen(agent)}
+      onContextMenu={menu.open}
       style={row.style}
       className={cn(
         'group relative flex cursor-pointer flex-col rounded-md hover:bg-accent',
@@ -101,6 +108,17 @@ export const AgentRow = ({ agent, now, workspaceRoot, onOpen, onOpenLog }: Agent
       <AgentContext agent={agent} className="px-3 pb-2 pl-6" />
 
       <AgentRowFooter agent={agent} />
+
+      {menu.anchor && (
+        <AgentMenu
+          agent={agent}
+          anchor={menu.anchor}
+          onClose={menu.close}
+          onOpenLog={() => onOpenLog(agent)}
+          onCopySessionId={() => onCopySessionId(agent)}
+          onKill={() => onKill(agent)}
+        />
+      )}
     </div>
   );
 };

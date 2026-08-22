@@ -42,6 +42,8 @@ export const App = () => {
     refresh,
     openFile,
     openAgent,
+    copySessionId,
+    killAgent,
     reportSurface,
     reportUnavailable,
     openSettings
@@ -149,6 +151,8 @@ export const App = () => {
               onUnavailable={reportUnavailable}
               reveal={selected}
               onOpenAgent={openAgent}
+              onCopySessionId={copySessionId}
+              onKillAgent={killAgent}
               onOpenFile={openFile}
               onSearch={openSpotlight}
               onRefresh={refresh}
@@ -195,7 +199,10 @@ interface DetailProps {
   onUnavailable: (title: string) => void;
   reveal?: Reveal;
   // Active Agents only: a row goes to the running agent, and the host works out where that is.
+  // Its menu's two other commands take a session id for the same reason.
   onOpenAgent: (sessionId: string) => void;
+  onCopySessionId: (sessionId: string) => void;
+  onKillAgent: (sessionId: string) => void;
   onOpenFile: (path: string) => void;
   onSearch: () => void;
   onRefresh: () => void;
@@ -214,6 +221,8 @@ const Detail = ({
   onUnavailable,
   reveal,
   onOpenAgent,
+  onCopySessionId,
+  onKillAgent,
   onOpenFile,
   onSearch,
   onRefresh,
@@ -251,6 +260,9 @@ const Detail = ({
           snapshot={snapshot}
           onOpenAgent={onOpenAgent}
           onOpenFile={onOpenFile}
+          onCopySessionId={onCopySessionId}
+          onKillAgent={onKillAgent}
+          onUnavailable={onUnavailable}
           onSearch={onSearch}
           onRefresh={onRefresh}
           onBack={onBack}
