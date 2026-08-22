@@ -17,16 +17,13 @@ import { WINDOW_BLURB } from '../../model/usage/window';
 import { plural } from '../format-size';
 import { Loading } from '../loading/Loading';
 import { PanelActions } from '../PanelActions';
-import { useSettings, useSetUsage } from '../settings/SettingsContext';
+import { useSettings } from '../settings/SettingsContext';
 import { surfaceAccent } from '../surfaces';
 import { UsageBar } from '../UsageBar';
 import { UsageInfo } from '../UsageInfo';
-import { UsageChoice } from '../UsageChoice';
 import { UsageTab, UsageTabs } from '../UsageTabs';
 import { SessionsTab } from '../usage-sessions/SessionsTab';
-import { GridMetric } from '../usage-sessions/grid';
 import { sliceLabel } from '../usage-format';
-import { WINDOW_OPTIONS } from '../usage-options';
 import { UsageSummary } from '../UsageSummary';
 
 // What a first scan costs. It reads every session log on the machine, though most of them are
@@ -52,10 +49,9 @@ interface UsageViewProps {
   onOpenSession: (session: SessionUsage) => void;
   // Which window the view opens on. The panel never passes it; a story does.
   initialWindow?: UsageWindow;
-  // Which tab it opens on, and which of the Sessions tab's two toggles start where. Same deal —
-  // the panel never passes any of them.
+  // Which tab it opens on, and which CLI the Sessions tab's grid starts on. Same deal — the panel
+  // never passes either.
   initialTab?: UsageTab;
-  initialMetric?: GridMetric;
   initialTool?: AgentTool;
   onSearch: () => void;
   onRefresh: () => void;
@@ -65,6 +61,9 @@ interface UsageViewProps {
 // What the sessions on this machine have cost, two ways. Sessions is every session on disk — a year
 // of days as a grid, and a list you can search. Skills is a window inside that, split by the skill
 // that was running: read off the turn on Claude's side and inferred on Copilot's.
+//
+// The headline sits above the tabs rather than inside one, since it's a total of the same sessions
+// either tab is showing you.
 export const UsageView = ({
   report,
   history,
@@ -74,7 +73,6 @@ export const UsageView = ({
   onOpenSession,
   initialWindow = 'day',
   initialTab = 'sessions',
-  initialMetric,
   initialTool,
   onSearch,
   onRefresh,
@@ -84,8 +82,7 @@ export const UsageView = ({
   // a preference. Same split the skills surface makes between its selection and its budgets.
   const [window, setWindow] = useState<UsageWindow>(initialWindow);
   const [tab, setTab] = useState<UsageTab>(initialTab);
-  const { metric, scope } = useSettings().usage;
-  const setUsage = useSetUsage();
+  const { metric } = useSettings().usage;
 
   const breakdown: UsageBreakdown | undefined = report?.windows[window];
 
@@ -101,16 +98,18 @@ export const UsageView = ({
         <div className="mr-auto flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-semibold">Usage</span>
           <span className="truncate text-xs text-muted-foreground">
-            {subtitle({ tab, breakdown, history, window })}
+            {subtitle({ tab, breakdown, history })}
           </span>
         </div>
-        {/* The window is the Skills tab's question. The grid spans a year and the list spans
-            everything, so a Day / Week toggle over them would change nothing. */}
-        {tab === 'skills' && (
-          <UsageChoice label="Window" options={WINDOW_OPTIONS} value={window} onChange={setWindow} />
-        )}
         <PanelActions onSearch={onSearch} onRefresh={onRefresh} />
       </header>
+
+      <UsageSummary
+        breakdown={breakdown}
+        metric={metric.value}
+        window={window}
+        onWindow={setWindow}
+      />
 
       <div className="border-b border-border px-3">
         <UsageTabs tab={tab} onChange={setTab} />
@@ -122,7 +121,6 @@ export const UsageView = ({
             history={history}
             workspaceRoot={workspaceRoot}
             onOpenSession={onOpenSession}
-            initialMetric={initialMetric}
             initialTool={initialTool}
           />
         </div>
@@ -133,13 +131,6 @@ export const UsageView = ({
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-clip">
           <div className="flex flex-col gap-4 px-4 py-4">
-            <UsageSummary
-              breakdown={breakdown}
-              metric={metric.value}
-              scope={scope.value}
-              onMetric={(next) => setUsage({ metric: next })}
-              onScope={(next) => setUsage({ scope: next })}
-            />
             <Slices
               breakdown={breakdown}
               metric={metric.value}
@@ -159,13 +150,14 @@ interface SubtitleArgs {
   tab: UsageTab;
   breakdown: UsageBreakdown | undefined;
   history: UsageHistory | undefined;
-  window: UsageWindow;
 }
 
 // What the header says under "Usage", which is a different sentence per tab: one counts a window,
 // the other counts everything. Both say "reading" rather than nothing while their scan is out —
 // they're separate passes and either can be the one you're waiting on.
-const subtitle = ({ tab, breakdown, history, window }: SubtitleArgs): string => {
+//
+// Neither names the window. The headline under it already does, beside the toggle that changes it.
+const subtitle = ({ tab, breakdown, history }: SubtitleArgs): string => {
   if (tab === 'sessions') {
     return history
       ? `${plural(history.sessions.length, 'session')} on record`
@@ -173,7 +165,7 @@ const subtitle = ({ tab, breakdown, history, window }: SubtitleArgs): string => 
   }
 
   return breakdown
-    ? `${plural(breakdown.sessions, 'session')} · ${WINDOW_BLURB[window].toLowerCase()}`
+    ? `${plural(breakdown.sessions, 'session')} in the window`
     : 'reading every session log';
 };
 
@@ -233,7 +225,7 @@ interface CostNoteProps {
 // The (i) sits *in* the sentence rather than in a flex row beside it. As a flex item it was laid out
 // against the whole paragraph, so a panel too narrow for the text on one line pushed it onto a line
 // of its own — an icon alone above a wall of grey. The `...` used to sit next to it and is in the
-// metrics header now, beside the figures it changes.
+// header now, beside the figures it changes.
 const CostNote = ({ breakdown }: CostNoteProps) => (
   <p className="px-1 text-xs leading-relaxed text-muted-foreground">
     <UsageInfo breakdown={breakdown} />

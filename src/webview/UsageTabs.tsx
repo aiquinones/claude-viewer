@@ -19,8 +19,9 @@ interface UsageTabsProps {
 }
 
 // Text tabs, like the memory surface's — the name is the entire content of the choice, so there's
-// nothing for an icon to say. They split the header controls too: the Day / Week toggle belongs to
-// the Skills tab alone, since the grid spans a year and the list spans everything.
+// nothing for an icon to say. They sit under the header rather than beside it: the figure and the
+// settings above them are true of both tabs, and each tab owns only the controls its own contents
+// need — which on Sessions is the CLI the grid is drawn for, and on Skills is nothing at all.
 export const UsageTabs = ({ tab, onChange }: UsageTabsProps) => (
   <div role="tablist" aria-label="Usage view" className="flex shrink-0 items-center gap-1">
     {USAGE_TABS.map((entry) => (

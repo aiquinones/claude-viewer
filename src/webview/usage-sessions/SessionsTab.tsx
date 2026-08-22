@@ -1,14 +1,12 @@
 import { useMemo, useState } from 'react';
 import { AgentTool } from '../../model/types';
-import { SessionUsage, UsageHistory, UsageScope } from '../../model/usage/types';
+import { SessionUsage, UsageHistory } from '../../model/usage/types';
 import { Loading } from '../loading/Loading';
-import { useSettings, useSetUsage } from '../settings/SettingsContext';
-import { SCOPE_OPTIONS } from '../usage-options';
 import { UsageChoice } from '../UsageChoice';
 import { useNow } from '../useNow';
 import { ContributionGrid } from './ContributionGrid';
-import { GRID_METRIC_OPTIONS, GRID_TOOL_OPTIONS } from './grid-options';
-import { GridMetric, UsageGrid, buildGrid } from './grid';
+import { GRID_TOOL_OPTIONS } from './grid-options';
+import { UsageGrid, buildGrid } from './grid';
 import { RetentionInfo } from './RetentionInfo';
 import { SessionList } from './SessionList';
 import { spanLabel } from './grid-labels';
@@ -32,8 +30,7 @@ interface SessionsTabProps {
   history: UsageHistory | undefined;
   workspaceRoot: string | undefined;
   onOpenSession: (session: SessionUsage) => void;
-  // The grid opens on these. The panel never passes them; a story does.
-  initialMetric?: GridMetric;
+  // Which CLI the grid opens on. The panel never passes it; a story does.
   initialTool?: AgentTool;
 }
 
@@ -49,31 +46,23 @@ export const SessionsTab = ({
   history,
   workspaceRoot,
   onOpenSession,
-  initialMetric = 'tokens',
   initialTool = 'claude'
 }: SessionsTabProps) => {
-  // Component state, not settings. Which number a square is painted from and which CLI is on screen
-  // are glances, the same way the window is on the other tab.
-  const [metric, setMetric] = useState<GridMetric>(initialMetric);
+  // Component state, not a setting. Which CLI is on screen is a glance, the same way the window is
+  // on the header above — and it's the only control the tab has, since the scope and the metric are
+  // settings the `...` writes.
   const [tool, setTool] = useState<AgentTool>(initialTool);
   const now: number = useNow(AGE_TICK_MS);
-
-  // The scope is the exception: it's a setting, shared with the Skills tab, and the host is what
-  // applies it — `narrowHistory` runs on the way out of the store, so flipping this re-posts the
-  // sessions without reading a single transcript again.
-  const scope: UsageScope = useSettings().usage.scope.value;
-  const setUsage = useSetUsage();
 
   const grid: UsageGrid | undefined = useMemo(() => {
     if (!history) return undefined;
 
     return buildGrid({
       sessions: history.sessions.filter((session) => session.tool === tool),
-      metric,
       now: history.scannedAt,
       retentionDays: tool === 'claude' ? history.retention.days : COPILOT_RETENTION_DAYS
     });
-  }, [history, metric, tool]);
+  }, [history, tool]);
 
   if (!history || !grid) {
     return (
@@ -100,26 +89,10 @@ export const SessionsTab = ({
             />
           )}
         </h2>
-        {/* Wraps rather than shrinks: three word-labelled controls are wider than a docked panel,
-            and a control that shrank would truncate the very words that distinguish its options. */}
-        <div className="flex flex-wrap items-center gap-2">
-          <UsageChoice
-            label="Sessions"
-            options={SCOPE_OPTIONS}
-            value={scope}
-            onChange={(next) => setUsage({ scope: next })}
-          />
-          <UsageChoice label="CLI" options={GRID_TOOL_OPTIONS} value={tool} onChange={setTool} />
-          <UsageChoice
-            label="Grid metric"
-            options={GRID_METRIC_OPTIONS}
-            value={metric}
-            onChange={setMetric}
-          />
-        </div>
+        <UsageChoice label="CLI" options={GRID_TOOL_OPTIONS} value={tool} onChange={setTool} />
       </div>
 
-      <ContributionGrid grid={grid} metric={metric} />
+      <ContributionGrid grid={grid} />
 
       <SessionList
         sessions={history.sessions}

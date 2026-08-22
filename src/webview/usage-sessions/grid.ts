@@ -1,5 +1,8 @@
 // Sessions → the squares a contribution grid draws. Pure, and the only place the calendar is
 // reasoned about: which day is in which column, what a square is worth, and how dark it gets.
+//
+// A square counts sessions. It's the Sessions tab, and the list under the grid is what carries what
+// any one of them spent.
 
 import { DAY_MS, dayKey, dayStart, shiftDays } from '../../model/usage/history/day';
 import { SessionUsage } from '../../model/usage/types';
@@ -15,14 +18,6 @@ export const MIN_GRID_WEEKS: number = 6;
 
 export const DAYS_PER_WEEK: number = 7;
 
-// Which number a square is painted from. Both are counts of the same days — one asks how much was
-// spent, the other how many sessions it took.
-//
-// Deliberately not annotated: a type here would erase the literals GridMetric derives from.
-export const GRID_METRICS = ['tokens', 'sessions'] as const;
-
-export type GridMetric = (typeof GRID_METRICS)[number];
-
 // How many shades a non-empty square can be. Zero is its own state and isn't one of these.
 export const GRID_LEVELS: number = 4;
 
@@ -30,10 +25,8 @@ export interface GridDay {
   // Local `YYYY-MM-DD`, matching what the scan bucketed on.
   day: string;
   at: number;
-  tokens: number;
+  // How many sessions were active that day, which is what the square is painted from.
   sessions: number;
-  // The active metric's number, which is the one the square is painted from.
-  value: number;
   // 0 for a day nothing happened, 1–4 otherwise.
   level: number;
   // Past the end of today. The last column runs to Saturday, so up to six of its squares are days
@@ -51,7 +44,6 @@ export interface GridWeek {
 
 export interface UsageGrid {
   weeks: GridWeek[];
-  tokens: number;
   sessions: number;
   // Days with anything on them.
   activeDays: number;
@@ -77,14 +69,8 @@ const MONTH_LABEL: readonly string[] = [
   'Dec'
 ];
 
-interface DayTotals {
-  tokens: number;
-  sessions: number;
-}
-
 interface BuildGridArgs {
   sessions: SessionUsage[];
-  metric: GridMetric;
   now: number;
   // How many days of transcripts Claude Code keeps. The span is built from this rather than fixed
   // at a year: history older than the sweep isn't missing, it's deleted, and a grid that drew ten
@@ -92,8 +78,8 @@ interface BuildGridArgs {
   retentionDays: number;
 }
 
-export const buildGrid = ({ sessions, metric, now, retentionDays }: BuildGridArgs): UsageGrid => {
-  const totals: Map<string, DayTotals> = dayTotals(sessions);
+export const buildGrid = ({ sessions, now, retentionDays }: BuildGridArgs): UsageGrid => {
+  const totals: Map<string, number> = dayTotals(sessions);
 
   const today: number = dayStart(now);
   const span: number = gridWeeks({ totals, today, retentionDays });
@@ -107,7 +93,6 @@ export const buildGrid = ({ sessions, metric, now, retentionDays }: BuildGridArg
   // reaching back further than the span would otherwise set the shades from days nobody can see.
   const thresholds: number[] = levelThresholds({
     totals,
-    metric,
     from: dayKey(first),
     to: dayKey(shiftDays({ from: first, days: span * DAYS_PER_WEEK - 1 }))
   });
@@ -122,16 +107,13 @@ export const buildGrid = ({ sessions, metric, now, retentionDays }: BuildGridArg
     for (let offset = 0; offset < DAYS_PER_WEEK; offset += 1) {
       const at: number = shiftDays({ from: start, days: offset });
       const key: string = dayKey(at);
-      const held: DayTotals = totals.get(key) ?? { tokens: 0, sessions: 0 };
-      const value: number = metric === 'tokens' ? held.tokens : held.sessions;
+      const held: number = totals.get(key) ?? 0;
 
       days.push({
         day: key,
         at,
-        tokens: held.tokens,
-        sessions: held.sessions,
-        value,
-        level: levelOf(value, thresholds),
+        sessions: held,
+        level: levelOf(held, thresholds),
         future: at > today
       });
     }
@@ -158,17 +140,14 @@ export const buildGrid = ({ sessions, metric, now, retentionDays }: BuildGridArg
 
   return {
     weeks,
-    tokens: drawn.reduce((running, day) => running + day.tokens, 0),
     sessions: drawn.reduce((running, day) => running + day.sessions, 0),
     activeDays: lit.length,
-    ...(lit.length > 0
-      ? { oldestActiveDays: Math.round((today - lit[0].at) / DAY_MS) }
-      : {})
+    ...(lit.length > 0 ? { oldestActiveDays: Math.round((today - lit[0].at) / DAY_MS) } : {})
   };
 };
 
 interface GridWeeksArgs {
-  totals: Map<string, DayTotals>;
+  totals: Map<string, number>;
   today: number;
   retentionDays: number;
 }
@@ -191,20 +170,14 @@ const gridWeeks = ({ totals, today, retentionDays }: GridWeeksArgs): number => {
   return Math.min(Math.max(weeks, MIN_GRID_WEEKS), MAX_GRID_WEEKS);
 };
 
-// Every day any session spent something, with how many sessions were involved. Only days inside the
+// Every day any session spent something, and how many sessions were involved. Only days inside the
 // grid's span end up drawn; the rest cost one map entry each and say what the totals under it mean.
-const dayTotals = (sessions: SessionUsage[]): Map<string, DayTotals> => {
-  const totals: Map<string, DayTotals> = new Map();
+const dayTotals = (sessions: SessionUsage[]): Map<string, number> => {
+  const totals: Map<string, number> = new Map();
 
   for (const session of sessions) {
     for (const day of session.days) {
-      const held: DayTotals | undefined = totals.get(day.day);
-      if (held) {
-        held.tokens += day.outputTokens;
-        held.sessions += 1;
-        continue;
-      }
-      totals.set(day.day, { tokens: day.outputTokens, sessions: 1 });
+      totals.set(day.day, (totals.get(day.day) ?? 0) + 1);
     }
   }
 
@@ -212,26 +185,24 @@ const dayTotals = (sessions: SessionUsage[]): Map<string, DayTotals> => {
 };
 
 interface LevelThresholdsArgs {
-  totals: Map<string, DayTotals>;
-  metric: GridMetric;
+  totals: Map<string, number>;
   // The span, inclusive, as day keys. `YYYY-MM-DD` sorts as a string exactly as it sorts as a date,
   // which is the whole reason the scan buckets on that format.
   from: string;
   to: string;
 }
 
-// Quartiles by rank, not by size. One 800k day against a fortnight of 40k ones is normal here, and
-// splitting the range evenly would paint that fortnight the palest shade and say nothing about it.
-// Ranking is what keeps the four shades carrying roughly a quarter of the days each.
+// Quartiles by rank, not by size. Ranking is what keeps the four shades carrying roughly a quarter
+// of the days each.
 //
-// Over the *distinct* values, and returned as thresholds rather than as a rank per day. Both matter
-// on the sessions metric, where the numbers are small integers and half the days say 1: ranking days
-// would paint two identical days different shades, and quantiles over the raw list would put the
-// smallest value above the first threshold, so nothing would ever be level 1.
-const levelThresholds = ({ totals, metric, from, to }: LevelThresholdsArgs): number[] => {
+// Over the *distinct* counts, and returned as thresholds rather than as a rank per day. Both matter
+// here, where the numbers are small integers and half the days say 1: ranking days would paint two
+// identical days different shades, and quantiles over the raw list would put the smallest value
+// above the first threshold, so nothing would ever be level 1.
+const levelThresholds = ({ totals, from, to }: LevelThresholdsArgs): number[] => {
   const values: number[] = [...totals.entries()]
     .filter(([day]) => day >= from && day <= to)
-    .map(([, day]) => (metric === 'tokens' ? day.tokens : day.sessions))
+    .map(([, sessions]) => sessions)
     .filter((value) => value > 0);
 
   const distinct: number[] = [...new Set(values)].sort((left, right) => left - right);

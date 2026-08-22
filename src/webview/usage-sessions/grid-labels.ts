@@ -1,14 +1,8 @@
-// What a square is worth, in words. Its own file because both the readout and the `title` on every
+// What a square is worth, in words. Its own file because both the readout and the label on every
 // square print it, and a grid whose tooltip and whose caption disagree is a grid nobody trusts.
 
 import { plural } from '../format-size';
-import { formatUsageTokens } from '../usage-format';
-import { GridDay, GridMetric } from './grid';
-
-export const GRID_METRIC_LABEL: Record<GridMetric, string> = {
-  tokens: 'Tokens',
-  sessions: 'Sessions'
-};
+import { GridDay } from './grid';
 
 // The day a square covers, spelled out. Long forms — the tooltip is a sentence, and it has room.
 export const gridDayLabel = (day: GridDay): string =>
@@ -20,14 +14,10 @@ export const gridDayLabel = (day: GridDay): string =>
     year: new Date(day.at).getFullYear() === new Date().getFullYear() ? undefined : 'numeric'
   });
 
-export const gridDayValue = (day: GridDay, metric: GridMetric): string => {
-  if (metric === 'sessions') {
-    return day.sessions === 0 ? 'No sessions' : plural(day.sessions, 'session');
-  }
-  // "No output tokens" rather than "0" — a square that says zero reads like a measurement that came
-  // back empty, where the day simply had nothing in it.
-  return day.tokens === 0 ? 'No output tokens' : `${formatUsageTokens(day.tokens)} output tokens`;
-};
+// "No sessions" rather than "0" — a square that says zero reads like a measurement that came back
+// empty, where the day simply had nothing in it.
+export const gridDayValue = (day: GridDay): string =>
+  day.sessions === 0 ? 'No sessions' : plural(day.sessions, 'session');
 
 // What the window heading says. Weeks up to a point, then months — "Last 22 weeks" is a number
 // nobody converts in their head, and the grid's own month labels are what carry the precision.

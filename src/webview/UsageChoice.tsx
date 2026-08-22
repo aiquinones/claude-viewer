@@ -1,13 +1,6 @@
 import { CodeText } from './CodeText';
 import { HoverCard, HoverCardBody } from './HoverCard';
-
-export interface ChoiceOption<Id extends string> {
-  id: Id;
-  label: string;
-  // What the option means, on hover. Every one of these picks between two readings of the same
-  // sessions, and the label alone can't say which. A `backticked` run in it is set in mono.
-  hint: string;
-}
+import { ChoiceOption } from './usage-options';
 
 interface UsageChoiceProps<Id extends string> {
   label: string;
