@@ -1,47 +1,40 @@
 import { AGENT_TOOL_LABEL, AgentTool } from '../model/types';
 import { toolsIn } from '../model/usage/aggregate';
-import { UsageBreakdown, UsageMetric, UsageScope } from '../model/usage/types';
+import { UsageBreakdown, UsageMetric, UsageWindow } from '../model/usage/types';
 import { plural } from './format-size';
 import { formatAiu, formatTotal, formatUsd, METRIC_LABEL } from './usage-format';
-import { METRIC_OPTIONS, SCOPE_OPTIONS } from './usage-options';
+import { WINDOW_OPTIONS } from './usage-options';
 import { UsageChoice } from './UsageChoice';
-import { UsageMenu } from './UsageMenu';
+import { UsageMenu } from './usage-menu/UsageMenu';
 
 interface UsageSummaryProps {
-  breakdown: UsageBreakdown;
+  // Undefined until the first scan lands. The header sits above the tabs, so it's on screen before
+  // there is a number to put in it.
+  breakdown: UsageBreakdown | undefined;
   metric: UsageMetric;
-  scope: UsageScope;
-  onMetric: (metric: UsageMetric) => void;
-  onScope: (scope: UsageScope) => void;
+  window: UsageWindow;
+  onWindow: (window: UsageWindow) => void;
 }
 
-// The headline, and the controls that say what it's the headline of. The two toggles write settings
-// rather than component state: which number you're reading is part of how you read the surface, and
-// it should still be that number tomorrow. The `...` is here rather than down by the cost note
-// because it changes these figures, and because down there it was unreachable in Tokens mode.
-export const UsageSummary = ({
-  breakdown,
-  metric,
-  scope,
-  onMetric,
-  onScope
-}: UsageSummaryProps) => (
-  <section className="flex flex-col gap-3 rounded-lg border border-border p-4">
+// The headline, above the tabs rather than inside one: both tabs are readings of the same sessions,
+// so the figure and the settings behind it belong to the surface rather than to a half of it.
+//
+// The window is the one control still on the surface. It says what the number is a total *of*, which
+// is the caption to the figure above it — everything that changes which number you're reading is in
+// the `...` instead.
+export const UsageSummary = ({ breakdown, metric, window, onWindow }: UsageSummaryProps) => (
+  <section className="flex flex-col gap-2 px-4 py-3">
     {/* The figures wrap inside their own box rather than being flex items beside the menu, so a
         panel too narrow for them wraps the numbers and leaves the `...` in the corner — as siblings
         the menu was laid out against the whole group and dropped onto a line of its own. */}
     <div className="flex items-start gap-3">
       <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
-        {metric === 'cost' ? (
-          <CostTotals breakdown={breakdown} />
-        ) : (
-          <span className="text-2xl font-semibold tabular-nums">
-            {formatTotal(breakdown.total, metric)}
+        <Headline breakdown={breakdown} metric={metric} />
+        {breakdown && (
+          <span className="text-xs text-muted-foreground">
+            {METRIC_LABEL[metric].toLowerCase()} · {plural(breakdown.total.turns, 'request')}
           </span>
         )}
-        <span className="text-xs text-muted-foreground">
-          {METRIC_LABEL[metric].toLowerCase()} · {plural(breakdown.total.turns, 'request')}
-        </span>
       </div>
       {/* `mt-1` centres the 24px button against the headline's first line, which is 32px tall —
           `items-start` alone would pin it to the top of the box instead. */}
@@ -49,11 +42,32 @@ export const UsageSummary = ({
     </div>
 
     <div className="flex flex-wrap items-center gap-2">
-      <UsageChoice label="Metric" options={METRIC_OPTIONS} value={metric} onChange={onMetric} />
-      <UsageChoice label="Sessions" options={SCOPE_OPTIONS} value={scope} onChange={onScope} />
+      <span className="text-xs text-muted-foreground">Totals for</span>
+      <UsageChoice label="Window" options={WINDOW_OPTIONS} value={window} onChange={onWindow} />
     </div>
   </section>
 );
+
+interface HeadlineProps {
+  breakdown: UsageBreakdown | undefined;
+  metric: UsageMetric;
+}
+
+// The figure itself. A dash while the scan is out — a zero would be a reading, and there isn't one
+// yet; the tab below says what is being waited on.
+const Headline = ({ breakdown, metric }: HeadlineProps) => {
+  if (!breakdown) {
+    return <span className="text-2xl font-semibold tabular-nums text-muted-foreground">—</span>;
+  }
+
+  if (metric === 'cost') return <CostTotals breakdown={breakdown} />;
+
+  return (
+    <span className="text-2xl font-semibold tabular-nums">
+      {formatTotal(breakdown.total, metric)}
+    </span>
+  );
+};
 
 interface CostTotalsProps {
   breakdown: UsageBreakdown;

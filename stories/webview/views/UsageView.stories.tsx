@@ -165,11 +165,6 @@ export const SessionsCopilot: Story = {
   args: { initialTool: 'copilot' }
 };
 
-// The grid counted rather than measured. A day of one long session is dark on tokens and pale here.
-export const SessionsByCount: Story = {
-  args: { initialMetric: 'sessions' }
-};
-
 // `cleanupPeriodDays` set to a week. The grid shrinks to the window that can hold data, instead of
 // drawing eleven empty months to reach it.
 export const SessionsShortRetention: Story = {

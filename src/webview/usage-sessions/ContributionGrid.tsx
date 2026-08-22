@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { DAYS_PER_WEEK, GridDay, GridMetric, GridWeek, UsageGrid } from './grid';
+import { DAYS_PER_WEEK, GridDay, GridWeek, UsageGrid } from './grid';
 import { GridLegend } from './GridLegend';
 import { GridTooltip } from './GridTooltip';
 import { gridDayLabel, gridDayValue } from './grid-labels';
@@ -7,7 +7,6 @@ import { Z } from '@/z-layers';
 
 interface ContributionGridProps {
   grid: UsageGrid;
-  metric: GridMetric;
 }
 
 // Which rows carry a weekday name. All seven would need a row height nobody wants; these three are
@@ -40,7 +39,7 @@ interface HoverArgs {
 // a label placed in its column's flow makes that column as wide as the word, which is a visible gap
 // every four weeks. The tooltip is the one thing that doesn't follow the pitch: it lives outside the
 // scrolling box, so it's placed against the frame rather than against the lattice.
-export const ContributionGrid = ({ grid, metric }: ContributionGridProps) => {
+export const ContributionGrid = ({ grid }: ContributionGridProps) => {
   const frame = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState<Hovered | undefined>(undefined);
@@ -53,7 +52,7 @@ export const ContributionGrid = ({ grid, metric }: ContributionGridProps) => {
 
   return (
     <section className="usage-grid flex flex-col gap-2 rounded-lg border border-border p-3">
-      <p className="text-xs text-muted-foreground">{summary(grid, metric)}</p>
+      <p className="text-xs text-muted-foreground">{summary(grid)}</p>
 
       {/* What the bubble is placed against: the scroller's box, without its scrolling and without
           its cropping. The tooltip can't hang off the scroller itself — that one crops, which is
@@ -111,7 +110,7 @@ export const ContributionGrid = ({ grid, metric }: ContributionGridProps) => {
                         // clickable. No `title`: the tooltip says the same thing without the delay,
                         // and both at once reads as the page stuttering. The label is what a screen
                         // reader gets instead.
-                        aria-label={day.future ? undefined : tooltipText(day, metric)}
+                        aria-label={day.future ? undefined : tooltipText(day)}
                         onPointerEnter={(event) =>
                           setHovered(
                             hoverSpot({ day, square: event.currentTarget, frame: frame.current })
@@ -131,7 +130,7 @@ export const ContributionGrid = ({ grid, metric }: ContributionGridProps) => {
 
         {hovered && (
           <GridTooltip x={hovered.x} y={hovered.y} frameWidth={hovered.frameWidth}>
-            {tooltipText(hovered.day, metric)}
+            {tooltipText(hovered.day)}
           </GridTooltip>
         )}
       </div>
@@ -160,14 +159,11 @@ const hoverSpot = ({ day, square, frame }: HoverArgs): Hovered | undefined => {
 
 // What one square says. "on <date>" rather than a separator, so it reads as a sentence the way
 // GitHub's does — the date is the subject, not a second field.
-const tooltipText = (day: GridDay, metric: GridMetric): string =>
-  `${gridDayValue(day, metric)} on ${gridDayLabel(day)}`;
+const tooltipText = (day: GridDay): string => `${gridDayValue(day)} on ${gridDayLabel(day)}`;
 
 // The caption above the grid. Static — it names what the squares measure and how much of the span
 // was worked, and it stays put while you move over the grid: the hovered day is the tooltip's job.
-const summary = (grid: UsageGrid, metric: GridMetric): string =>
+const summary = (grid: UsageGrid): string =>
   grid.activeDays === 0
     ? 'No sessions on record in this window.'
-    : `${metric === 'tokens' ? 'Output tokens' : 'Sessions'} per day · ${grid.activeDays} active ${
-        grid.activeDays === 1 ? 'day' : 'days'
-      }`;
+    : `Sessions per day · ${grid.activeDays} active ${grid.activeDays === 1 ? 'day' : 'days'}`;
