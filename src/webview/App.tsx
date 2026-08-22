@@ -262,7 +262,6 @@ const Detail = ({
           onOpenFile={onOpenFile}
           onCopySessionId={onCopySessionId}
           onKillAgent={onKillAgent}
-          onUnavailable={onUnavailable}
           onSearch={onSearch}
           onRefresh={onRefresh}
           onBack={onBack}

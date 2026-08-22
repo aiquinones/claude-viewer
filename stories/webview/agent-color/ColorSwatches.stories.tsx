@@ -3,8 +3,9 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { AgentColor } from '@src/model/types';
 import { ColorSwatches } from '@src/webview/agent-color/ColorSwatches';
 
-// The six row colours and the way back to none, as they sit at the foot of a row's command menu.
-// No trigger of its own any more — the menu around it is what opens and dismisses.
+// The six row colours and the way back to none. Nothing in the panel renders this today — the dot
+// that used to open it came off the row with the rest of its hover chrome — so this file is the
+// only place it's drawn, and the reason the component didn't rot when the entry point went.
 const meta: Meta<typeof ColorSwatches> = {
   title: 'Agents/ColorSwatches',
   component: ColorSwatches,

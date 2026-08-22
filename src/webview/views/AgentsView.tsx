@@ -39,9 +39,6 @@ interface AgentsViewProps {
   // `onOpenAgent` takes one: what the host does with a session is the host's business.
   onCopySessionId: (sessionId: string) => void;
   onKillAgent: (sessionId: string) => void;
-  // A mode that isn't built yet. The host owns the sentence — same channel a `soon` surface card
-  // uses, and the toggle is the second thing to say it.
-  onUnavailable: (title: string) => void;
   onSearch: () => void;
   onRefresh: () => void;
   onBack: () => void;
@@ -59,7 +56,6 @@ export const AgentsView = ({
   onOpenFile,
   onCopySessionId,
   onKillAgent,
-  onUnavailable,
   onSearch,
   onRefresh,
   onBack
@@ -103,12 +99,9 @@ export const AgentsView = ({
               : `${plural(agents.length, 'session')} · ${busy} working`}
           </span>
         </div>
-        <ViewModeToggle
-          modes={AGENT_VIEW_MODES}
-          mode={mode}
-          onChange={setMode}
-          onBlocked={(entry) => onUnavailable(`${entry.label} view`)}
-        />
+        {/* Renders nothing while Robots is `soon` — one mode is not a choice. It comes back on
+            its own when that field flips. */}
+        <ViewModeToggle modes={AGENT_VIEW_MODES} mode={mode} onChange={setMode} />
         <PanelActions onSearch={onSearch} onRefresh={onRefresh} />
       </header>
 

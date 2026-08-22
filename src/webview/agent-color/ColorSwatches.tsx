@@ -9,9 +9,13 @@ interface ColorSwatchesProps {
   onPick: (color: AgentColor | undefined) => void;
 }
 
-// The six colours and the way back to none. A row of swatches with no trigger of its own: it used
-// to live behind a dot in the corner of every agent row, and it sits in that row's command menu
-// now — which is already open, already dismisses itself, and already stops its own clicks.
+// The six colours and the way back to none. A row of swatches with no trigger of its own — it used
+// to live behind a dot in the corner of every agent row, which came off with the rest of that
+// row's hover chrome.
+//
+// Nothing renders this today. It and the store behind it are kept whole and reachable from its
+// story, because a colour is still a thing a row can have — what went away is the way in, and
+// putting one back is one line wherever it belongs next.
 export const ColorSwatches = ({ color, onPick }: ColorSwatchesProps) => (
   <div role="listbox" aria-label="Row color" className="flex items-center gap-1 px-1 py-0.5">
     {AGENT_COLORS.map((entry) => (

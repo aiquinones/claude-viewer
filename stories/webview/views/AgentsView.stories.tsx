@@ -22,7 +22,6 @@ const meta: Meta<typeof AgentsView> = {
     onOpenFile: () => undefined,
     onCopySessionId: () => undefined,
     onKillAgent: () => undefined,
-    onUnavailable: () => undefined,
     onSearch: () => undefined,
     onRefresh: () => undefined,
     onBack: () => undefined
@@ -110,6 +109,9 @@ export const NoTranscript: Story = {
 
 // The other list. Same sessions, same groups, same order — the robot carries the state, so the
 // badge and the tool tag come off the row.
+//
+// Only reachable from here: the mode is `soon`, so the panel draws no toggle and `initialMode` is
+// the only way in. These stories are how the robot rows stay reviewable while it's off.
 export const Robots: Story = {
   args: {
     agents: allAgents,
@@ -119,7 +121,7 @@ export const Robots: Story = {
 };
 
 // Four rows, one per pose, which is the arrangement that shows whether they read against each
-// other rather than one at a time. The colour picker works here — hover a row and pick one.
+// other rather than one at a time.
 export const RobotsEveryMood: Story = {
   args: {
     agents: everyMoodAgents,
