@@ -1,5 +1,5 @@
-// How far back a window reaches. Matches the Day / Week toggle in Claude Code's own usage panel,
-// so the two reconcile.
+// How far back a window reaches. The same two windows Claude Code's own usage panel offers, so the
+// two reconcile.
 
 import { UsageWindow } from './types';
 
@@ -10,9 +10,11 @@ export const WINDOW_MS: Record<UsageWindow, number> = {
   week: 7 * 24 * HOUR_MS
 };
 
+// What the toggle says. Read as the end of "Totals for", which is why it's "Today" rather than
+// "Day" — the bare noun reads as a unit of time rather than as the span being totalled.
 export const WINDOW_LABEL: Record<UsageWindow, string> = {
-  day: 'Day',
-  week: 'Week'
+  day: 'Today',
+  week: 'This week'
 };
 
 // What the view says under the total. Not "since <date>": the window slides with the clock, and a
