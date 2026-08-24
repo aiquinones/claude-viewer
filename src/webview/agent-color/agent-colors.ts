@@ -5,12 +5,12 @@
 import { AgentColor } from '../../model/types';
 
 export const AGENT_COLOR_VAR: Record<AgentColor, string> = {
-  blue: 'var(--vscode-charts-blue, #3794ff)',
-  green: 'var(--vscode-charts-green, #89d185)',
-  purple: 'var(--vscode-charts-purple, #b180d7)',
-  orange: 'var(--vscode-charts-orange, #d18616)',
-  red: 'var(--vscode-charts-red, #f14c4c)',
-  yellow: 'var(--vscode-charts-yellow, #cca700)'
+  blue: 'var(--chart-blue)',
+  green: 'var(--chart-green)',
+  purple: 'var(--chart-purple)',
+  orange: 'var(--chart-orange)',
+  red: 'var(--chart-red)',
+  yellow: 'var(--chart-yellow)'
 };
 
 export const AGENT_COLOR_LABEL: Record<AgentColor, string> = {

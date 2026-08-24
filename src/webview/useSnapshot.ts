@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { TokenEstimator } from '../model/estimate-tokens';
 import { DEFAULT_SETTINGS, SettingsSection, ViewerSettings } from '../model/settings/settings';
-import { PanelTheme } from '../model/settings/theme';
+import { ThemeMode } from '../model/settings/theme';
 import {
   AgentColor,
   AgentColors,
@@ -114,7 +114,7 @@ export const useSnapshot = () => {
 
   // The theme menu's pick. Only ever a mode with a palette behind it — the rest go through
   // `reportNotBuilt` and write nothing.
-  const changeTheme = (mode: PanelTheme): void => vscode.postMessage({ type: 'setTheme', mode });
+  const changeTheme = (mode: ThemeMode): void => vscode.postMessage({ type: 'setTheme', mode });
 
   // One row's colour. The host stores it and posts the whole map back, so nothing here guesses at
   // what it wrote.

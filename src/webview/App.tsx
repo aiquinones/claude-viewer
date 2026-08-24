@@ -7,9 +7,8 @@ import { AgentColorProvider } from './agent-color/AgentColorContext';
 import { EstimatorDialog } from './EstimatorDialog';
 import { useEstimatorDialog } from './useEstimatorDialog';
 import { Loading } from './loading/Loading';
-import { isPanelTheme, ThemeMode } from '../model/settings/theme';
-import { themeTitle } from './panel-menu/theme-options';
 import { SettingsProvider } from './settings/SettingsContext';
+import { useThemeMode } from './settings/useThemeMode';
 import { Spotlight } from './spotlight/Spotlight';
 import { kindForSurface, surfaceForKind } from './spotlight/surface-kind';
 import { useSpotlight } from './spotlight/useSpotlight';
@@ -53,6 +52,9 @@ export const App = () => {
     reportNotBuilt,
     openSettings
   } = useSnapshot();
+  // The picked palette onto the body, where the CSS rules that draw it can see it. Above the
+  // loading return below, so the panel waits in the palette it will render in.
+  useThemeMode(settings.theme.mode.value);
   // Which surface the detail pane renders, and whether the slider is showing it. Separate signals
   // because the surface has to outlive the slide home — clearing it would blank the pane mid-exit.
   const [surface, setSurface] = useState<SurfaceId | undefined>(undefined);
@@ -68,17 +70,6 @@ export const App = () => {
   const applyEstimator = (estimator: TokenEstimator): void => {
     changeEstimator(estimator);
     dismissEstimator();
-  };
-
-  // The menu offers three modes and only one has a palette behind it. The split is here rather than
-  // in the menu because this is the one place holding both channels — the setting write and the
-  // host's "not built yet" — and the menu shouldn't have to know which is which.
-  const applyTheme = (mode: ThemeMode): void => {
-    if (isPanelTheme(mode)) {
-      changeTheme(mode);
-      return;
-    }
-    reportNotBuilt(themeTitle(mode));
   };
 
   const openSurface = (id: SurfaceId): void => {
@@ -141,7 +132,7 @@ export const App = () => {
       setUsage={changeUsage}
       openEstimator={openEstimator}
       setEstimator={changeEstimator}
-      setTheme={applyTheme}
+      setTheme={changeTheme}
     >
       <AgentColorProvider colors={agentColors} setColor={setAgentColor}>
         <ViewSlider

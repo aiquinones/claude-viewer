@@ -1,27 +1,22 @@
-// Which palette the panel draws in. Today the answer is always the editor's — styles.css maps every
-// token onto a `--vscode-*` variable — so `inherit` is the only mode a setting may hold, and the
-// other two exist as menu rows that say they're coming.
+// Which palette the panel draws in. Four answers: read every color from the editor, read only
+// whether it's light or dark, or take one of the panel's own palettes outright.
+//
+// The polarity read is a CSS selector rather than anything here — a webview's <body> carries
+// `vscode-light` / `vscode-dark`, so `auto` is a rule in styles.css and this file only names it.
 
-// Every mode the menu offers, in the order it draws them.
+// Every mode, in the order the menu draws them: the three that draw the panel's own palette first,
+// then the one that gives the palette up and takes the editor's colors instead. That last one is a
+// different kind of answer, not a fourth palette, which is why it sits apart rather than in the
+// middle of them.
 //
 // Deliberately not annotated: a type here would erase the literals `ThemeMode` derives from.
-export const THEME_MODES = ['inherit', 'dark', 'light'] as const;
+export const THEME_MODES = ['auto', 'dark', 'light', 'inherit'] as const;
 
 export type ThemeMode = (typeof THEME_MODES)[number];
 
-// The subset a setting may hold. Narrower than `ThemeMode` on purpose: a mode with no palette
-// behind it must not survive in someone's settings.json long after they forgot picking it.
-//
-// Shipping a palette means adding its mode here, dropping `soon` from its option, and adding it to
-// the enum in package.json — those two lists are the same claim in two registries.
-export const PANEL_THEMES = ['inherit'] as const satisfies readonly ThemeMode[];
-
-export type PanelTheme = (typeof PANEL_THEMES)[number];
-
-// The editor's own colors, which is what the panel has always drawn.
-export const DEFAULT_PANEL_THEME: PanelTheme = 'inherit';
-
-// Whether a mode the menu offers is one that can be set. The narrowing is what lets the click
-// handler split into "write it" and "say it isn't built" without comparing strings.
-export const isPanelTheme = (mode: ThemeMode): mode is PanelTheme =>
-  (PANEL_THEMES as readonly ThemeMode[]).includes(mode);
+// The panel's own palette, in whichever polarity the editor is in. Not `inherit`, which is what
+// shipped before the palettes existed: a panel that reads every color off the active theme looks
+// like whatever that theme happens to do to a widget, and the palettes are here because that's
+// worth deciding rather than inheriting. Following the editor's light/dark is the part of the
+// inheritance that's always right.
+export const DEFAULT_THEME_MODE: ThemeMode = 'auto';

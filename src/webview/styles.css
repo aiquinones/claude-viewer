@@ -1,10 +1,29 @@
 @import "tailwindcss";
 @source "./**/*.{ts,tsx}";
 
-/* shadcn semantic tokens resolved to the editor's theme. The editor swaps these on theme
-   change, so light/dark is automatic — no .dark class to maintain. */
-:root {
+/* shadcn semantic tokens resolved to the editor's theme. The editor swaps these on theme change,
+   so light/dark is automatic — no .dark class to maintain. This is the `inherit` mode, and it is
+   the base every palette below overrides.
+
+   On `body`, not `:root`, for two reasons that are really one. The palettes have to key off the
+   `vscode-dark` / `vscode-light` class VS Code puts on the body, and a rule can't select an
+   ancestor. And a `var()` inside a custom property is substituted where that property is
+   *declared*, not where it's read — so a derived token like --scrim declared up on :root would go
+   on resolving against :root's --background however the body overrode it. Same element for both,
+   and the cascade does the rest. */
+body {
   --radius: 0.625rem;
+
+  /* The editor's chart palette, under names of our own. `surfaces.ts` and `agent-colors.ts` wrote
+     `var(--vscode-charts-blue, #3794ff)` inline, which is correct while the whole panel inherits
+     and a leak the moment it doesn't — the ground would be ours and the accents still the editor's.
+     A palette below overrides these six; nothing in .ts reaches past them. */
+  --chart-blue: var(--vscode-charts-blue, #3794ff);
+  --chart-green: var(--vscode-charts-green, #89d185);
+  --chart-purple: var(--vscode-charts-purple, #b180d7);
+  --chart-orange: var(--vscode-charts-orange, #d18616);
+  --chart-yellow: var(--vscode-charts-yellow, #cca700);
+  --chart-red: var(--vscode-charts-red, #f14c4c);
 
   --background: var(--vscode-editor-background);
   --foreground: var(--vscode-foreground);
@@ -42,7 +61,7 @@
   --selected-foreground: var(--vscode-list-activeSelectionForeground, var(--vscode-foreground));
 
   /* Links in a rendered skill body. */
-  --link: var(--vscode-textLink-foreground, var(--vscode-charts-blue, #3794ff));
+  --link: var(--vscode-textLink-foreground, var(--chart-blue));
 
   /* Issue severities, mapped to the editor's diagnostic colors. */
   --warn: var(--vscode-editorWarning-foreground, #cca700);
@@ -52,23 +71,144 @@
      foreground rather than toward the background, so it gains contrast in either theme — mixing
      toward the background lightens a light theme and would fade the button as you reach it. */
   --error-foreground: var(--vscode-button-foreground, #ffffff);
-  --error-hover: color-mix(in srgb, var(--error) 85%, var(--vscode-foreground));
+  --error-hover: color-mix(in srgb, var(--error) 85%, var(--foreground));
 
   /* What an agent is doing. Working is a state, not a problem, so it comes from the chart palette
      rather than the diagnostic one; waiting borrows the warning color because it might be. */
-  --activity-running: var(--vscode-charts-green, #89d185);
+  --activity-running: var(--chart-green);
   --activity-blocked: var(--warn);
   --activity-idle: var(--vscode-descriptionForeground, #8b929c);
 
   /* Which CLI a session belongs to. Both are deliberately quiet — the tag identifies a row, it
      doesn't rank it — so they sit near the muted foreground rather than at full chart saturation. */
-  --agent-claude: color-mix(in srgb, var(--vscode-charts-orange, #d18616) 70%, var(--muted-foreground));
-  --agent-copilot: color-mix(in srgb, var(--vscode-charts-purple, #b180d7) 70%, var(--muted-foreground));
+  --agent-claude: color-mix(in srgb, var(--chart-orange) 70%, var(--muted-foreground));
+  --agent-copilot: color-mix(in srgb, var(--chart-purple) 70%, var(--muted-foreground));
 
   /* Spotlight: the characters a query matched, and the scrim behind the box. Mixing the scrim out
      of the editor background darkens a dark theme and lightens a light one on its own. */
-  --match: var(--vscode-list-highlightForeground, var(--vscode-charts-blue, #3794ff));
-  --scrim: color-mix(in srgb, var(--vscode-editor-background) 60%, transparent);
+  --match: var(--vscode-list-highlightForeground, var(--chart-blue));
+  --scrim: color-mix(in srgb, var(--background) 60%, transparent);
+
+  /* Nothing else paints the page. VS Code injects its own `body { background-color: … }`, which is
+     the same color under `inherit` and the wrong one under a palette — so this is declared here,
+     once, and resolves against whichever --background won on this element. */
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* The panel's own palettes. Which one applies is decided entirely here: `useThemeMode` writes the
+   picked mode onto the body and these selectors do the rest.
+
+   `auto` reads the editor's polarity off the class a VS Code webview already puts on <body> —
+   `vscode-light` / `vscode-dark` / `vscode-high-contrast` / `vscode-high-contrast-light`. So
+   switching the editor's color theme flips the palette in the same frame, with no listener, no
+   message and no React render. The dark rule is written as a negation — anything not announced as
+   light — so a renamed high-contrast class lands `auto` on the dark palette rather than on nothing.
+
+   `inherit` matches neither rule, which is why nothing above has to be undone: the body block is
+   still the whole answer for it. */
+
+/* Deep blue-slate, and no alpha anywhere. Cool and low-chroma because everything this panel says
+   is said in color (surface accents, activity badges, budget levels), and a warm neutral ground
+   competes with all of it. No alpha because --muted-foreground-solid exists to work around
+   descriptionForeground's #ccccccb3 — a palette we write can simply not have that problem, and the
+   two tokens collapse to one value.
+
+   oklch because even steps in lightness look even, which is what makes a ramp of eight grounds read
+   as a ramp. sRGB hex beside each for anyone reading values rather than colors. Contrast ratios are
+   against --background; every text token clears 4.5:1. */
+body[data-panel-theme='dark'],
+body[data-panel-theme='auto']:not(.vscode-light):not(.vscode-high-contrast-light) {
+  /* Eight ground steps inside 0.20–0.31 lightness. Narrow on purpose: the panel stacks cards in
+     panes in sticky headers, and a wide ramp turns every nesting level into a visible box.
+     --border is the only step that jumps, because separation is its job. */
+  --background: oklch(0.2 0.014 265); /* #13161d */
+  --card: oklch(0.235 0.016 265); /* #1a1e25 */
+  --popover: oklch(0.26 0.018 265); /* #1e232b */
+  --input: oklch(0.235 0.016 265); /* #1a1e25 */
+  --muted: oklch(0.255 0.016 265); /* #1f232b */
+  --accent: oklch(0.27 0.018 265); /* #21262f */
+  --secondary: oklch(0.29 0.016 265); /* #262b33 */
+  --border: oklch(0.31 0.018 265); /* #2b303a */
+
+  --foreground: oklch(0.93 0.008 265); /* #e5e8ed — 14.7:1 */
+  --card-foreground: var(--foreground);
+  --popover-foreground: var(--foreground);
+  --accent-foreground: var(--foreground);
+  --secondary-foreground: var(--foreground);
+  --muted-foreground: oklch(0.68 0.014 265); /* #9498a1 — 6.3:1 */
+  /* Identical to --muted-foreground, which is the point: with no alpha in the palette there are no
+     seams to composite twice, so the opaque twin has nothing left to fix. */
+  --muted-foreground-solid: var(--muted-foreground);
+
+  --primary: oklch(0.58 0.16 258); /* #3778d7 */
+  --primary-hover: oklch(0.645 0.17 258); /* #458cf3 */
+  --primary-foreground: oklch(0.98 0.005 265); /* #f8fafd */
+  --ring: oklch(0.7 0.14 250); /* #53a3f2 */
+  --link: oklch(0.76 0.11 235); /* #64bced — 8.6:1 */
+  --selected: oklch(0.34 0.06 258); /* #243857 */
+  --selected-foreground: oklch(0.96 0.006 265); /* #f0f2f6 */
+  --match: oklch(0.82 0.13 195); /* #36dede — 10.9:1 */
+
+  --warn: oklch(0.8 0.13 80); /* #e9b452 — 9.6:1 */
+  --error: oklch(0.66 0.18 22); /* #ec5a5e — 5.4:1 */
+  --error-foreground: oklch(0.98 0.005 265);
+  --activity-idle: oklch(0.6 0.014 265); /* #7c8089 — 4.6:1 */
+
+  /* One lightness band and one chroma across six hues. The landing page draws five of these at
+     once, and a set picked hue by hue reads as five separate decisions. Yellow and green are lifted
+     because those hues are darker than blue at equal L. */
+  --chart-blue: oklch(0.7 0.13 250); /* #5aa3ec */
+  --chart-green: oklch(0.76 0.14 152); /* #63ca84 */
+  --chart-purple: oklch(0.7 0.13 305); /* #b188df */
+  --chart-orange: oklch(0.75 0.13 60); /* #ea9952 */
+  --chart-yellow: oklch(0.83 0.13 92); /* #e6c45a */
+  --chart-red: oklch(0.68 0.17 25); /* #ef6661 */
+}
+
+/* The mirror: same hue, same structure, inverted. Accent colors drop to 0.52–0.62 lightness because
+   a chart palette that works on #13161d is invisible on #f9fafc — which is why this is a second
+   table rather than the same numbers. */
+body[data-panel-theme='light'],
+body[data-panel-theme='auto'].vscode-light,
+body[data-panel-theme='auto'].vscode-high-contrast-light {
+  --background: oklch(0.985 0.003 265); /* #f9fafc */
+  --card: oklch(0.965 0.004 265); /* #f2f3f6 */
+  --popover: oklch(0.99 0.002 265); /* #fcfdfe */
+  --input: oklch(1 0 0); /* #ffffff */
+  --muted: oklch(0.955 0.005 265); /* #eff0f4 */
+  --accent: oklch(0.94 0.006 265); /* #ebedf1 */
+  --secondary: oklch(0.93 0.006 265); /* #e7e9ee */
+  --border: oklch(0.9 0.006 265); /* #dcdee2 */
+
+  --foreground: oklch(0.26 0.015 265); /* #20242b — 14.9:1 */
+  --card-foreground: var(--foreground);
+  --popover-foreground: var(--foreground);
+  --accent-foreground: var(--foreground);
+  --secondary-foreground: var(--foreground);
+  --muted-foreground: oklch(0.52 0.014 265); /* #656971 — 5.3:1 */
+  --muted-foreground-solid: var(--muted-foreground);
+
+  --primary: oklch(0.52 0.16 258); /* #2466c3 */
+  --primary-hover: oklch(0.46 0.15 258); /* #1b56a8 */
+  --primary-foreground: oklch(0.99 0.002 265);
+  --ring: oklch(0.55 0.16 250);
+  --link: oklch(0.5 0.15 245); /* #0068b2 — 5.6:1 */
+  --selected: oklch(0.88 0.04 258); /* #d3ddf3 */
+  --selected-foreground: oklch(0.26 0.015 265);
+  --match: oklch(0.55 0.12 200); /* #00858d */
+
+  --warn: oklch(0.62 0.13 70); /* #b77610 */
+  --error: oklch(0.55 0.19 25); /* #c92f33 — 5.1:1 */
+  --error-foreground: oklch(0.99 0.002 265);
+  --activity-idle: oklch(0.62 0.012 265); /* #83868e */
+
+  --chart-blue: oklch(0.55 0.16 250); /* #0074ca */
+  --chart-green: oklch(0.56 0.14 152); /* #168b49 */
+  --chart-purple: oklch(0.55 0.17 305); /* #8951bf */
+  --chart-orange: oklch(0.62 0.15 55); /* #c9690c */
+  --chart-yellow: oklch(0.62 0.13 85); /* #a97f16 */
+  --chart-red: oklch(0.55 0.19 25); /* #c92f33 */
 }
 
 @theme inline {
@@ -102,6 +242,12 @@
   --color-agent-copilot: var(--agent-copilot);
   --color-match: var(--match);
   --color-scrim: var(--scrim);
+  --color-chart-blue: var(--chart-blue);
+  --color-chart-green: var(--chart-green);
+  --color-chart-purple: var(--chart-purple);
+  --color-chart-orange: var(--chart-orange);
+  --color-chart-yellow: var(--chart-yellow);
+  --color-chart-red: var(--chart-red);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -472,7 +618,7 @@
 /* The loading bar. Takes the accent of whichever surface is waiting, where one is set. */
 .progress-fill,
 .progress-sweep {
-  background: var(--surface-accent, var(--vscode-progressBar-background, var(--foreground)));
+  background: var(--surface-accent, var(--primary));
 }
 
 .progress-fill {

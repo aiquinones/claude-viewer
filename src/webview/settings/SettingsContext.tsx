@@ -24,9 +24,8 @@ interface SettingsBridge {
   // buried in a row asks for it.
   openEstimator: () => void;
   setEstimator: (estimator: TokenEstimator) => void;
-  // The panel menu's theme pick. A `ThemeMode` rather than a `PanelTheme`: the menu draws every mode
-  // it offers, and whether one is settable or is answered with "not built yet" is decided above, at
-  // the one place holding both channels.
+  // The panel menu's theme pick. Every mode the menu draws is one a setting may hold, so this goes
+  // straight to the host — there is no "that one isn't built" case left to split on.
   setTheme: (mode: ThemeMode) => void;
 }
 

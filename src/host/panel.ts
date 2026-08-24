@@ -39,7 +39,7 @@ import {
   onDidChangeSettings,
   revealSettings,
   writeEstimator,
-  writePanelTheme,
+  writeThemeMode,
   writeUsageSettings
 } from './settings-store';
 import { focusAgent } from './focus-agent/focus-agent';
@@ -236,7 +236,7 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'surfaceChanged') return _onSurfaceChanged(message.surface);
   if (message.type === 'openSettings') return revealSettings(message.section);
   if (message.type === 'setEstimator') return writeEstimator(message.estimator);
-  if (message.type === 'setTheme') return writePanelTheme(message.mode);
+  if (message.type === 'setTheme') return writeThemeMode(message.mode);
   if (message.type === 'setUsage') {
     return writeUsageSettings({
       metric: message.metric,

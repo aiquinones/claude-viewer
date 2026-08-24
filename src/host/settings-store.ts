@@ -15,7 +15,7 @@ import {
   parseContextTokens,
   parseContextWindows,
   parseOverrides,
-  parsePanelTheme,
+  parseThemeMode,
   parseTokenEstimator,
   parseUsageCostBasis,
   parseUsageMetric,
@@ -24,7 +24,7 @@ import {
   SettingValue,
   ViewerSettings
 } from '../model/settings/settings';
-import { DEFAULT_PANEL_THEME, PanelTheme } from '../model/settings/theme';
+import { DEFAULT_THEME_MODE, ThemeMode } from '../model/settings/theme';
 import { UsageCostBasis, UsageMetric, UsageScope } from '../model/usage/types';
 
 // Registered in package.json under contributes.configuration — the section, the keys and the
@@ -70,8 +70,8 @@ export const currentSettings = (): ViewerSettings => {
       mode: readValue({
         config,
         key: THEME_MODE_KEY,
-        parse: parsePanelTheme,
-        fallback: DEFAULT_PANEL_THEME
+        parse: parseThemeMode,
+        fallback: DEFAULT_THEME_MODE
       })
     },
     budgets: {
@@ -143,7 +143,7 @@ export const writeEstimator = async (estimator: TokenEstimator): Promise<void> =
 
 // The theme menu's pick. Global layer for the reason the estimator's is: which palette you want to
 // read in is a preference, not a property of the repo.
-export const writePanelTheme = async (mode: PanelTheme): Promise<void> => {
+export const writeThemeMode = async (mode: ThemeMode): Promise<void> => {
   const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(SECTION);
 
   try {

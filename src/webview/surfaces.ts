@@ -35,35 +35,35 @@ export const SURFACES = [
     id: 'skills',
     title: 'Skills',
     blurb: 'What Claude can invoke here, and which copy wins a name collision.',
-    accent: 'var(--vscode-charts-blue, #3794ff)',
+    accent: 'var(--chart-blue)',
     status: 'ready'
   },
   {
     id: 'system-prompt',
     title: 'System Prompt',
     blurb: 'The CLAUDE.md files that load, in order, and what they cost per request.',
-    accent: 'var(--vscode-charts-purple, #b180d7)',
+    accent: 'var(--chart-purple)',
     status: 'ready'
   },
   {
     id: 'active-agents',
     title: 'Active Agents',
     blurb: 'Claude Code and Copilot CLI sessions running right now, and what each is doing.',
-    accent: 'var(--vscode-charts-green, #89d185)',
+    accent: 'var(--chart-green)',
     status: 'ready'
   },
   {
     id: 'usage',
     title: 'Usage',
     blurb: 'What your sessions cost, split by the skill that was running.',
-    accent: 'var(--vscode-charts-orange, #d18616)',
+    accent: 'var(--chart-orange)',
     status: 'ready'
   },
   {
     id: 'memory',
     title: 'Memory',
     blurb: 'What Claude wrote down about you here, and which of it any session will read.',
-    accent: 'var(--vscode-charts-yellow, #cca700)',
+    accent: 'var(--chart-yellow)',
     status: 'ready'
   }
 ] as const satisfies readonly SurfaceShape[];
@@ -144,7 +144,7 @@ const agentsDetail = (agents: AgentSession[]): string =>
 
 // A surface's accent, for a view that wants to match the card it was opened from.
 export const surfaceAccent = (id: SurfaceId): string =>
-  SURFACES.find((surface) => surface.id === id)?.accent ?? 'var(--vscode-foreground)';
+  SURFACES.find((surface) => surface.id === id)?.accent ?? 'var(--foreground)';
 
 interface PromptDetailArgs {
   files: SystemPromptFile[];
