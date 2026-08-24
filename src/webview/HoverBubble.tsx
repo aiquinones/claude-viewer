@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { Z } from './z-layers';
 
 // How much room the bubble needs on one side of its target before it will centre on it. About half
-// the width of the longest thing it says — "1.2M output tokens on Monday, August 18".
+// the width of its widest line — a grid square's date, "Wednesday, December 3", or a turn's readout.
 const EDGE_PX: number = 120;
 
 // The air between the target and the bottom of the bubble.
@@ -22,6 +22,9 @@ interface HoverBubbleProps {
 // One bubble for a whole grid of things, moved to whichever the pointer is on. Not `Tooltip` and not
 // a hover card per item: the contribution grid has several hundred squares and a long session has as
 // many turns, and both components that already exist here put a bubble in the DOM per trigger.
+//
+// What it holds can be rows rather than a sentence — the grid's `GridDaySummary` is — so
+// `whitespace-nowrap` here keeps each of those rows on its own line rather than the bubble to one.
 //
 // It sits outside the scrolling box and over it. Inside, the box cropped it — the top row's bubble
 // lost its upper half to `overflow-y-clip` and the leftmost one went behind the sticky weekday

@@ -8,7 +8,7 @@ const meta: Meta<typeof RetentionInfo> = {
     retention: { days: 30, source: 'default' },
     workspaceRoot: '/Users/dev/repos/example-app',
     // Nothing on disk older than the sweep, which is the ordinary case.
-    oldestActiveDays: 3
+    oldestClaudeDays: 3
   },
   decorators: [
     (Story) => (
@@ -50,7 +50,7 @@ export const SetByYou: Story = {
   play: openCard,
   args: {
     retention: { days: 7, source: 'user', path: '/Users/dev/.claude/settings.json' },
-    oldestActiveDays: 3
+    oldestClaudeDays: 3
   }
 };
 
@@ -64,10 +64,10 @@ export const Managed: Story = {
       source: 'managed',
       path: '/Library/Application Support/ClaudeCode/managed-settings.json'
     },
-    oldestActiveDays: 5
+    oldestClaudeDays: 5
   }
 };
 
 // The grid is wider than the retention period, which only happens when a resumed session kept an
 // older transcript alive. The last paragraph changes to say so.
-export const ReachesPastTheSweep: Story = { play: openCard, args: { oldestActiveDays: 96 } };
+export const ReachesPastTheSweep: Story = { play: openCard, args: { oldestClaudeDays: 96 } };

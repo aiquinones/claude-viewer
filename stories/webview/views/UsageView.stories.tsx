@@ -14,6 +14,7 @@ import {
 } from '../../usage-fixtures';
 import {
   busyYear,
+  copilotOnlyHistory,
   emptyHistory,
   quietHistory,
   resumedOldSession,
@@ -161,10 +162,10 @@ export const SessionsScanning: Story = {
   args: { history: undefined }
 };
 
-// The Copilot half of the grid. No `cleanupPeriodDays` on that side and no documented equivalent,
-// so the window is whatever was found and the heading carries no (i) to explain it.
+// A machine that has only ever run Copilot. No `cleanupPeriodDays` on that side and no documented
+// equivalent, so the window is whatever was found and the heading carries no (i) to explain it.
 export const SessionsCopilot: Story = {
-  args: { initialTool: 'copilot' }
+  args: { history: copilotOnlyHistory }
 };
 
 // `cleanupPeriodDays` set to a week. The grid shrinks to the window that can hold data, instead of

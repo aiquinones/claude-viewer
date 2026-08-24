@@ -51,10 +51,8 @@ interface UsageViewProps {
   onCopySessionId: (sessionId: string) => void;
   // Which window the view opens on. The panel never passes it; a story does.
   initialWindow?: UsageWindow;
-  // Which tab it opens on, and which CLI the Sessions tab's grid starts on. Same deal — the panel
-  // never passes either.
+  // Which tab it opens on. Same deal — the panel never passes it.
   initialTab?: UsageTab;
-  initialTool?: AgentTool;
   // Which session the analysis page opens on. Same deal — the panel always opens on the tabs.
   initialSession?: SessionUsage;
   onSearch: () => void;
@@ -79,7 +77,6 @@ export const UsageView = ({
   onCopySessionId,
   initialWindow = 'day',
   initialTab = 'sessions',
-  initialTool,
   initialSession,
   onSearch,
   onRefresh,
@@ -154,7 +151,6 @@ export const UsageView = ({
             history={history}
             workspaceRoot={workspaceRoot}
             onOpenSession={setSession}
-            initialTool={initialTool}
           />
         </div>
       ) : !breakdown ? (

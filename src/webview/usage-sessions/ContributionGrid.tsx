@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { DAYS_PER_WEEK, GridDay, GridWeek, UsageGrid } from './grid';
 import { GridLegend } from './GridLegend';
 import { HoverBubble } from '../HoverBubble';
-import { gridDayLabel, gridDayValue } from './grid-labels';
+import { GridDaySummary } from './GridDaySummary';
+import { gridDayAria } from './grid-labels';
 import { Z } from '@/z-layers';
 
 interface ContributionGridProps {
@@ -110,7 +111,7 @@ export const ContributionGrid = ({ grid }: ContributionGridProps) => {
                         // clickable. No `title`: the tooltip says the same thing without the delay,
                         // and both at once reads as the page stuttering. The label is what a screen
                         // reader gets instead.
-                        aria-label={day.future ? undefined : tooltipText(day)}
+                        aria-label={day.future ? undefined : gridDayAria(day)}
                         onPointerEnter={(event) =>
                           setHovered(
                             hoverSpot({ day, square: event.currentTarget, frame: frame.current })
@@ -130,7 +131,7 @@ export const ContributionGrid = ({ grid }: ContributionGridProps) => {
 
         {hovered && (
           <HoverBubble x={hovered.x} y={hovered.y} frameWidth={hovered.frameWidth}>
-            {tooltipText(hovered.day)}
+            <GridDaySummary day={hovered.day} />
           </HoverBubble>
         )}
       </div>
@@ -156,10 +157,6 @@ const hoverSpot = ({ day, square, frame }: HoverArgs): Hovered | undefined => {
     frameWidth: box.width
   };
 };
-
-// What one square says. "on <date>" rather than a separator, so it reads as a sentence the way
-// GitHub's does — the date is the subject, not a second field.
-const tooltipText = (day: GridDay): string => `${gridDayValue(day)} on ${gridDayLabel(day)}`;
 
 // The caption above the grid. Static — it names what the squares measure and how much of the span
 // was worked, and it stays put while you move over the grid: the hovered day is the tooltip's job.

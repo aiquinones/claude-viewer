@@ -7,12 +7,13 @@ import { displayDirectory } from '../display-path';
 interface RetentionInfoProps {
   retention: Retention;
   workspaceRoot: string | undefined;
-  // How far back the oldest day with data is. Undefined when nothing is drawn.
+  // How far back the oldest day holding a Claude session is. Undefined when none is drawn.
   //
   // Not the grid's width: the minimum span already makes the grid wider than a short
-  // `cleanupPeriodDays`, so width would claim a resumed session where there is none. Data older
-  // than the sweep is the only thing that actually proves one.
-  oldestActiveDays: number | undefined;
+  // `cleanupPeriodDays`, so width would claim a resumed session where there is none. Claude data
+  // older than the sweep is the only thing that actually proves one — a Copilot square out there
+  // is only Copilot keeping what it keeps.
+  oldestClaudeDays: number | undefined;
 }
 
 // Where each layer's value comes from, as a sentence. Same shape as the budgets card, and for the
@@ -28,14 +29,17 @@ const SOURCE_PHRASE: Record<RetentionSource, string> = {
 // The (i) beside the window heading. It answers the question the grid provokes on any machine used
 // for more than a month: why does my history stop where it stops? The answer is never this
 // extension — it's a sweep Claude Code runs at startup — so the card names the setting behind it.
+//
+// The grid holds both CLIs and this window is Claude's, which the title says outright. Copilot has
+// no equivalent to name: it publishes no retention rule, so its half is whatever is still there.
 export const RetentionInfo = ({
   retention,
   workspaceRoot,
-  oldestActiveDays
+  oldestClaudeDays
 }: RetentionInfoProps) => {
   // A day of slack, since both ends are rounded to a calendar day.
   const reachesBack: boolean =
-    oldestActiveDays !== undefined && oldestActiveDays > retention.days + 1;
+    oldestClaudeDays !== undefined && oldestClaudeDays > retention.days + 1;
 
   return (
     <HoverCard
@@ -58,8 +62,9 @@ export const RetentionInfo = ({
                 </span>
               </>
             ) : null}
-            . A sweep at startup deletes anything older, so this grid covers what can still be on
-            disk rather than a fixed year.
+            . A sweep at startup deletes anything older, so the grid reaches back at least this far
+            rather than a fixed year. Copilot documents no such rule, and its squares are simply
+            whatever is still on disk.
             <span className="mt-2 block">
               {reachesBack
                 ? 'It reaches further back here because a session you resumed kept its transcript past the sweep — resuming rewrites the file, which resets its age.'

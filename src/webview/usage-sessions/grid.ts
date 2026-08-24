@@ -3,7 +3,11 @@
 //
 // A square counts sessions. It's the Sessions tab, and the list under the grid is what carries what
 // any one of them spent.
+//
+// Both CLIs land on the same squares. A day is split by tool as well as totalled, since the total
+// is what the shade is painted from and the split is what the tooltip says.
 
+import { AGENT_TOOLS, AgentTool } from '../../model/types';
 import { DAY_MS, dayKey, dayStart, shiftDays } from '../../model/usage/history/day';
 import { SessionUsage } from '../../model/usage/types';
 
@@ -21,12 +25,22 @@ export const DAYS_PER_WEEK: number = 7;
 // How many shades a non-empty square can be. Zero is its own state and isn't one of these.
 export const GRID_LEVELS: number = 4;
 
+// How many sessions each CLI contributed. Every entry is present and zero rather than absent, so a
+// reader is one lookup from the answer and never has to know which tools were seen.
+export type ToolCounts = Record<AgentTool, number>;
+
+const noToolCounts = (): ToolCounts =>
+  Object.fromEntries(AGENT_TOOLS.map((tool) => [tool, 0])) as ToolCounts;
+
 export interface GridDay {
   // Local `YYYY-MM-DD`, matching what the scan bucketed on.
   day: string;
   at: number;
   // How many sessions were active that day, which is what the square is painted from.
   sessions: number;
+  // The same number split by CLI. The square is one shade whatever the mix — the split is the
+  // tooltip's, since a merged grid that can't say which tool a lit day was is missing the answer.
+  byTool: ToolCounts;
   // 0 for a day nothing happened, 1–4 otherwise.
   level: number;
   // Past the end of today. The last column runs to Saturday, so up to six of its squares are days
@@ -45,13 +59,19 @@ export interface GridWeek {
 export interface UsageGrid {
   weeks: GridWeek[];
   sessions: number;
+  // `sessions`, split by CLI. Over the squares that are drawn rather than over everything the scan
+  // found — it's what says whether a tool is on screen at all, and the retention (i) is shown on
+  // exactly that condition.
+  byTool: ToolCounts;
   // Days with anything on them.
   activeDays: number;
-  // How many days back the oldest lit square is. Undefined when nothing is lit.
+  // How many days back the oldest square holding a *Claude* session is. Undefined when none is.
   //
   // This is what says whether history outlived the retention sweep — the grid's own width can't,
-  // because the minimum span already makes it wider than a short `cleanupPeriodDays`.
-  oldestActiveDays?: number;
+  // because the minimum span already makes it wider than a short `cleanupPeriodDays`. Claude's own
+  // squares, since the sweep is Claude's: a Copilot day older than the window proves nothing about
+  // it, and counting one would have the card explain a resume that never happened.
+  oldestClaudeDays?: number;
 }
 
 const MONTH_LABEL: readonly string[] = [
@@ -75,11 +95,15 @@ interface BuildGridArgs {
   // How many days of transcripts Claude Code keeps. The span is built from this rather than fixed
   // at a year: history older than the sweep isn't missing, it's deleted, and a grid that drew ten
   // empty months to say so would read as a failed scan.
+  //
+  // Claude's number even though the grid holds both CLIs — Copilot publishes no retention rule, so
+  // there is no second floor to take. It is only a floor: the span widens to whatever the oldest
+  // day found is, which is what carries Copilot history reaching back further.
   retentionDays: number;
 }
 
 export const buildGrid = ({ sessions, now, retentionDays }: BuildGridArgs): UsageGrid => {
-  const totals: Map<string, number> = dayTotals(sessions);
+  const totals: Map<string, ToolCounts> = dayTotals(sessions);
 
   const today: number = dayStart(now);
   const span: number = gridWeeks({ totals, today, retentionDays });
@@ -107,12 +131,14 @@ export const buildGrid = ({ sessions, now, retentionDays }: BuildGridArgs): Usag
     for (let offset = 0; offset < DAYS_PER_WEEK; offset += 1) {
       const at: number = shiftDays({ from: start, days: offset });
       const key: string = dayKey(at);
-      const held: number = totals.get(key) ?? 0;
+      const byTool: ToolCounts = totals.get(key) ?? noToolCounts();
+      const held: number = countOf(byTool);
 
       days.push({
         day: key,
         at,
         sessions: held,
+        byTool,
         level: levelOf(held, thresholds),
         future: at > today
       });
@@ -137,17 +163,19 @@ export const buildGrid = ({ sessions, now, retentionDays }: BuildGridArgs): Usag
   const drawn: GridDay[] = weeks.flatMap((week) => week.days);
 
   const lit: GridDay[] = drawn.filter((day) => day.sessions > 0);
+  const claude: GridDay | undefined = drawn.find((day) => day.byTool.claude > 0);
 
   return {
     weeks,
     sessions: drawn.reduce((running, day) => running + day.sessions, 0),
+    byTool: sumTools(drawn.map((day) => day.byTool)),
     activeDays: lit.length,
-    ...(lit.length > 0 ? { oldestActiveDays: Math.round((today - lit[0].at) / DAY_MS) } : {})
+    ...(claude ? { oldestClaudeDays: Math.round((today - claude.at) / DAY_MS) } : {})
   };
 };
 
 interface GridWeeksArgs {
-  totals: Map<string, number>;
+  totals: Map<string, ToolCounts>;
   today: number;
   retentionDays: number;
 }
@@ -172,20 +200,32 @@ const gridWeeks = ({ totals, today, retentionDays }: GridWeeksArgs): number => {
 
 // Every day any session spent something, and how many sessions were involved. Only days inside the
 // grid's span end up drawn; the rest cost one map entry each and say what the totals under it mean.
-const dayTotals = (sessions: SessionUsage[]): Map<string, number> => {
-  const totals: Map<string, number> = new Map();
+const dayTotals = (sessions: SessionUsage[]): Map<string, ToolCounts> => {
+  const totals: Map<string, ToolCounts> = new Map();
 
   for (const session of sessions) {
     for (const day of session.days) {
-      totals.set(day.day, (totals.get(day.day) ?? 0) + 1);
+      const held: ToolCounts = totals.get(day.day) ?? noToolCounts();
+
+      held[session.tool] += 1;
+      totals.set(day.day, held);
     }
   }
 
   return totals;
 };
 
+const countOf = (counts: ToolCounts): number =>
+  AGENT_TOOLS.reduce((running, tool) => running + counts[tool], 0);
+
+const sumTools = (counts: ToolCounts[]): ToolCounts =>
+  counts.reduce((running, held) => {
+    for (const tool of AGENT_TOOLS) running[tool] += held[tool];
+    return running;
+  }, noToolCounts());
+
 interface LevelThresholdsArgs {
-  totals: Map<string, number>;
+  totals: Map<string, ToolCounts>;
   // The span, inclusive, as day keys. `YYYY-MM-DD` sorts as a string exactly as it sorts as a date,
   // which is the whole reason the scan buckets on that format.
   from: string;
@@ -202,7 +242,7 @@ interface LevelThresholdsArgs {
 const levelThresholds = ({ totals, from, to }: LevelThresholdsArgs): number[] => {
   const values: number[] = [...totals.entries()]
     .filter(([day]) => day >= from && day <= to)
-    .map(([, sessions]) => sessions)
+    .map(([, counts]) => countOf(counts))
     .filter((value) => value > 0);
 
   const distinct: number[] = [...new Set(values)].sort((left, right) => left - right);

@@ -1,11 +1,8 @@
-import { useMemo, useState } from 'react';
-import { AgentTool } from '../../model/types';
+import { useMemo } from 'react';
 import { SessionUsage, UsageHistory } from '../../model/usage/types';
 import { Loading } from '../loading/Loading';
-import { UsageChoice } from '../UsageChoice';
 import { useNow } from '../useNow';
 import { ContributionGrid } from './ContributionGrid';
-import { GRID_TOOL_OPTIONS } from './grid-options';
 import { UsageGrid, buildGrid } from './grid';
 import { RetentionInfo } from './RetentionInfo';
 import { SessionList } from './SessionList';
@@ -20,49 +17,35 @@ const HISTORY_EXPECTED_MS: number = 1400;
 // is usually hours old — so this is the slow end of the clock the agent rows run on.
 const AGE_TICK_MS: number = 30_000;
 
-// Copilot writes no retention rule anywhere, and documents none — so its grid is drawn over whatever
-// was found rather than over a window anyone can name.
-const COPILOT_RETENTION_DAYS: number = 0;
-
 interface SessionsTabProps {
   // Undefined until the first pass lands. The tab is what starts it: nothing off this surface shows
   // the history, so nothing else pays for it.
   history: UsageHistory | undefined;
   workspaceRoot: string | undefined;
   onOpenSession: (session: SessionUsage) => void;
-  // Which CLI the grid opens on. The panel never passes it; a story does.
-  initialTool?: AgentTool;
 }
 
 // Every session on record, twice: as a run of days, and as a list you can search. Both are the same
 // `history.sessions` — one rolled up by day, one sorted by activity — and both are already narrowed
 // to the scope, which the host applied on the way out of the store.
 //
-// The grid is one CLI at a time and the list is both. That split is the retention rule: Claude Code
-// deletes transcripts on a schedule you can read out of `cleanupPeriodDays`, and Copilot publishes
-// no equivalent, so one x-axis can't carry an honest caption for both. A list has no axis — a row
-// says which tool it is and that's the whole question.
-export const SessionsTab = ({
-  history,
-  workspaceRoot,
-  onOpenSession,
-  initialTool = 'claude'
-}: SessionsTabProps) => {
-  // Component state, not a setting. Which CLI is on screen is a glance, the same way the window is
-  // on the header above — and it's the only control the tab has, since the scope and the metric are
-  // settings the `...` writes.
-  const [tool, setTool] = useState<AgentTool>(initialTool);
+// Both CLIs, on one run of squares. The question the tab answers is when you were working, and that
+// is one question however many tools you were working with — so a square is the total and its
+// tooltip is where it says which. The x-axis is the only thing that can't be true of both halves,
+// since Claude Code deletes transcripts on a schedule and Copilot publishes none: hence the (i),
+// which explains a window that is Claude's and appears only while Claude's squares are on the wall.
+export const SessionsTab = ({ history, workspaceRoot, onOpenSession }: SessionsTabProps) => {
   const now: number = useNow(AGE_TICK_MS);
 
   const grid: UsageGrid | undefined = useMemo(() => {
     if (!history) return undefined;
 
     return buildGrid({
-      sessions: history.sessions.filter((session) => session.tool === tool),
+      sessions: history.sessions,
       now: history.scannedAt,
-      retentionDays: tool === 'claude' ? history.retention.days : COPILOT_RETENTION_DAYS
+      retentionDays: history.retention.days
     });
-  }, [history, tool]);
+  }, [history]);
 
   if (!history || !grid) {
     return (
@@ -74,22 +57,21 @@ export const SessionsTab = ({
 
   return (
     <div className="flex flex-col gap-4 px-4 py-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        {/* The (i)'s card is a descendant of this heading, and every one of these rules inherits.
-            `HoverCard` resets its own typography for that reason, so the heading can carry them. */}
-        <h2 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {spanLabel(grid.weeks.length)}
-          {/* Only Claude's window has a rule behind it to explain. */}
-          {tool === 'claude' && (
-            <RetentionInfo
-              retention={history.retention}
-              workspaceRoot={workspaceRoot}
-              oldestActiveDays={grid.oldestActiveDays}
-            />
-          )}
-        </h2>
-        <UsageChoice label="CLI" options={GRID_TOOL_OPTIONS} value={tool} onChange={setTool} />
-      </div>
+      {/* The (i)'s card is a descendant of this heading, and every one of these rules inherits.
+          `HoverCard` resets its own typography for that reason, so the heading can carry them. */}
+      <h2 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {spanLabel(grid.weeks.length)}
+        {/* Only Claude's window has a rule behind it to explain, and only while its squares are
+            what you're looking at — on a machine that has never run it there is no window to
+            justify, and a card about `cleanupPeriodDays` would be about nothing on screen. */}
+        {grid.byTool.claude > 0 && (
+          <RetentionInfo
+            retention={history.retention}
+            workspaceRoot={workspaceRoot}
+            oldestClaudeDays={grid.oldestClaudeDays}
+          />
+        )}
+      </h2>
 
       <ContributionGrid grid={grid} />
 
