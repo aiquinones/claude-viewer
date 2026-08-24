@@ -2,7 +2,7 @@ import { Check, ChevronLeft, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SessionUsage } from '../../model/usage/types';
-import { AgentToolTag } from '../AgentToolTag';
+import { AgentToolIcon } from '../agent-icon/AgentToolIcon';
 import { displayFolder } from '../display-path';
 import { PanelActions } from '../PanelActions';
 import { sessionName } from '../usage-sessions/session-filter';
@@ -50,7 +50,7 @@ export const SessionBreadcrumb = ({
           ›
         </span>
         <span className="truncate font-semibold">{sessionName(session)}</span>
-        <AgentToolTag tool={session.tool} />
+        <AgentToolIcon tool={session.tool} size="md" />
       </span>
       <span className="flex min-w-0 items-center gap-2">
         <SessionId sessionId={session.sessionId} onCopy={onCopyId} />

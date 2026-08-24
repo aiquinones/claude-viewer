@@ -1,6 +1,6 @@
 import { GitBranch } from 'lucide-react';
 import { SessionUsage } from '../../model/usage/types';
-import { AgentToolTag } from '../AgentToolTag';
+import { AgentToolIcon } from '../agent-icon/AgentToolIcon';
 import { formatAge } from '../format-age';
 import { sessionName } from './session-filter';
 
@@ -43,7 +43,7 @@ export const SessionRow = ({ session, now, onOpen }: SessionRowProps) => (
           tag sets its own layout classes, and two of those competing is decided by the order
           Tailwind emitted them in. */}
       <span className="ml-auto flex shrink-0 items-center gap-2">
-        <AgentToolTag tool={session.tool} />
+        <AgentToolIcon tool={session.tool} />
         {/* Last activity, not duration. A session's age is how long since it did anything, which
             is what makes the list sorted by it read top-down as most recent first. */}
         <span>{formatAge(Math.max(now - session.lastAt, 0))} ago</span>
