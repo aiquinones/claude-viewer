@@ -2,6 +2,108 @@
 
 Notable changes to Claude Viewer, newest first.
 
+## 0.22.0 - 2026-08-24
+
+### Added
+
+- **Clicking a session on the usage surface opens it taken apart.** A page inside the surface rather
+  than a surface of its own, so going back finds the Sessions tab with its filter text and scroll
+  position intact. The breadcrumb says `Usage › <session>`, with the session id and a copy button
+  under it. Three sections: what the session cost, over its own turns instead of a window's; the
+  turns themselves as an area chart, one point per request; and the skills it loaded, most-loaded
+  first with `Σ size × loads` in the heading. Skill loads are read off the log rather than inferred —
+  both CLIs write the invocation down — and the unit is a load, not a call, since Copilot injecting a
+  skill you named and then loading it again for the model really is two bodies in the context.
+- **A second chart beside it: how full the context got, request by request.** The top of it is
+  whichever of the peak and the warning line is higher rather than the window, because a 50k session
+  drawn against a 1M window is a flat line along the floor. The thresholds are dashed rules with the
+  number at the right end, read through the same setting the agent rows' context bars use, so the two
+  surfaces can't disagree about where a line falls. Each skill load is a dot on the curve. Context
+  does not only grow — the biggest session here dips twice — so the line is drawn rather than
+  smoothed.
+- **The panel has its own palettes, and a theme picker in every view's `...`.** Four modes: a dark
+  palette, a light one, `auto`, and `Editor's color`. `auto` is the new default and the one that
+  didn't exist before — it reads the editor's light/dark polarity and nothing else, which is the part
+  of inheriting a theme that's always right. `Editor's color` is the old behaviour, every colour read
+  from the active theme. The palettes are a deep blue-slate and its mirror, with no alpha anywhere,
+  eight ground steps in a deliberately narrow band so stacking cards in panes in pinned headers
+  doesn't turn every nesting level into a visible box.
+- **One usage grid for both CLIs.** When you were working is one question however many tools you were
+  working with, so a day is one square painted from the total and the hover says which — `3 sessions
+  (2 Claude, 1 ghcp)`, on a single-tool day too, since on a lone square which CLI it was is the whole
+  question a merged grid raises. The retention note stays Claude's: it explains a sweep Copilot isn't
+  subject to, so it only renders when there are Claude days in the span.
+- **Copilot rows have a context bar.** Its used figure is on disk after all, in
+  `~/.copilot/session-store.db` rather than in the event log — the event carrying it is marked
+  ephemeral and never gets written to the log. One database for the machine, so one query for every
+  row. The card gives no sign which file the number came from, and the context-window table now knows
+  the GPT ids Copilot runs.
+- **A right-click on an agent row opens what you do to the process** — open the session log, copy the
+  session id, end the pid. The kill asks first by replacing the menu's own contents with the
+  question, so there's nothing behind it to mis-click and Cancel is nearest where the pointer already
+  was. It sends SIGTERM rather than SIGKILL, so the CLI cleans up its session file and its lock on
+  the way out.
+- **A red `!` when more than one live process holds one session.** Both loaders already found those
+  and dropped them, which is right — every field on a row comes off the shared transcript, so two
+  processes would draw the same row twice. What was missing is that it happened at all, because
+  killing the pid the row names leaves the others running. The tooltip says which pid this row is.
+- **A session row says which branch it was on**, under the title. Claude stamps the branch on every
+  assistant line and Copilot keeps it in the session's `workspace.yaml`, so nothing new is read for
+  it. The latest turn wins rather than the most common one: sessions branch, enter a worktree and
+  come back, and the label means where the session left off — which is what a list sorted by last
+  activity is already about.
+- **A row says which CLI it is with the CLI's own mark**, in the session list, the Active Agents
+  rows, the grid's hover and the session header. A row is short of width and the tool's name is the
+  least interesting thing on it. Both marks came off this machine rather than being redrawn.
+
+### Changed
+
+- **The usage surface has one header, and one menu behind it.** The headline used to be the Skills
+  tab's first section, so the Sessions tab had no total and the scope toggle existed twice. It sits
+  above the tabs now — both tabs are readings of the same sessions — with a `...` in the corner
+  holding the metric, the scope and the Claude cost basis, each saying which layer set it. The one
+  control left on the surface is the window, under the figure, because everything in the menu says
+  *which number* you're reading where the window says what the number is a total *of*.
+- **An agent row's warnings are icons beside the age now**, with the message in the hover. Printing
+  "no event log on disk yet" in full cost three lines of red under a row you opened to read its
+  title.
+- **A row prints its folder only when that isn't the workspace root** — an agent in the open folder
+  was printing that folder's name back at you. The condition is the path rather than the group, so a
+  worktree under the same root still prints, which is the whole question when two agents share a
+  repo. Session rows on the usage surface do the same.
+- **The two hover buttons came off the agent row.** The log button had a home in the right-click menu
+  already; the row colour lost its entry point and nothing else — a row that carries a colour still
+  paints with it. An icon that appears on hover has to be hovered again to say what it is, which is a
+  lot of chrome for a list you leave open.
+- **Robots mode on the agents surface is hidden rather than dimmed**, and the toggle hides with it,
+  since a control with one mode left is a decoration. That's not what a blocked mode does: a blocked
+  mode is one you can't pick *here*, so it stays and dims and says why.
+
+### Fixed
+
+- **A Copilot row read Idle through most of a working session.** The backward walk over the event log
+  matched the events that mean "done" and not the ones that mean "still going", so from a session's
+  second turn on it ran past the live turn and landed on the previous turn's end. Replayed line by
+  line over a real 133-event session, 48 of those 133 prefixes read Idle while the model was writing
+  or running tools. An escaped turn was the second hole — it's never closed, so a cancelled query
+  read Working indefinitely.
+- **The context card no longer opens as you scroll past a row.** The bar spans the row, so you cross
+  it on the way somewhere else; it waits 400ms now, and only on the way in.
+- **The usage cost card opens downward where there's no room above it.** It was pinned upward, which
+  is right at the bottom of the usage surface and wrong on the session page, where the same card
+  mounts near the top of a scrolled pane and lost its top half into the breadcrumb. It measures on
+  arrival now, and up stays the preference so nothing moves where there was already room.
+- **The grid's hover bubble is no longer clipped by the grid.** It lived inside the box that scrolls
+  sideways, so the top row's bubble lost its upper half and the leftmost one went behind the pinned
+  weekday column. It hangs off a frame around the box instead, and its placement is measured when the
+  pointer arrives rather than derived from which column the square is in — the content scrolls under
+  the frame, so a column number no longer says where anything is on screen.
+- **Agent rows sort by when the session started**, not by which agent last wrote. Activity order
+  reshuffled the list on every poll and moved the row you were reading out from under you.
+- **A hover card sets its own type rather than inheriting its trigger's**, so a card opened from a
+  monospaced row isn't monospaced. The `Totals for` window toggle reads as the end of that sentence
+  now, and the (i) beside a heading centres on the cap-height instead of the x-height.
+
 ## 0.20.0 - 2026-08-21
 
 ### Added
