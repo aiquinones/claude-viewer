@@ -33,8 +33,11 @@ export const UsageInfo = ({ breakdown }: UsageInfoProps) => {
   // than no (i) at all.
   if (breakdown.models.length === 0) return null;
 
+  // `align-middle` centres an inline box on the *x-height*, which leaves a 14px icon about a pixel
+  // below where the eye reads the line's centre. Its bottom sits 0.23em under the baseline instead,
+  // putting a 1.17em-tall icon on the cap-height centre — a length, so it holds if the text resizes.
   return (
-    <span className="group relative inline-flex align-middle">
+    <span className="group relative inline-flex align-[-0.23em]">
       {/* Not a button — nothing happens on click. Tabbing here opens it via
           group-has-focus-visible; a mouse click on it doesn't, which is the point. */}
       <span
