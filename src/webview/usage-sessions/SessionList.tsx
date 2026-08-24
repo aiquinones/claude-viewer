@@ -7,7 +7,6 @@ import { filterSessions } from './session-filter';
 
 interface SessionListProps {
   sessions: SessionUsage[];
-  workspaceRoot: string | undefined;
   now: number;
   onOpen: (session: SessionUsage) => void;
 }
@@ -15,7 +14,7 @@ interface SessionListProps {
 // Every session on record, filtered by name. The box has a height and the rows scroll inside it:
 // this list runs to dozens and the grid above it is what the tab is for — a list that pushed the
 // grid off the top would invert that.
-export const SessionList = ({ sessions, workspaceRoot, now, onOpen }: SessionListProps) => {
+export const SessionList = ({ sessions, now, onOpen }: SessionListProps) => {
   const [query, setQuery] = useState<string>('');
 
   const shown: SessionUsage[] = useMemo(
@@ -59,7 +58,6 @@ export const SessionList = ({ sessions, workspaceRoot, now, onOpen }: SessionLis
             <SessionRow
               key={`${session.tool}:${session.sessionId}`}
               session={session}
-              workspaceRoot={workspaceRoot}
               now={now}
               onOpen={onOpen}
             />

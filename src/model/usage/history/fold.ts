@@ -12,6 +12,7 @@ export interface SessionFold {
   tool: AgentTool;
   title?: string;
   cwd: string;
+  branch?: string;
   firstAt: number;
   lastAt: number;
   outputTokens: number;
@@ -32,11 +33,16 @@ export const emptyFold = (turn: UsageTurn): SessionFold => ({
 
 // One turn into the fold it belongs to. `cwd` takes the latest rather than the first: entering a
 // worktree rewrites a session's cwd, and where it is now is what the scope filter should read.
+//
+// The branch moves with it, off the same turn. A session spans several — it branches, enters a
+// worktree, comes back to main — so the pair has to be read off one turn or the row names a branch
+// that was never checked out in the directory beside it.
 export const addTurn = (fold: SessionFold, turn: UsageTurn): void => {
   fold.firstAt = Math.min(fold.firstAt, turn.at);
   if (turn.at >= fold.lastAt) {
     fold.lastAt = turn.at;
     fold.cwd = turn.cwd;
+    fold.branch = turn.branch;
   }
   fold.outputTokens += turn.tokens.output;
   fold.turns += 1;
@@ -56,6 +62,7 @@ export const foldToSession = (fold: SessionFold): SessionUsage => ({
   tool: fold.tool,
   ...(fold.title ? { title: fold.title } : {}),
   cwd: fold.cwd,
+  ...(fold.branch ? { branch: fold.branch } : {}),
   firstAt: fold.firstAt,
   lastAt: fold.lastAt,
   outputTokens: fold.outputTokens,

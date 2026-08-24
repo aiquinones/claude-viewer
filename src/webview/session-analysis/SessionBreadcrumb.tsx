@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SessionUsage } from '../../model/usage/types';
 import { AgentToolTag } from '../AgentToolTag';
+import { displayFolder } from '../display-path';
 import { PanelActions } from '../PanelActions';
 import { sessionName } from '../usage-sessions/session-filter';
 import { Tooltip } from '../Tooltip';
@@ -21,9 +22,9 @@ interface SessionBreadcrumbProps {
   onRefresh: () => void;
 }
 
-// `Usage › <session name>`, and under it the id you would paste into `claude --resume`. The back
-// arrow goes up one level rather than home: this is a page inside the usage surface, which is what
-// the breadcrumb is saying.
+// `Usage › <session name>`, and under it the id you would paste into `claude --resume` and the
+// folder it ran in. The back arrow goes up one level rather than home: this is a page inside the
+// usage surface, which is what the breadcrumb is saying.
 export const SessionBreadcrumb = ({
   session,
   onBack,
@@ -51,7 +52,19 @@ export const SessionBreadcrumb = ({
         <span className="truncate font-semibold">{sessionName(session)}</span>
         <AgentToolTag tool={session.tool} />
       </span>
-      <SessionId sessionId={session.sessionId} onCopy={onCopyId} />
+      <span className="flex min-w-0 items-center gap-2">
+        <SessionId sessionId={session.sessionId} onCopy={onCopyId} />
+        {/* Where it ran. This came off the rows in the list, which spans every folder on the
+            machine and repeated a path down the whole column — here there is one session, so the
+            question is worth answering. The absolute path rather than a workspace-relative one:
+            on this page, which worktree is the thing you came to check. */}
+        <span
+          title={session.cwd}
+          className="mono min-w-0 truncate text-[11px] text-muted-foreground"
+        >
+          {displayFolder({ path: session.cwd, workspaceRoot: undefined })}
+        </span>
+      </span>
     </div>
 
     <PanelActions onSearch={onSearch} onRefresh={onRefresh} />

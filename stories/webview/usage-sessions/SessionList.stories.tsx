@@ -7,7 +7,6 @@ const meta: Meta<typeof SessionList> = {
   component: SessionList,
   args: {
     sessions: busyYear.sessions,
-    workspaceRoot: '/Users/dev/repos/example-app',
     now: Date.now(),
     onOpen: () => undefined
   },
@@ -35,8 +34,8 @@ export const Few: Story = { args: { sessions: quietHistory.sessions } };
 // most likely to be why.
 export const Empty: Story = { args: { sessions: emptyHistory.sessions } };
 
-// Names, folders and figures all competing for one row. The name truncates first — it's the thing
-// the search box already narrows.
+// A name and a branch competing for one row. The name truncates first — it's the thing the search
+// box already narrows, and the branch is what tells two sessions with the same name apart.
 export const NarrowPanel: Story = {
   globals: { viewport: { value: 'narrowPanel' } }
 };
