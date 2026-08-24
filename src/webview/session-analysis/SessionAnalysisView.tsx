@@ -10,17 +10,17 @@ import {
 } from '../../model/usage/types';
 import { Loading } from '../loading/Loading';
 import { useSettings } from '../settings/SettingsContext';
-import { formatAiu, formatUsageTokens, formatUsd, METRIC_LABEL } from '../usage-format';
+import { METRIC_LABEL } from '../usage-format';
 import { UsageCostNote } from '../UsageCostNote';
 import { UsageMenu, UsageMenuSection } from '../usage-menu/UsageMenu';
-import { UsageSlices } from '../UsageSlices';
 import { plural } from '../format-size';
+import { ContextSection } from './ContextSection';
+import { MetricSection } from './MetricSection';
 import { SessionBreadcrumb } from './SessionBreadcrumb';
 import { estimatorReason, sessionEstimator } from './session-estimator';
+import { formatValue } from './session-format';
 import { SkillLoadList } from './SkillLoadList';
 import { toSkillLoads, SkillLoad } from './skill-loads';
-import { toLoadMarks, toTurnBars, LoadMark, TurnBar } from './turn-bars';
-import { TurnsChart } from './TurnsChart';
 import { useSessionDetail } from './useSessionDetail';
 
 // What reading one session costs. A single transcript rather than every one on the machine — 76MB
@@ -42,7 +42,7 @@ interface SessionAnalysisViewProps {
   onBack: () => void;
 }
 
-// One session, taken apart: what it cost split by skill, every request it made, and which skills it
+// One session, taken apart: what each request cost, how full the context got, and which skills it
 // kept loading. A page inside the usage surface rather than a surface of its own — which is what the
 // breadcrumb says, and it's why the Sessions tab still has its filter text when you go back.
 export const SessionAnalysisView = ({
@@ -114,46 +114,16 @@ const Body = ({ detail, session, skills, onOpenSkill }: BodyProps) => {
     [detail, skills, estimator]
   );
 
-  const bars: TurnBar[] = useMemo(
-    () => toTurnBars({ turns: detail.turns, metric: metric.value, costBasis: costBasis.value }),
-    [detail, metric.value, costBasis.value]
-  );
-
-  const marks: LoadMark[] = useMemo(
-    () => toLoadMarks({ bars, invocations: detail.invocations }),
-    [bars, detail]
-  );
-
   return (
     <div className="min-h-0 flex-1 overflow-y-auto overflow-x-clip">
       <div className="flex flex-col gap-5 px-4 py-4">
         <Headline detail={detail} summary={summary} metric={metric.value} />
 
-        <UsageSlices
-          summary={summary}
-          metric={metric.value}
-          empty="This session ran no requests under a skill."
-          skills={skills}
-          onOpenSkill={onOpenSkill}
-        />
-
         {metric.value === 'cost' && detail.tool === 'claude' && <UsageCostNote summary={summary} />}
 
-        <section className="flex flex-col gap-2">
-          <h2 className="flex items-baseline gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Turns
-            <span className="font-normal normal-case tracking-normal">
-              {plural(bars.length, 'request')}
-              {marks.length > 0 && ` · ticks are skill loads`}
-            </span>
-          </h2>
-          <TurnsChart
-            bars={bars}
-            marks={marks}
-            metric={metric.value}
-            format={(value) => formatValue({ value, metric: metric.value, tool: detail.tool })}
-          />
-        </section>
+        <MetricSection detail={detail} metric={metric.value} costBasis={costBasis.value} />
+
+        <ContextSection detail={detail} />
 
         <SkillLoadList
           loads={loads}
@@ -203,16 +173,3 @@ const MENU_SECTIONS: Record<AgentTool, readonly UsageMenuSection[]> = {
 
 const costOf = (summary: UsageSummaryData, detail: SessionDetail): number =>
   detail.tool === 'claude' ? summary.total.usd : summary.total.nanoAiu;
-
-interface FormatValueArgs {
-  value: number;
-  metric: UsageMetric;
-  tool: AgentTool;
-}
-
-// One session ran under one CLI, so cost is one unit here rather than the two the usage surface has
-// to print side by side. Which one is the CLI's, not the reader's.
-const formatValue = ({ value, metric, tool }: FormatValueArgs): string => {
-  if (metric === 'output-tokens') return formatUsageTokens(value);
-  return tool === 'claude' ? formatUsd(value) : formatAiu(value);
-};

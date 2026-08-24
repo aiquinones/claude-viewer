@@ -29,6 +29,7 @@ export const requestSessionDetail = async ({
       tool,
       turns: [],
       invocations: [],
+      contexts: [],
       error: 'This session is no longer on record. Refresh and try again.'
     };
   }

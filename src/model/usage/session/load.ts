@@ -8,12 +8,14 @@ import { join } from 'node:path';
 import { copilotEventsPath, copilotSessionStateDir } from '../../../config/paths';
 import { readTextFile } from '../../../config/read';
 import { ConfigError, Result } from '../../../config/result';
+import { readCopilotContextSeries } from '../../sessions/copilot/usage-db';
 import { AgentTool } from '../../types';
 import { parseClaudeTurns } from '../claude/scan';
 import { parseClaudeInvocations } from '../claude/invocations';
 import { parseCopilotInvocations } from '../copilot/invocations';
 import { scanCopilotUsage } from '../copilot/scan';
-import { SessionDetail, SkillInvocation, UsageTurn } from '../types';
+import { ContextPoint, SessionDetail, SkillInvocation, UsageTurn } from '../types';
+import { contextPointsFromTurns } from './contexts';
 
 interface LoadSessionDetailArgs {
   sessionId: string;
@@ -67,7 +69,13 @@ const loadClaudeSession = async ({
     return empty({ sessionId, tool: 'claude', error: "This session's transcript couldn't be read." });
   }
 
-  return finish({ sessionId, tool: 'claude', turns, invocations });
+  return finish({
+    sessionId,
+    tool: 'claude',
+    turns,
+    invocations,
+    contexts: contextPointsFromTurns(turns)
+  });
 };
 
 // One directory, so there is nothing to resolve. The turns come back through the ordinary scan —
@@ -83,11 +91,16 @@ const loadCopilotSession = async (sessionId: string): Promise<SessionDetail> => 
 
   const all: UsageTurn[] = await scanCopilotUsage({ since: 0 });
 
+  // Not from the turns: the event log carries output tokens and nothing else, so the prompt size is
+  // only ever in the database the CLI files its ephemeral usage events into.
+  const contexts: ContextPoint[] = await readCopilotContextSeries(sessionId);
+
   return finish({
     sessionId,
     tool: 'copilot',
     turns: all.filter((turn) => turn.sessionId === sessionId),
-    invocations: parseCopilotInvocations(events.value)
+    invocations: parseCopilotInvocations(events.value),
+    contexts
   });
 };
 
@@ -96,16 +109,18 @@ interface FinishArgs {
   tool: AgentTool;
   turns: UsageTurn[];
   invocations: SkillInvocation[];
+  contexts: ContextPoint[];
 }
 
 // Turns sorted, invocations left in the order they were read. A resumed session writes clocks that
 // run backwards against what's already in the file, so the chart sorts and the loads keep file
 // order — which is the order they entered the context.
-const finish = ({ sessionId, tool, turns, invocations }: FinishArgs): SessionDetail => ({
+const finish = ({ sessionId, tool, turns, invocations, contexts }: FinishArgs): SessionDetail => ({
   sessionId,
   tool,
   turns: [...turns].sort((left, right) => left.at - right.at),
-  invocations
+  invocations,
+  contexts
 });
 
 interface EmptyArgs {
@@ -119,5 +134,6 @@ const empty = ({ sessionId, tool, error }: EmptyArgs): SessionDetail => ({
   tool,
   turns: [],
   invocations: [],
+  contexts: [],
   error
 });
