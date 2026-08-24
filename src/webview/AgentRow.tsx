@@ -9,7 +9,7 @@ import { useAgentMenu } from './agent-menu/useAgentMenu';
 import { AgentRowProps } from './agent-row-props';
 import { RowColor, useRowColor } from './agent-color/useRowColor';
 import { AgentRowFooter } from './AgentRowFooter';
-import { AgentToolTag } from './AgentToolTag';
+import { AgentToolIcon } from './agent-icon/AgentToolIcon';
 import { activityOf } from './agent-activity';
 import { agentLabel } from './agent-row-text';
 import { displayFolder } from './display-path';
@@ -76,7 +76,7 @@ export const AgentRow = ({
         </span>
 
         <span className="flex w-full min-w-0 items-center gap-2 pl-3.5">
-          <AgentToolTag tool={agent.tool} />
+          <AgentToolIcon tool={agent.tool} />
           {/* Only where it says something the panel hasn't. An agent sitting in the open folder
               would print that folder's name back at you — the header already did. A worktree is
               under the same root and still prints, since which worktree is the whole question when
