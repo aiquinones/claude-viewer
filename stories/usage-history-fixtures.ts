@@ -128,6 +128,45 @@ export const quietHistory: UsageHistory = history([
   })
 ]);
 
+// A machine that has only ever run Copilot. Nothing on the wall came out of `~/.claude/projects`,
+// so the heading drops the (i): there is no `cleanupPeriodDays` sweep to explain when no square is
+// subject to one.
+export const copilotOnlyHistory: UsageHistory = history([
+  session({ index: 4, daysAgo: 0, spanDays: 1, turnsPerDay: 9, outputPerTurn: 1_100, tool: 'copilot' }),
+  session({ index: 5, daysAgo: 1, spanDays: 2, turnsPerDay: 4, outputPerTurn: 700, tool: 'copilot' }),
+  session({
+    index: 6,
+    daysAgo: 5,
+    spanDays: 1,
+    turnsPerDay: 14,
+    outputPerTurn: 2_100,
+    tool: 'copilot'
+  })
+]);
+
+// A day both CLIs worked, which is the case the merged grid exists for: one square, and a tooltip
+// that splits it.
+export const mixedDayHistory: UsageHistory = history([
+  session({ index: 0, daysAgo: 2, spanDays: 1, turnsPerDay: 8, outputPerTurn: 1_400 }),
+  session({ index: 1, daysAgo: 2, spanDays: 1, turnsPerDay: 5, outputPerTurn: 900 }),
+  session({
+    index: 2,
+    daysAgo: 2,
+    spanDays: 1,
+    turnsPerDay: 6,
+    outputPerTurn: 1_200,
+    tool: 'copilot'
+  }),
+  session({
+    index: 3,
+    daysAgo: 0,
+    spanDays: 1,
+    turnsPerDay: 11,
+    outputPerTurn: 1_800,
+    tool: 'copilot'
+  })
+]);
+
 // The scope filter with nothing under it: this workspace has never been worked in.
 export const emptyHistory: UsageHistory = history([]);
 

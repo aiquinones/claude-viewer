@@ -2,7 +2,7 @@ import { CSSProperties, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { findSkillByName } from '../../model/shadowing';
-import { AgentTool, SkillEntry } from '../../model/types';
+import { SkillEntry } from '../../model/types';
 import { PRICED_AT } from '../../model/usage/pricing';
 import {
   SessionUsage,
@@ -49,10 +49,8 @@ interface UsageViewProps {
   onOpenSession: (session: SessionUsage) => void;
   // Which window the view opens on. The panel never passes it; a story does.
   initialWindow?: UsageWindow;
-  // Which tab it opens on, and which CLI the Sessions tab's grid starts on. Same deal — the panel
-  // never passes either.
+  // Which tab it opens on. Same deal — the panel never passes it.
   initialTab?: UsageTab;
-  initialTool?: AgentTool;
   onSearch: () => void;
   onRefresh: () => void;
   onBack: () => void;
@@ -73,7 +71,6 @@ export const UsageView = ({
   onOpenSession,
   initialWindow = 'day',
   initialTab = 'sessions',
-  initialTool,
   onSearch,
   onRefresh,
   onBack
@@ -121,7 +118,6 @@ export const UsageView = ({
             history={history}
             workspaceRoot={workspaceRoot}
             onOpenSession={onOpenSession}
-            initialTool={initialTool}
           />
         </div>
       ) : !breakdown ? (

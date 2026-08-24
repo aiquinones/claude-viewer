@@ -129,6 +129,13 @@ export const AGENT_TOOL_LABEL: Record<AgentTool, string> = {
   copilot: 'Copilot CLI'
 };
 
+// The same names where the long ones don't fit — a grid square's tooltip names both CLIs at once,
+// and "Claude Code" twice in one bubble is most of its width.
+export const AGENT_TOOL_SHORT_LABEL: Record<AgentTool, string> = {
+  claude: 'Claude',
+  copilot: 'ghcp'
+};
+
 // The colours a row can be given by hand, so two agents in one repo can be told apart at a glance.
 // Six, because that's how many colours the editor's chart palette names — the CSS values live in
 // webview/agent-color/, since nothing on the host side has an opinion about them.
