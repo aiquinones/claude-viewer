@@ -1,7 +1,7 @@
 // What a session cost, split by the skill that was running. Both CLIs record per-request output
 // tokens; only Claude stamps every turn with its skill, which is what `source` is for.
 
-import { AgentTool } from '../types';
+import { AgentContext, AgentTool } from '../types';
 import { Retention } from '../retention/types';
 import { UsdParts } from './pricing';
 
@@ -236,6 +236,13 @@ export interface SkillInvocation {
   chars?: number;
 }
 
+// How full the context was on one request, and when. An `AgentContext` plus the clock, so a point
+// off a chart reads through the same `readContext` the agent row's bar does — the window, the two
+// thresholds and the colour can't drift between the two surfaces.
+export interface ContextPoint extends AgentContext {
+  at: number;
+}
+
 // One session read whole, on demand. Unlike everything else on this surface it is neither windowed
 // nor folded: the session is the window, and the turns are the thing being drawn.
 export interface SessionDetail {
@@ -247,6 +254,11 @@ export interface SessionDetail {
   turns: UsageTurn[];
   // In file order, which is the order they were loaded in.
   invocations: SkillInvocation[];
+  // How full the context was at each request, oldest first. Read rather than derived on both sides,
+  // and from different files — Claude's three input counters added up off the transcript, Copilot's
+  // single `input_tokens` off the usage database, which already includes both cache figures. Empty
+  // when neither had anything to give.
+  contexts: ContextPoint[];
   // Set when the log couldn't be read at all. The view says so rather than drawing an empty session.
   error?: string;
 }

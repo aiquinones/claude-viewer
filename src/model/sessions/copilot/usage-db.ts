@@ -10,6 +10,7 @@
 
 import { copilotSessionStorePath } from '../../../config/paths';
 import { AgentContext } from '../../types';
+import { ContextPoint } from '../../usage/types';
 
 // The last usage row for each of the sessions asked about. `input_tokens` is the whole prompt —
 // `token_details_json` on the same row breaks it into input + cache_read + cache_write and those sum
@@ -29,6 +30,44 @@ const lastUsageSql = (count: number): string => `
       GROUP BY session_id
    )
 `;
+
+// Every usage row for one session, oldest first. `created_at` is ISO with milliseconds, which is
+// what places a point on a chart's clock; `id` is what orders it, for the same reason the query
+// above reads `MAX(id)` — rows within a turn share a timestamp.
+//
+// Sub-agent rows are excluded. A sub-agent is a conversation of its own, so its prompt size measures
+// something else, and a row of it dropped into this series would draw a dip the session never had.
+// No build seen here writes the column, which makes this a no-op today and correct if that changes.
+const seriesSql: string = `
+  SELECT model, input_tokens, created_at
+    FROM assistant_usage_events
+   WHERE session_id = ?
+     AND parent_tool_call_id IS NULL
+   ORDER BY id
+`;
+
+// How full one session's context was at each request it made. The whole prompt per row —
+// `input_tokens` here already includes both cache figures, unlike Claude's three separate counters.
+//
+// Empty for a session with no usable row, and for a machine with no database or no `node:sqlite`.
+// The chart then has nothing to draw, which is the same answer a row with no bar gives.
+export const readCopilotContextSeries = async (sessionId: string): Promise<ContextPoint[]> => {
+  const database: SqliteDatabase | undefined = await open();
+  if (!database) return [];
+
+  try {
+    const rows: unknown[] = database.prepare(seriesSql).all(sessionId);
+    return rows
+      .map(toPoint)
+      .filter((point): point is ContextPoint => point !== undefined)
+      .sort((left, right) => left.at - right.at);
+  } catch {
+    // A drifted schema reads as no series rather than as an error, the same as above.
+    return [];
+  } finally {
+    close(database);
+  }
+};
 
 // Session id → how full its context is. Absent for a session with no finished turn, which is the
 // same reason a fresh Claude session has no reading.
@@ -100,6 +139,20 @@ interface SessionReading {
   sessionId: string;
   context: AgentContext;
 }
+
+// One series row → a point, or nothing. Same boundary `toReading` guards, and the same rule about a
+// zero token count: a row that measured nothing is not a measurement of nothing.
+const toPoint = (row: unknown): ContextPoint | undefined => {
+  if (typeof row !== 'object' || row === null) return undefined;
+
+  const { model, input_tokens: tokens, created_at: at } = row as Record<string, unknown>;
+  if (typeof tokens !== 'number' || tokens <= 0 || typeof at !== 'string') return undefined;
+
+  const parsed: number = Date.parse(at);
+  if (Number.isNaN(parsed)) return undefined;
+
+  return { at: parsed, tokens, model: typeof model === 'string' ? model : '' };
+};
 
 // SQLite hands back whatever the columns hold, so every row is checked before it becomes a reading —
 // this is the boundary a Zod schema would guard on any surface that reads a file. The database's

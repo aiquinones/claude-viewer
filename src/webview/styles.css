@@ -469,6 +469,72 @@
   background: var(--surface-accent, var(--foreground));
 }
 
+/* ── The session charts ──────────────────────────────────────────────────────────
+   The curve, its gradient and the load dots all take the surface accent. They're classes rather
+   than Tailwind utilities for the same reason `.usage-fill` is: a `stroke-[var(--surface-accent)]`
+   carries no fallback, so it would paint nothing in a story that doesn't set the variable. */
+.chart-line {
+  stroke: var(--surface-accent, var(--foreground));
+}
+
+.chart-area-top {
+  stop-color: var(--surface-accent, var(--foreground));
+  stop-opacity: 0.32;
+}
+
+.chart-area-bottom {
+  stop-color: var(--surface-accent, var(--foreground));
+  stop-opacity: 0.02;
+}
+
+/* The point under the pointer. Ringed in the panel background so it reads as sitting on the line
+   rather than as part of it. */
+.chart-cursor {
+  fill: var(--surface-accent, var(--foreground));
+  stroke: var(--background);
+  stroke-width: 1.5px;
+}
+
+/* A skill load. The halo pulses so a dot on a flat stretch of curve still catches the eye; `scale`
+   rather than `transform`, so it can't collide with anything else animating the same element. */
+.chart-load-halo {
+  fill: var(--surface-accent, var(--foreground));
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chart-load-pulse 2.4s ease-in-out infinite;
+}
+
+.chart-load-core {
+  fill: var(--surface-accent, var(--foreground));
+  stroke: var(--background);
+  stroke-width: 1.25px;
+}
+
+.chart-load-note {
+  color: var(--surface-accent, var(--foreground));
+}
+
+@keyframes chart-load-pulse {
+  0%, 100% { opacity: 0.18; scale: 1; }
+  50%      { opacity: 0.42; scale: 1.6; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-load-halo {
+    animation: none;
+    opacity: 0.28;
+  }
+}
+
+/* Chart text that crosses the curve — the threshold labels. Painting the stroke first outlines each
+   glyph in the panel background, so the label stays legible over a filled area. */
+.chart-label {
+  paint-order: stroke;
+  stroke: var(--background);
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+}
+
 /* The loading bar. Takes the accent of whichever surface is waiting, where one is set. */
 .progress-fill,
 .progress-sweep {
