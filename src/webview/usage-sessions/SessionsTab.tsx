@@ -75,12 +75,7 @@ export const SessionsTab = ({ history, workspaceRoot, onOpenSession }: SessionsT
 
       <ContributionGrid grid={grid} />
 
-      <SessionList
-        sessions={history.sessions}
-        workspaceRoot={workspaceRoot}
-        now={now}
-        onOpen={onOpenSession}
-      />
+      <SessionList sessions={history.sessions} now={now} onOpen={onOpenSession} />
     </div>
   );
 };

@@ -1,13 +1,11 @@
 import { GitBranch } from 'lucide-react';
 import { SessionUsage } from '../../model/usage/types';
 import { AgentToolTag } from '../AgentToolTag';
-import { displayFolder } from '../display-path';
 import { formatAge } from '../format-age';
 import { sessionName } from './session-filter';
 
 interface SessionRowProps {
   session: SessionUsage;
-  workspaceRoot: string | undefined;
   now: number;
   onOpen: (session: SessionUsage) => void;
 }
@@ -19,7 +17,13 @@ interface SessionRowProps {
 // Not what it cost — the list is how you find the session whose page carries that, and a row
 // carrying an output-token figure invited the question of what the number was rather than answering
 // it.
-export const SessionRow = ({ session, workspaceRoot, now, onOpen }: SessionRowProps) => (
+//
+// And not where it ran. The agent rows drop the directory when it matches the open folder, which
+// works there because those agents are nearly all in it; here the list spans every folder on the
+// machine, so the same rule leaves a path on most rows — one long enough to crowd the branch, and
+// repeated down the column whether or not you were asking. The scope in the `...` is what decides
+// which folders are in the list at all.
+export const SessionRow = ({ session, now, onOpen }: SessionRowProps) => (
   <button
     type="button"
     onClick={() => onOpen(session)}
@@ -32,14 +36,6 @@ export const SessionRow = ({ session, workspaceRoot, now, onOpen }: SessionRowPr
         <span className="mono flex min-w-0 items-center gap-1">
           <GitBranch className="size-3 shrink-0" aria-hidden />
           <span className="truncate">{session.branch}</span>
-        </span>
-      )}
-      {/* Only where it says something the header hasn't — the same rule an agent row follows. A
-          session in the open folder would print that folder's name back at you; a worktree is under
-          the same root and still prints, since which worktree is the whole question. */}
-      {session.cwd !== workspaceRoot && (
-        <span className="mono min-w-0 truncate">
-          {displayFolder({ path: session.cwd, workspaceRoot })}
         </span>
       )}
       {/* Which CLI and how long ago, as one group at the right edge — the two things that are on
