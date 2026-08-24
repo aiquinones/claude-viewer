@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { AgentTool } from '@src/model/types';
 import { SessionUsage } from '@src/model/usage/types';
 import { GridDay, UsageGrid, buildGrid } from '@src/webview/usage-sessions/grid';
-import { gridDayValue } from '@src/webview/usage-sessions/grid-labels';
+import {
+  gridDayAria,
+  gridDayTools,
+  gridDayValue
+} from '@src/webview/usage-sessions/grid-labels';
 
 // Noon on a fixed date, so a day bucket can't land either side of midnight depending on when the
 // suite runs. The grid works in local calendar days, which is what the scan bucketed on.
@@ -114,22 +118,35 @@ describe('buildGrid, over both CLIs at once', () => {
   });
 });
 
-describe('gridDayValue', () => {
-  it('names the tools behind a mixed square', () => {
-    const grid: UsageGrid = gridOf([
-      session({ id: 'a', tool: 'claude', daysAgo: [2] }),
-      session({ id: 'b', tool: 'claude', daysAgo: [2] }),
-      session({ id: 'c', tool: 'copilot', daysAgo: [2] })
-    ]);
+// The card renders these three: the total as its own line, the tools as rows under it, and the aria
+// label as the one place the whole square has to be prose.
+describe('what a square says', () => {
+  const mixed: UsageGrid = gridOf([
+    session({ id: 'a', tool: 'claude', daysAgo: [2] }),
+    session({ id: 'b', tool: 'claude', daysAgo: [2] }),
+    session({ id: 'c', tool: 'copilot', daysAgo: [2] })
+  ]);
 
-    expect(gridDayValue(dayOf(grid, 2))).toBe('3 sessions (2 Claude, 1 ghcp)');
+  it('totals a square without naming a tool', () => {
+    expect(gridDayValue(dayOf(mixed, 2))).toBe('3 sessions');
   });
 
-  // A lone square still says which CLI it was — that's the question a merged grid raises.
-  it('names the one tool on a single-tool square', () => {
+  it('lists only the tools that were there', () => {
+    expect(gridDayTools(dayOf(mixed, 2))).toEqual(['claude', 'copilot']);
+    expect(gridDayTools(dayOf(mixed, 3))).toEqual([]);
+  });
+
+  it('spells the split out for a screen reader', () => {
+    expect(gridDayAria(dayOf(mixed, 2))).toContain('3 sessions on');
+    expect(gridDayAria(dayOf(mixed, 2))).toContain('2 Claude Code, 1 Copilot CLI');
+  });
+
+  // One tool is the total and the row saying the same number, so the sentence stays a sentence.
+  it('leaves a single-tool square unsplit', () => {
     const grid: UsageGrid = gridOf([session({ id: 'a', tool: 'copilot', daysAgo: [1] })]);
 
-    expect(gridDayValue(dayOf(grid, 1))).toBe('1 session (1 ghcp)');
+    expect(gridDayAria(dayOf(grid, 1))).not.toContain('—');
+    expect(gridDayTools(dayOf(grid, 1))).toEqual(['copilot']);
   });
 
   it('says nothing about tools on an empty day', () => {

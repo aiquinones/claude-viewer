@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { CSSProperties } from 'react';
+import { GridDay } from '@src/webview/usage-sessions/grid';
+import { GridDaySummary } from '@src/webview/usage-sessions/GridDaySummary';
 import { GridTooltip } from '@src/webview/usage-sessions/GridTooltip';
 import { surfaceAccent } from '@src/webview/surfaces';
 
@@ -11,16 +13,31 @@ const FRAME_PX: number = 420;
 // from the coordinates it's given.
 const CELL_PX: number = 10;
 
+interface DayArgs {
+  claude: number;
+  copilot: number;
+  at: number;
+}
+
+const day = ({ claude, copilot, at }: DayArgs): GridDay => ({
+  day: new Date(at).toISOString().slice(0, 10),
+  at,
+  sessions: claude + copilot,
+  byTool: { claude, copilot },
+  level: Math.min(claude + copilot, 4),
+  future: false
+});
+
 interface FrameProps {
   // Where the square is inside the frame, which is what the grid measures and hands over.
   x: number;
   y: number;
-  children: string;
+  day: GridDay;
 }
 
 // A frame with one square in it, so the story is about where the bubble lands rather than about the
 // data. The border is the frame's edge: the point of this component is what happens at and past it.
-const Frame = ({ x, y, children }: FrameProps) => (
+const Frame = ({ x, y, day: subject }: FrameProps) => (
   <div
     className="usage-grid p-10"
     style={{ '--surface-accent': surfaceAccent('usage') } as CSSProperties}
@@ -35,7 +52,7 @@ const Frame = ({ x, y, children }: FrameProps) => (
         aria-hidden
       />
       <GridTooltip x={x} y={y} frameWidth={FRAME_PX}>
-        {children}
+        <GridDaySummary day={subject} />
       </GridTooltip>
     </div>
   </div>
@@ -50,12 +67,11 @@ export default meta;
 
 type Story = StoryObj<typeof GridTooltip>;
 
-// Mid-frame: centred over the square it points at.
+// Mid-frame: centred over the square it points at. The card is several rows tall now, so this is
+// also what says the bubble grows upward from the square rather than downward over the grid.
 export const Centred: Story = {
   render: () => (
-    <Frame x={210} y={44}>
-      148.2k output tokens on Tuesday, June 2
-    </Frame>
+    <Frame x={210} y={44} day={day({ claude: 8, copilot: 4, at: new Date(2026, 11, 3, 12).getTime() })} />
   )
 };
 
@@ -64,18 +80,18 @@ export const Centred: Story = {
 // square is: a scrolled grid puts week 40 right here.
 export const AtTheLeftEdge: Story = {
   render: () => (
-    <Frame x={18} y={52}>
-      3 sessions on Friday, March 14
-    </Frame>
+    <Frame x={18} y={52} day={day({ claude: 3, copilot: 0, at: new Date(2026, 2, 14, 12).getTime() })} />
   )
 };
 
 // The other end, the one the grid opens on. Right-aligned for the same reason.
 export const AtTheRightEdge: Story = {
   render: () => (
-    <Frame x={FRAME_PX - 16} y={26}>
-      1.2M output tokens on Monday, August 18
-    </Frame>
+    <Frame
+      x={FRAME_PX - 16}
+      y={26}
+      day={day({ claude: 2, copilot: 11, at: new Date(2026, 7, 17, 12).getTime() })}
+    />
   )
 };
 
@@ -83,8 +99,6 @@ export const AtTheRightEdge: Story = {
 // off, which is the whole reason it's rendered out here instead of inside the scrolling box.
 export const PeekingAboveTheFrame: Story = {
   render: () => (
-    <Frame x={200} y={0}>
-      No output tokens on Sunday, July 5
-    </Frame>
+    <Frame x={200} y={0} day={day({ claude: 0, copilot: 0, at: new Date(2026, 6, 5, 12).getTime() })} />
   )
 };

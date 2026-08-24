@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { Z } from '@/z-layers';
 
 // How much room the bubble needs on one side of a square before it will centre on it. About half
-// the width of the longest thing it says — "1.2M output tokens on Monday, August 18".
+// the width of the card's widest line, which is the date — "Wednesday, December 3".
 const EDGE_PX: number = 120;
 
 // The air between the square and the bottom of the bubble.
@@ -22,6 +22,9 @@ interface GridTooltipProps {
 // One tooltip for the whole grid, moved to whichever square the pointer is on. Not `Tooltip` and
 // not a hover card per square: there are several hundred squares, and both components that already
 // exist here put a bubble in the DOM per trigger.
+//
+// It holds a card rather than a sentence — `GridDaySummary` — so `whitespace-nowrap` here is what
+// keeps each of that card's rows on its own line rather than what keeps the bubble to one.
 //
 // It sits outside the scrolling box and over it. Inside, the box cropped it — the top row's bubble
 // lost its upper half to `overflow-y-clip` and the leftmost one went behind the sticky weekday
