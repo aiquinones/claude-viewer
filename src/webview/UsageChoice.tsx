@@ -14,7 +14,8 @@ interface UsageChoiceProps<Id extends string> {
 // This workspace — so the selected one is painted rather than chased.
 //
 // The hints are `HoverCard`, not `Tooltip`: they're sentences, and a nowrap tooltip on a control near
-// the panel edge is a sentence with its end cut off.
+// the panel edge is a sentence with its end cut off. An option with no hint is the bare tile — a
+// hover card holding nothing would open an empty box.
 export const UsageChoice = <Id extends string>({
   label,
   options,
@@ -26,15 +27,8 @@ export const UsageChoice = <Id extends string>({
     aria-label={label}
     className="flex shrink-0 items-center rounded-lg border border-border bg-muted p-0.5"
   >
-    {options.map((option) => (
-      <HoverCard
-        key={option.id}
-        card={
-          <HoverCardBody>
-            <CodeText text={option.hint} />
-          </HoverCardBody>
-        }
-      >
+    {options.map((option) => {
+      const tile = (
         <button
           type="button"
           aria-pressed={option.id === value}
@@ -47,7 +41,22 @@ export const UsageChoice = <Id extends string>({
         >
           {option.label}
         </button>
-      </HoverCard>
-    ))}
+      );
+
+      if (!option.hint) return <span key={option.id}>{tile}</span>;
+
+      return (
+        <HoverCard
+          key={option.id}
+          card={
+            <HoverCardBody>
+              <CodeText text={option.hint} />
+            </HoverCardBody>
+          }
+        >
+          {tile}
+        </HoverCard>
+      );
+    })}
   </div>
 );

@@ -1,15 +1,12 @@
 // What the theme group in the panel's `...` offers. Two of the three have no palette behind them
 // yet, so they carry `soon` and picking one reports rather than writes — see model/settings/theme.ts
 // for which modes a setting may actually hold.
+//
+// No hints: the usage options are two readings of one number and a label alone can't separate them,
+// where Dark is a dark theme and a sentence saying so is a line to read past.
 
 import { isPanelTheme, THEME_MODES, ThemeMode } from '../../model/settings/theme';
 import { ChoiceOption } from '../menu/choice-option';
-
-const THEME_HINT: Record<ThemeMode, string> = {
-  inherit: "Follow the editor's color theme, which is what the panel has always done.",
-  dark: 'A dark palette of the panel\'s own, whatever the editor is set to.',
-  light: "A light palette of the panel's own, whatever the editor is set to."
-};
 
 export const THEME_LABEL: Record<ThemeMode, string> = {
   inherit: 'Inherit from editor',
@@ -20,7 +17,6 @@ export const THEME_LABEL: Record<ThemeMode, string> = {
 export const THEME_OPTIONS: readonly ChoiceOption<ThemeMode>[] = THEME_MODES.map((mode) => ({
   id: mode,
   label: THEME_LABEL[mode],
-  hint: THEME_HINT[mode],
   soon: !isPanelTheme(mode)
 }));
 

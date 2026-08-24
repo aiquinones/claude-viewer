@@ -21,7 +21,7 @@ interface MenuChoiceProps<Id extends string> {
 
 // One setting inside the `...`, as a group of radio rows. The same `ChoiceOption` a segmented
 // control draws, except the hint is under the label rather than on hover: a menu is already open, so
-// there's nothing to reveal.
+// there's nothing to reveal. An option with no hint is its label alone.
 export const MenuChoice = <Id extends string>({
   label,
   options,
@@ -79,9 +79,11 @@ const MenuChoiceItem = <Id extends string>({
         <span className={active ? 'text-foreground' : ''}>{option.label}</span>
         {option.soon && <span className="text-[0.6875rem] text-muted-foreground">soon</span>}
       </span>
-      <span className="text-muted-foreground">
-        <CodeText text={option.hint} />
-      </span>
+      {option.hint && (
+        <span className="text-muted-foreground">
+          <CodeText text={option.hint} />
+        </span>
+      )}
     </span>
   </button>
 );

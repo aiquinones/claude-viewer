@@ -5,14 +5,16 @@ import { MenuChoice } from '@src/webview/menu/MenuChoice';
 type Mode = 'inherit' | 'dark' | 'light';
 
 const OPTIONS: readonly ChoiceOption<Mode>[] = [
-  {
-    id: 'inherit',
-    label: 'Inherit from editor',
-    hint: "Follow the editor's color theme, which is what the panel has always done."
-  },
-  { id: 'dark', label: 'Dark', hint: "A dark palette of the panel's own.", soon: true },
-  { id: 'light', label: 'Light', hint: "A light palette of the panel's own.", soon: true }
+  { id: 'inherit', label: 'Inherit from editor' },
+  { id: 'dark', label: 'Dark', soon: true },
+  { id: 'light', label: 'Light', soon: true }
 ];
+
+// The other shape: a label that can't say it on its own, so the sentence rides under it.
+const HINTED: readonly ChoiceOption<Mode>[] = OPTIONS.map((option) => ({
+  ...option,
+  hint: `What picking ${option.label.toLowerCase()} would mean, said in a sentence.`
+}));
 
 // One setting inside a `...`, as a group of radio rows. The check says which one is on — something a
 // contributed VS Code menu can't draw — and the line at the top right says which layer set it.
@@ -36,10 +38,16 @@ export default meta;
 
 type Story = StoryObj<typeof MenuChoice<Mode>>;
 
-// The shipped value, and two options that exist but aren't built. A `soon` row dims and keeps its
-// hint — dimming it is what says the mode is coming rather than missing.
+// The shipped value, and two options that exist but aren't built. A `soon` row dims and marks
+// itself — dimming it is what says the mode is coming rather than missing.
 export const Default: Story = {
   args: { source: 'default' }
+};
+
+// The same rows with hints under them, which is what the usage surface's groups look like — there
+// the labels are two readings of one number and can't say which on their own.
+export const WithHints: Story = {
+  args: { source: 'user', options: HINTED }
 };
 
 // Set by the user rather than shipped. Same rows, different provenance line.
