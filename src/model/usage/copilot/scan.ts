@@ -55,19 +55,27 @@ const scanSession = async ({ dir, sessionId }: ScanSessionArgs): Promise<UsageTu
   const events: Result<string, ConfigError> = await readTextFile(copilotEventsPath(dir));
   if (!events.ok) return [];
 
-  return turnsFrom({ text: events.value, sessionId, cwd: parsed.cwd });
+  return turnsFrom({
+    text: events.value,
+    sessionId,
+    cwd: parsed.cwd,
+    branch: parsed.branch
+  });
 };
 
 interface TurnsFromArgs {
   text: string;
   sessionId: string;
   cwd: string;
+  // One per session rather than one per turn: Copilot writes the branch to `workspace.yaml`, so
+  // every turn in the file carries the same one. It rides a turn anyway, so the fold has one rule.
+  branch: string | undefined;
 }
 
 // In file order, not timestamp order. A resumed session writes events whose clocks run backwards
 // against the ones already in the file, and the order that matters here — which skill was announced
 // before which message — is the order they were appended in.
-const turnsFrom = ({ text, sessionId, cwd }: TurnsFromArgs): UsageTurn[] => {
+const turnsFrom = ({ text, sessionId, cwd, branch }: TurnsFromArgs): UsageTurn[] => {
   const turns: UsageTurn[] = [];
   // The turns since the last checkpoint, waiting for one to say what they cost.
   let unbilled: UsageTurn[] = [];
@@ -99,6 +107,7 @@ const turnsFrom = ({ text, sessionId, cwd }: TurnsFromArgs): UsageTurn[] => {
       event,
       sessionId,
       cwd,
+      branch,
       skill
     });
     if (!turn) continue;
@@ -117,10 +126,11 @@ interface ToTurnArgs {
   event: UsageEvent;
   sessionId: string;
   cwd: string;
+  branch: string | undefined;
   skill: string | undefined;
 }
 
-const toTurn = ({ event, sessionId, cwd, skill }: ToTurnArgs): UsageTurn | undefined => {
+const toTurn = ({ event, sessionId, cwd, branch, skill }: ToTurnArgs): UsageTurn | undefined => {
   const at: number = Date.parse(event.timestamp ?? '');
   const id: string | undefined = event.data?.messageId;
   if (!id || Number.isNaN(at)) return undefined;
@@ -131,6 +141,7 @@ const toTurn = ({ event, sessionId, cwd, skill }: ToTurnArgs): UsageTurn | undef
     tool: 'copilot',
     sessionId,
     cwd,
+    ...(branch ? { branch } : {}),
     ...(skill ? { skill } : {}),
     source: 'inferred',
     model: event.data?.model ?? '',

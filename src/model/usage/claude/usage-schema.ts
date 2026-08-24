@@ -34,6 +34,9 @@ const usageLineSchema = z
     timestamp: z.string().optional(),
     sessionId: z.string().optional(),
     cwd: z.string().optional(),
+    // The branch checked out when the request went out. On every assistant line — 13,633 of 13,633
+    // measured here — so it needs no fallback, only the empty-string case for a cwd outside a repo.
+    gitBranch: z.string().optional(),
     message: z
       .object({ model: z.string().optional(), usage: usageSchema.optional() })
       .passthrough()

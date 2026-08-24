@@ -100,6 +100,7 @@ const toTurn = (line: UsageLine): UsageTurn | undefined => {
     tool: 'claude',
     sessionId: line.sessionId,
     cwd: line.cwd,
+    ...(line.gitBranch ? { branch: line.gitBranch } : {}),
     ...(line.attributionSkill ? { skill: line.attributionSkill } : {}),
     source: 'read',
     model: line.message?.model ?? '',

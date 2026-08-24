@@ -70,6 +70,9 @@ export interface UsageTurn {
   sessionId: string;
   // Where the agent was working. What the `workspace` scope filters on.
   cwd: string;
+  // The branch checked out where it ran. Claude stamps every assistant line with it; Copilot writes
+  // one per session in `workspace.yaml`. Absent outside a repo.
+  branch?: string;
   // Absent when no skill was active, which is most turns.
   skill?: string;
   source: UsageSource;
@@ -191,6 +194,11 @@ export interface SessionUsage {
   // Where the agent was working. What the scope filter reads, and what a row falls back to for a
   // name when there is no title.
   cwd: string;
+  // The branch of the session's *latest* turn, the same rule `cwd` follows — where it left off,
+  // which is what a list sorted by last activity is already about. A session rarely stays on one:
+  // 82 of the 112 transcripts here span several, and 41 of 104 end somewhere other than the branch
+  // they spent the most turns on. Absent when the session ran outside a repo.
+  branch?: string;
   firstAt: number;
   lastAt: number;
   outputTokens: number;

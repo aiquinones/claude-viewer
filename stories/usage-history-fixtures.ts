@@ -25,6 +25,16 @@ const TITLES: readonly string[] = [
   'Landing page card glow'
 ];
 
+// One per session, so a list of them reads the way a real one does: mostly feature branches, with
+// `main` on the sessions that never left it.
+const BRANCHES: readonly string[] = [
+  'main',
+  'feat/contribution-grid',
+  'feat/skill-flow',
+  'fix/agent-row-stale',
+  'feat/token-estimator'
+];
+
 const CWDS: readonly string[] = [
   '/Users/dev/repos/example-app',
   '/Users/dev/repos/example-app/.claude/worktrees/feat+grid',
@@ -70,6 +80,7 @@ const session = ({
         tool,
         sessionId: `session-${index}`,
         cwd: CWDS[index % CWDS.length],
+        branch: BRANCHES[index % BRANCHES.length],
         source: tool === 'claude' ? 'read' : 'inferred',
         model: tool === 'claude' ? 'claude-opus-5' : 'claude-haiku-4.5',
         tokens: {
