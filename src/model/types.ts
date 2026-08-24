@@ -3,7 +3,7 @@
 
 import { TokenEstimator } from './estimate-tokens';
 import { SettingsSection, ViewerSettings } from './settings/settings';
-import { PanelTheme } from './settings/theme';
+import { ThemeMode } from './settings/theme';
 import {
   SessionDetail,
   UsageCostBasis,
@@ -488,7 +488,7 @@ export type WebviewMessage =
   | { type: 'setEstimator'; estimator: TokenEstimator }
   // The theme menu's pick. Writes `claudeViewer.theme.mode`, and only ever a mode that has a
   // palette behind it — the others report through `notBuilt` and write nothing.
-  | { type: 'setTheme'; mode: PanelTheme }
+  | { type: 'setTheme'; mode: ThemeMode }
   | {
       type: 'setUsage';
       metric?: UsageMetric;

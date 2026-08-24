@@ -50,17 +50,23 @@
           "markdownDescription": "Which approximation every **est. tokens** figure in the panel uses. Nothing here runs a real tokenizer — the point of an estimate is that it costs one division — so both options are claims, and `anthropic` is the one adjusted for how Claude actually reads text. Budgets are read in whichever units this produces."
         },
         "claudeViewer.theme.mode": {
-      "type": "string",
-      "enum": [
-        "inherit"
-      ],
-      "enumDescriptions": [
-        "Follow the editor's color theme, which is what the panel has always done."
-      ],
-      "default": "inherit",
-      "markdownDescription": "Which palette the panel draws in. `inherit` is the only mode today — every color in the panel is mapped onto the active VS Code theme, so switching themes switches the panel with it. `dark` and `light`, palettes of the panel's own, are coming: the panel's `...` lists them and says so."
-    },
-    "claudeViewer.budgets.skills.description": {
+          "type": "string",
+          "enum": [
+            "inherit",
+            "auto",
+            "dark",
+            "light"
+          ],
+          "enumDescriptions": [
+            "Every color read from the active VS Code theme, which is what the panel has always done.",
+            "The panel's own palette, in the polarity your editor is in — dark theme, dark panel.",
+            "The panel's dark palette, whatever the editor is set to.",
+            "The panel's light palette, whatever the editor is set to."
+          ],
+          "default": "inherit",
+          "markdownDescription": "Which palette the panel draws in. `inherit` maps every color onto the active VS Code theme, so switching themes switches the panel with it. `auto` reads only whether that theme is light or dark and draws the panel's own palette to match. `dark` and `light` pick one of those palettes outright."
+        },
+        "claudeViewer.budgets.skills.description": {
           "type": "number",
           "default": 100,
           "minimum": 0,

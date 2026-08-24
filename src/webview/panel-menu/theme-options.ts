@@ -1,25 +1,28 @@
-// What the theme group in the panel's `...` offers. Two of the three have no palette behind them
-// yet, so they carry `soon` and picking one reports rather than writes — see model/settings/theme.ts
-// for which modes a setting may actually hold.
-//
-// No hints: the usage options are two readings of one number and a label alone can't separate them,
-// where Dark is a dark theme and a sentence saying so is a line to read past.
+// What the theme group in the panel's `...` offers. Four modes, drawn from inheriting everything to
+// inheriting nothing — see model/settings/theme.ts, and styles.css for where `auto` is decided.
 
-import { isPanelTheme, THEME_MODES, ThemeMode } from '../../model/settings/theme';
+import { THEME_MODES, ThemeMode } from '../../model/settings/theme';
 import { ChoiceOption } from '../menu/choice-option';
 
 export const THEME_LABEL: Record<ThemeMode, string> = {
-  inherit: 'Inherit from editor',
+  inherit: 'Editor colors',
+  auto: 'Editor light/dark',
   dark: 'Dark',
   light: 'Light'
+};
+
+// Two rows both starting with "Editor" is what earns hints here. Dark and Light wouldn't need one —
+// a sentence saying that Dark is dark is a line to read past — but they carry the half that isn't
+// obvious: that they hold whatever the editor is doing.
+const THEME_HINT: Record<ThemeMode, string> = {
+  inherit: 'Every color read from your VS Code theme.',
+  auto: "The panel's own palette, in the polarity your editor is in.",
+  dark: "The panel's dark palette, whatever the editor is set to.",
+  light: "The panel's light palette, whatever the editor is set to."
 };
 
 export const THEME_OPTIONS: readonly ChoiceOption<ThemeMode>[] = THEME_MODES.map((mode) => ({
   id: mode,
   label: THEME_LABEL[mode],
-  soon: !isPanelTheme(mode)
+  hint: THEME_HINT[mode]
 }));
-
-// What the host is asked to say isn't built. "Dark theme", not "Dark" — the sentence the host writes
-// reads as a name, and the label alone would leave it saying that Dark isn't built.
-export const themeTitle = (mode: ThemeMode): string => `${THEME_LABEL[mode]} theme`;

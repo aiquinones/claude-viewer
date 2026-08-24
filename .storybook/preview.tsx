@@ -7,6 +7,7 @@ import {
   promptMarkdown,
   skillMarkdown
 } from '../stories/fixtures';
+import { THEME_MODES, ThemeMode } from '../src/model/settings/theme';
 import { applyTheme, ThemeName } from './vscode-theme';
 
 // App reaches for the webview bridge at module scope, which doesn't exist outside the editor.
@@ -35,9 +36,20 @@ const bodyFor = (path: string): string => {
   return promptMarkdown;
 };
 
+const isThemeMode = (value: unknown): value is ThemeMode =>
+  (THEME_MODES as readonly string[]).includes(value as string);
+
+// Two toolbars rather than one, because `auto` needs both halves: which editor theme is simulated,
+// and which palette the panel is set to. Panel dark on Light+ is a real state to look at.
 const withVsCodeTheme: Decorator = (Story, context) => {
   const theme: ThemeName = context.globals.theme === 'light' ? 'light' : 'dark';
+  const panel: ThemeMode = isThemeMode(context.globals.panel) ? context.globals.panel : 'inherit';
+
   useEffect(() => applyTheme(theme), [theme]);
+  useEffect(() => {
+    document.body.dataset.panelTheme = panel;
+  }, [panel]);
+
   return <Story />;
 };
 
@@ -54,9 +66,22 @@ const preview: Preview = {
         ],
         dynamicTitle: true
       }
+    },
+    panel: {
+      description: 'Panel palette',
+      toolbar: {
+        icon: 'paintbrush',
+        items: [
+          { value: 'inherit', title: 'Inherit' },
+          { value: 'auto', title: 'Editor light/dark' },
+          { value: 'dark', title: 'Panel dark' },
+          { value: 'light', title: 'Panel light' }
+        ],
+        dynamicTitle: true
+      }
     }
   },
-  initialGlobals: { theme: 'dark' },
+  initialGlobals: { theme: 'dark', panel: 'inherit' },
   parameters: {
     layout: 'fullscreen',
     controls: { matchers: { color: /(background|color)$/i } },

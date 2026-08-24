@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ReactNode } from 'react';
 import { DEFAULT_SETTINGS, SettingSource, ViewerSettings } from '@src/model/settings/settings';
-import { PanelTheme } from '@src/model/settings/theme';
+import { ThemeMode } from '@src/model/settings/theme';
 import { PanelMenu } from '@src/webview/panel-menu/PanelMenu';
 import { SettingsProvider } from '@src/webview/settings/SettingsContext';
 
 interface WithThemeArgs {
-  mode?: PanelTheme;
+  mode?: ThemeMode;
   source?: SettingSource;
   children: ReactNode;
 }
@@ -22,8 +22,8 @@ const WithTheme = ({ mode, source = 'user', children }: WithThemeArgs) => {
 };
 
 // The `...` at the end of every view's header — what changes how the panel looks, rather than what
-// any one surface shows. One group so far, and two of its three modes have no palette behind them
-// yet: they dim, and picking one asks the host to say it's coming rather than writing the setting.
+// any one surface shows. One group so far: four modes, every one of them settable, from inheriting
+// every color off the editor to inheriting none of them.
 const meta: Meta<typeof PanelMenu> = {
   title: 'Chrome/PanelMenu',
   component: PanelMenu,
@@ -63,6 +63,26 @@ export const SetByUser: Story = {
 export const SetForWorkspace: Story = {
   render: () => (
     <WithTheme mode="inherit" source="workspace">
+      <PanelMenu />
+    </WithTheme>
+  )
+};
+
+// The mode that reads the editor's polarity and nothing else. The row is a row like any other —
+// what makes it different happens in CSS, which is why the toolbar's Panel palette is where you see
+// it work.
+export const FollowsEditorPolarity: Story = {
+  render: () => (
+    <WithTheme mode="auto">
+      <PanelMenu />
+    </WithTheme>
+  )
+};
+
+// A palette picked outright, whatever the editor is set to.
+export const PanelDark: Story = {
+  render: () => (
+    <WithTheme mode="dark">
       <PanelMenu />
     </WithTheme>
   )

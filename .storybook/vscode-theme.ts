@@ -54,12 +54,17 @@ const LIGHT: Record<string, string> = {
 
 const THEMES: Record<ThemeName, Record<string, string>> = { dark: DARK, light: LIGHT };
 
-// Has to be applied to :root. styles.css computes --background and friends there, so a variable
-// set on a wrapper element would come too late to be seen.
+// On :root, above the body where styles.css computes --background and friends from these — a
+// variable set on a wrapper further down would come too late to be seen.
+//
+// The page's own background isn't set here: styles.css paints the body from --background, which is
+// these values under `inherit` and the panel's own under any palette.
 export const applyTheme = (theme: ThemeName): void => {
   const root: HTMLElement = document.documentElement;
   for (const [name, value] of Object.entries(THEMES[theme])) {
     root.style.setProperty(name, value);
   }
-  document.body.style.background = THEMES[theme]['--vscode-editor-background'];
+  // The class a real webview carries, which is the only thing the `auto` palette rules read.
+  document.body.classList.toggle('vscode-dark', theme === 'dark');
+  document.body.classList.toggle('vscode-light', theme === 'light');
 };
