@@ -13,6 +13,7 @@ import {
   UsageScope,
   UsageSlice,
   UsageSource,
+  UsageSummaryData,
   UsageTotals,
   UsageTurn,
   UsageWindow
@@ -48,6 +49,22 @@ export const aggregateUsage = ({
     (turn) => turn.at > since && inScope({ turn, scope, workspaceRoot })
   );
 
+  return { ...summarizeTurns({ turns: inWindow, costBasis }), window, since };
+};
+
+interface SummarizeTurnsArgs {
+  // Already narrowed to whatever set is being summarized. Nothing is filtered in here.
+  turns: UsageTurn[];
+  costBasis: UsageCostBasis;
+}
+
+// What a set of turns adds up to, with no opinion about which turns they are. A window is one such
+// set and a single session is another — the session analysis surface calls this directly, so the two
+// read the same numbers out of the same arithmetic.
+export const summarizeTurns = ({
+  turns: inWindow,
+  costBasis
+}: SummarizeTurnsArgs): UsageSummaryData => {
   const bySkill: Map<string, UsageTurn[]> = new Map();
   for (const turn of inWindow) {
     const key: string = turn.skill ?? NO_SKILL;
@@ -74,8 +91,6 @@ export const aggregateUsage = ({
     .sort((left, right) => right.outputTokens - left.outputTokens);
 
   return {
-    window,
-    since,
     sessions,
     slices,
     total,
@@ -199,6 +214,7 @@ const inScope = ({ turn, scope, workspaceRoot }: InScopeArgs): boolean => {
 };
 
 // Which CLIs actually contributed. Cost mode shows one total per tool and no combined figure, so
-// the view needs to know which of the two to draw.
-export const toolsIn = (breakdown: UsageBreakdown): AgentTool[] =>
-  (['claude', 'copilot'] as const).filter((tool) => breakdown.byTool[tool].turns > 0);
+// the view needs to know which of the two to draw. Takes the summary rather than the breakdown —
+// a single session is summarized without ever being a window.
+export const toolsIn = (summary: UsageSummaryData): AgentTool[] =>
+  (['claude', 'copilot'] as const).filter((tool) => summary.byTool[tool].turns > 0);

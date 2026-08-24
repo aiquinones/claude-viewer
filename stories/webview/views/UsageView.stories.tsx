@@ -62,7 +62,9 @@ const meta: Meta<typeof UsageView> = {
     // the ordinary case for a window covering every session on the machine.
     skills: usageSkills,
     onOpenSkill: () => undefined,
-    onOpenSession: () => undefined,
+    sessionDetail: undefined,
+    onRequestSessionDetail: () => undefined,
+    onCopySessionId: () => undefined,
     onSearch: () => undefined,
     onRefresh: () => undefined,
     onBack: () => undefined

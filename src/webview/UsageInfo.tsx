@@ -8,7 +8,7 @@ import {
   USD_PART_KEYS,
   UsdPart
 } from '../model/usage/pricing';
-import { UsageBreakdown, UsageModelUse } from '../model/usage/types';
+import { UsageModelUse, UsageSummaryData } from '../model/usage/types';
 import {
   formatShare,
   formatRate,
@@ -19,7 +19,7 @@ import {
 import { Z } from './z-layers';
 
 interface UsageInfoProps {
-  breakdown: UsageBreakdown;
+  breakdown: UsageSummaryData;
 }
 
 // The (i) beside the cost note. Same card shape as BudgetInfo, for the same reason: a number you
@@ -70,7 +70,7 @@ const CARD_ID: string = 'usage-info-card';
 const MODEL_LIMIT: number = 4;
 
 interface CostPartsProps {
-  breakdown: UsageBreakdown;
+  breakdown: UsageSummaryData;
 }
 
 // Largest first rather than in the declared order: which piece dominates is the whole point, and it

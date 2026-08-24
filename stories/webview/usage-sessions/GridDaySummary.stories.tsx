@@ -22,7 +22,7 @@ const day = ({ claude, copilot, at = AT }: DayArgs): GridDay => ({
   future: false
 });
 
-// The bubble the card is rendered inside, copied from `GridTooltip` rather than imported: this
+// The bubble the card is rendered inside, copied from `HoverBubble` rather than imported: this
 // story is about what the card says, and the real tooltip wants pixel coordinates to say it at.
 const Bubble = ({ children }: { children: ReactNode }) => (
   <div className="w-max whitespace-nowrap rounded-md border border-border bg-popover px-2 py-1 text-[11px] text-popover-foreground shadow-md">

@@ -1,12 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { CSSProperties } from 'react';
+import { HoverBubble } from '@src/webview/HoverBubble';
 import { GridDay } from '@src/webview/usage-sessions/grid';
 import { GridDaySummary } from '@src/webview/usage-sessions/GridDaySummary';
-import { GridTooltip } from '@src/webview/usage-sessions/GridTooltip';
 import { surfaceAccent } from '@src/webview/surfaces';
 
 // The frame the bubble is placed against — in the grid it's the box around the scroller, and its
-// width is what decides which way the bubble opens.
+// width is what decides which way the bubble opens. Drawn here with a grid square and a day card,
+// since that's the caller whose content is several rows tall.
 const FRAME_PX: number = 420;
 
 // `--grid-cell`, in pixels at a 16px root. Only the marker square uses it; the tooltip is placed
@@ -51,21 +52,21 @@ const Frame = ({ x, y, day: subject }: FrameProps) => (
         style={{ left: x - CELL_PX / 2, top: y }}
         aria-hidden
       />
-      <GridTooltip x={x} y={y} frameWidth={FRAME_PX}>
+      <HoverBubble x={x} y={y} frameWidth={FRAME_PX}>
         <GridDaySummary day={subject} />
-      </GridTooltip>
+      </HoverBubble>
     </div>
   </div>
 );
 
-const meta: Meta<typeof GridTooltip> = {
-  title: 'Usage/GridTooltip',
-  component: GridTooltip
+const meta: Meta<typeof HoverBubble> = {
+  title: 'Usage/HoverBubble',
+  component: HoverBubble
 };
 
 export default meta;
 
-type Story = StoryObj<typeof GridTooltip>;
+type Story = StoryObj<typeof HoverBubble>;
 
 // Mid-frame: centred over the square it points at. The card is several rows tall now, so this is
 // also what says the bubble grows upward from the square rather than downward over the grid.

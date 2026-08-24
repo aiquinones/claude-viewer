@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { buildSearchIndex } from '../model/search/build-index';
-import { AgentSession, ConfigSnapshot, Reveal, SearchDoc } from '../model/types';
-import { UsageHistory, UsageReport } from '../model/usage/types';
+import { AgentSession, AgentTool, ConfigSnapshot, Reveal, SearchDoc } from '../model/types';
+import { SessionDetail, UsageHistory, UsageReport } from '../model/usage/types';
 import { TokenEstimator } from '../model/estimate-tokens';
 import { AgentColorProvider } from './agent-color/AgentColorContext';
 import { EstimatorDialog } from './EstimatorDialog';
 import { useEstimatorDialog } from './useEstimatorDialog';
 import { Loading } from './loading/Loading';
+import { isPanelTheme, ThemeMode } from '../model/settings/theme';
+import { themeTitle } from './panel-menu/theme-options';
 import { SettingsProvider } from './settings/SettingsContext';
 import { Spotlight } from './spotlight/Spotlight';
 import { kindForSurface, surfaceForKind } from './spotlight/surface-kind';
@@ -33,8 +35,11 @@ export const App = () => {
     agents,
     usage,
     usageHistory,
+    sessionDetail,
+    requestSessionDetail,
     changeUsage,
     changeEstimator,
+    changeTheme,
     settings,
     agentColors,
     setAgentColor,
@@ -45,7 +50,7 @@ export const App = () => {
     copySessionId,
     killAgent,
     reportSurface,
-    reportUnavailable,
+    reportNotBuilt,
     openSettings
   } = useSnapshot();
   // Which surface the detail pane renders, and whether the slider is showing it. Separate signals
@@ -63,6 +68,17 @@ export const App = () => {
   const applyEstimator = (estimator: TokenEstimator): void => {
     changeEstimator(estimator);
     dismissEstimator();
+  };
+
+  // The menu offers three modes and only one has a palette behind it. The split is here rather than
+  // in the menu because this is the one place holding both channels — the setting write and the
+  // host's "not built yet" — and the menu shouldn't have to know which is which.
+  const applyTheme = (mode: ThemeMode): void => {
+    if (isPanelTheme(mode)) {
+      changeTheme(mode);
+      return;
+    }
+    reportNotBuilt(themeTitle(mode));
   };
 
   const openSurface = (id: SurfaceId): void => {
@@ -125,6 +141,7 @@ export const App = () => {
       setUsage={changeUsage}
       openEstimator={openEstimator}
       setEstimator={changeEstimator}
+      setTheme={applyTheme}
     >
       <AgentColorProvider colors={agentColors} setColor={setAgentColor}>
         <ViewSlider
@@ -135,7 +152,7 @@ export const App = () => {
               agents={agents}
               usage={usage}
               onOpenSurface={openSurface}
-              onUnavailableSurface={reportUnavailable}
+              onUnavailableSurface={reportNotBuilt}
               onSearch={openSpotlight}
               onRefresh={refresh}
             />
@@ -147,8 +164,10 @@ export const App = () => {
               agents={agents}
               usage={usage}
               usageHistory={usageHistory}
+              sessionDetail={sessionDetail}
+              onRequestSessionDetail={requestSessionDetail}
               onOpenSkill={openSkill}
-              onUnavailable={reportUnavailable}
+              onUnavailable={reportNotBuilt}
               reveal={selected}
               onOpenAgent={openAgent}
               onCopySessionId={copySessionId}
@@ -192,6 +211,10 @@ interface DetailProps {
   agents: AgentSession[];
   usage: UsageReport | undefined;
   usageHistory: UsageHistory | undefined;
+  // One session read whole, and the way to ask for another. The usage surface asks when a session
+  // row is clicked; nothing else on the panel reads it.
+  sessionDetail: SessionDetail | undefined;
+  onRequestSessionDetail: (args: { sessionId: string; tool: AgentTool }) => void;
   // A skill named on another surface — the usage rows do this. Opens it on the skills surface.
   onOpenSkill: (path: string) => void;
   // Something the panel can't show yet. The host owns the sentence, the same way it does for a
@@ -217,6 +240,8 @@ const Detail = ({
   agents,
   usage,
   usageHistory,
+  sessionDetail,
+  onRequestSessionDetail,
   onOpenSkill,
   onUnavailable,
   reveal,
@@ -286,7 +311,9 @@ const Detail = ({
           skills={snapshot.skills}
           workspaceRoot={snapshot.workspaceRoot}
           onOpenSkill={onOpenSkill}
-          onOpenSession={() => onUnavailable('Session analysis')}
+          sessionDetail={sessionDetail}
+          onRequestSessionDetail={onRequestSessionDetail}
+          onCopySessionId={onCopySessionId}
           onSearch={onSearch}
           onRefresh={onRefresh}
           onBack={onBack}

@@ -5,8 +5,9 @@ import {
   newHistoryCache,
   scanUsageHistory
 } from '../model/usage/history/scan';
+import { pathsForSession } from '../model/usage/history/claude';
 import { DEFAULT_RETENTION } from '../model/retention/types';
-import { UsageHistory } from '../model/usage/types';
+import { SessionUsage, UsageHistory } from '../model/usage/types';
 import { currentSettings } from './settings-store';
 import { workspaceRoot } from './workspace';
 
@@ -55,6 +56,16 @@ export const refreshUsageHistory = async (): Promise<UsageHistory> => {
 // The same sessions again under a different scope — no disk. Undefined before the first scan, where
 // an empty history would be a claim and nothing drawn yet is the truth.
 export const renarrowUsageHistory = (): UsageHistory | undefined => (scanned ? publish() : undefined);
+
+// Every session the last scan found, unfiltered by scope. What the host resolves a session id
+// against — the same rule `_openFile` follows, so a row can only name something the host itself read.
+export const cachedSessions = (): SessionUsage[] => scanned?.sessions ?? [];
+
+// Which transcripts hold a session, for the session analysis read. Claude names its files by a uuid
+// that isn't the session id, so this is the only way to get from one to the other — and the cache
+// already knows, because the fold it built is keyed by both.
+export const transcriptPathsFor = (sessionId: string): string[] =>
+  pathsForSession(cache, sessionId);
 
 const publish = (): UsageHistory => {
   const next: UsageHistory = narrowHistory({
