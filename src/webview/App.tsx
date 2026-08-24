@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { buildSearchIndex } from '../model/search/build-index';
-import { AgentSession, ConfigSnapshot, Reveal, SearchDoc } from '../model/types';
-import { UsageHistory, UsageReport } from '../model/usage/types';
+import { AgentSession, AgentTool, ConfigSnapshot, Reveal, SearchDoc } from '../model/types';
+import { SessionDetail, UsageHistory, UsageReport } from '../model/usage/types';
 import { TokenEstimator } from '../model/estimate-tokens';
 import { AgentColorProvider } from './agent-color/AgentColorContext';
 import { EstimatorDialog } from './EstimatorDialog';
@@ -35,6 +35,8 @@ export const App = () => {
     agents,
     usage,
     usageHistory,
+    sessionDetail,
+    requestSessionDetail,
     changeUsage,
     changeEstimator,
     changeTheme,
@@ -162,6 +164,8 @@ export const App = () => {
               agents={agents}
               usage={usage}
               usageHistory={usageHistory}
+              sessionDetail={sessionDetail}
+              onRequestSessionDetail={requestSessionDetail}
               onOpenSkill={openSkill}
               onUnavailable={reportNotBuilt}
               reveal={selected}
@@ -207,6 +211,10 @@ interface DetailProps {
   agents: AgentSession[];
   usage: UsageReport | undefined;
   usageHistory: UsageHistory | undefined;
+  // One session read whole, and the way to ask for another. The usage surface asks when a session
+  // row is clicked; nothing else on the panel reads it.
+  sessionDetail: SessionDetail | undefined;
+  onRequestSessionDetail: (args: { sessionId: string; tool: AgentTool }) => void;
   // A skill named on another surface — the usage rows do this. Opens it on the skills surface.
   onOpenSkill: (path: string) => void;
   // Something the panel can't show yet. The host owns the sentence, the same way it does for a
@@ -232,6 +240,8 @@ const Detail = ({
   agents,
   usage,
   usageHistory,
+  sessionDetail,
+  onRequestSessionDetail,
   onOpenSkill,
   onUnavailable,
   reveal,
@@ -301,7 +311,9 @@ const Detail = ({
           skills={snapshot.skills}
           workspaceRoot={snapshot.workspaceRoot}
           onOpenSkill={onOpenSkill}
-          onOpenSession={() => onUnavailable('Session analysis')}
+          sessionDetail={sessionDetail}
+          onRequestSessionDetail={onRequestSessionDetail}
+          onCopySessionId={onCopySessionId}
           onSearch={onSearch}
           onRefresh={onRefresh}
           onBack={onBack}

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { DAYS_PER_WEEK, GridDay, GridWeek, UsageGrid } from './grid';
 import { GridLegend } from './GridLegend';
-import { GridTooltip } from './GridTooltip';
+import { HoverBubble } from '../HoverBubble';
 import { gridDayLabel, gridDayValue } from './grid-labels';
 import { Z } from '@/z-layers';
 
@@ -129,9 +129,9 @@ export const ContributionGrid = ({ grid }: ContributionGridProps) => {
         </div>
 
         {hovered && (
-          <GridTooltip x={hovered.x} y={hovered.y} frameWidth={hovered.frameWidth}>
+          <HoverBubble x={hovered.x} y={hovered.y} frameWidth={hovered.frameWidth}>
             {tooltipText(hovered.day)}
-          </GridTooltip>
+          </HoverBubble>
         )}
       </div>
 

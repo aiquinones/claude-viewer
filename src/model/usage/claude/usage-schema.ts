@@ -60,3 +60,46 @@ export const parseUsageLine = (raw: string): UsageLine | undefined => {
   if (!parsed.success || parsed.data.type !== 'assistant') return undefined;
   return parsed.data;
 };
+
+// A line that might say a skill was loaded. Both `assistant` and `user` lines qualify, and the
+// content is a string on a prompt and an array of blocks on a tool result — so this reads the shape
+// `usageLineSchema` deliberately leaves alone.
+const contentBlockSchema = z
+  .object({
+    type: z.string().optional(),
+    name: z.string().optional(),
+    input: z.object({ skill: z.string().optional() }).passthrough().optional()
+  })
+  .passthrough();
+
+const invocationLineSchema = z
+  .object({
+    type: z.string(),
+    timestamp: z.string().optional(),
+    attributionSkill: z.string().optional(),
+    message: z
+      .object({ content: z.union([z.string(), z.array(contentBlockSchema)]).optional() })
+      .passthrough()
+      .optional()
+  })
+  .passthrough();
+
+export type InvocationLine = z.infer<typeof invocationLineSchema>;
+
+// The three markers a line has to hold one of. Same prefilter idea as `parseUsageLine` — most of a
+// transcript is neither a prompt nor a turn, and none of it should cost a JSON parse to find out.
+const INVOCATION_MARKERS: readonly string[] = ['"Skill"', '<command-name>', 'attributionSkill'];
+
+export const parseInvocationLine = (raw: string): InvocationLine | undefined => {
+  if (!INVOCATION_MARKERS.some((marker) => raw.includes(marker))) return undefined;
+
+  let json: unknown;
+  try {
+    json = JSON.parse(raw);
+  } catch {
+    return undefined;
+  }
+
+  const parsed = invocationLineSchema.safeParse(json);
+  return parsed.success ? parsed.data : undefined;
+};

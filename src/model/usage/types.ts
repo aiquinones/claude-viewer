@@ -123,10 +123,10 @@ export interface UsageModelUse {
   unpriced: boolean;
 }
 
-export interface UsageBreakdown {
-  window: UsageWindow;
-  // The start of the window, absolute.
-  since: number;
+// Everything a set of turns adds up to, with nothing said about which turns they were. The usage
+// surface's window is one such set and a single session is another, which is why this is separate
+// from `UsageBreakdown` — the window is the only thing the two don't share.
+export interface UsageSummaryData {
   // Distinct sessions that contributed. A total of zero and a scan that read nothing look the same
   // on the numbers, and this is what tells them apart.
   sessions: number;
@@ -150,6 +150,13 @@ export interface UsageBreakdown {
   costBasis: UsageCostBasis;
   // Sorted by output tokens, largest first.
   models: UsageModelUse[];
+}
+
+// One window of the usage surface: a summary, plus which window it is.
+export interface UsageBreakdown extends UsageSummaryData {
+  window: UsageWindow;
+  // The start of the window, absolute.
+  since: number;
 }
 
 // Both windows, aggregated. The host computes them together and posts one message: the toggle is
@@ -206,4 +213,40 @@ export interface UsageHistory {
   // Claude's number. Copilot documents no equivalent and writes none to disk.
   retention: Retention;
   scannedAt: number;
+}
+
+// How a skill's body got into the context. Both CLIs write this down, and neither writes it once
+// per intent — see docs/session-analysis.md.
+//
+// Deliberately not annotated: a type here would erase the literals `SkillLoadVia` derives from.
+export const SKILL_LOAD_VIA = ['command', 'tool', 'event'] as const;
+
+export type SkillLoadVia = (typeof SKILL_LOAD_VIA)[number];
+
+// One time a SKILL.md was loaded into a session's context. A load rather than a call: Copilot
+// injects the skill because you typed its name, then loads it again when the model asks for what it
+// has already been given, and both of those really are the body entering the context.
+export interface SkillInvocation {
+  skill: string;
+  // Milliseconds since the epoch, so the view places it against its own clock.
+  at: number;
+  via: SkillLoadVia;
+  // The chars Copilot recorded loading. Claude's transcript carries no equivalent — its tool result
+  // is the string "Launching skill: <name>" and the body goes in somewhere the log doesn't show.
+  chars?: number;
+}
+
+// One session read whole, on demand. Unlike everything else on this surface it is neither windowed
+// nor folded: the session is the window, and the turns are the thing being drawn.
+export interface SessionDetail {
+  // Echoed back, so a reply arriving after the selection moved on can be dropped — the same rule
+  // `FileBody` follows.
+  sessionId: string;
+  tool: AgentTool;
+  // Oldest first.
+  turns: UsageTurn[];
+  // In file order, which is the order they were loaded in.
+  invocations: SkillInvocation[];
+  // Set when the log couldn't be read at all. The view says so rather than drawing an empty session.
+  error?: string;
 }

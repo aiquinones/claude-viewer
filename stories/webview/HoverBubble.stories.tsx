@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { CSSProperties } from 'react';
-import { GridTooltip } from '@src/webview/usage-sessions/GridTooltip';
+import { HoverBubble } from '@src/webview/HoverBubble';
 import { surfaceAccent } from '@src/webview/surfaces';
 
 // The frame the bubble is placed against — in the grid it's the box around the scroller, and its
@@ -34,21 +34,21 @@ const Frame = ({ x, y, children }: FrameProps) => (
         style={{ left: x - CELL_PX / 2, top: y }}
         aria-hidden
       />
-      <GridTooltip x={x} y={y} frameWidth={FRAME_PX}>
+      <HoverBubble x={x} y={y} frameWidth={FRAME_PX}>
         {children}
-      </GridTooltip>
+      </HoverBubble>
     </div>
   </div>
 );
 
-const meta: Meta<typeof GridTooltip> = {
-  title: 'Usage/GridTooltip',
-  component: GridTooltip
+const meta: Meta<typeof HoverBubble> = {
+  title: 'Usage/HoverBubble',
+  component: HoverBubble
 };
 
 export default meta;
 
-type Story = StoryObj<typeof GridTooltip>;
+type Story = StoryObj<typeof HoverBubble>;
 
 // Mid-frame: centred over the square it points at.
 export const Centred: Story = {

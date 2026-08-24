@@ -5,10 +5,21 @@ import { MenuChoice } from '../menu/MenuChoice';
 import { useOpenSettings, useSettings, useSetUsage } from '../settings/SettingsContext';
 import { COST_BASIS_OPTIONS, METRIC_OPTIONS, SCOPE_OPTIONS } from '../usage-options';
 
+// The settings this menu can offer, in the order it draws them.
+//
+// Deliberately not annotated: a type here would erase the literals `UsageMenuSection` derives from.
+export const USAGE_MENU_SECTIONS = ['metric', 'scope', 'costBasis'] as const;
+
+export type UsageMenuSection = (typeof USAGE_MENU_SECTIONS)[number];
+
 interface UsageMenuProps {
   // Where the trigger sits in the row that holds it. The menu positions itself against the trigger,
   // so the caller only ever places the button.
   className?: string;
+  // Which settings this menu is for. All three on the usage surface. The session analysis page drops
+  // the scope — you are looking at one session, and it is in whatever folder it is in — and drops
+  // the Claude cost basis on a Copilot session, which bills in AIU and is priced by nothing here.
+  sections?: readonly UsageMenuSection[];
 }
 
 // The `...` in the usage header: every setting the surface reads, in the corner beside the figures
@@ -22,7 +33,7 @@ interface UsageMenuProps {
 //
 // Picking an option closes it, so the numbers behind it are never covered by the control that
 // changed them.
-export const UsageMenu = ({ className = '' }: UsageMenuProps) => {
+export const UsageMenu = ({ className = '', sections = USAGE_MENU_SECTIONS }: UsageMenuProps) => {
   const { metric, scope, costBasis } = useSettings().usage;
   const setUsage = useSetUsage();
   const openSettings = useOpenSettings();
@@ -31,36 +42,42 @@ export const UsageMenu = ({ className = '' }: UsageMenuProps) => {
     <MenuButton label="Usage options" className={className}>
       {(close) => (
         <>
-          <MenuChoice
-            label="Metric"
-            options={METRIC_OPTIONS}
-            value={metric.value}
-            source={metric.source}
-            onChoose={(next) => {
-              setUsage({ metric: next });
-              close();
-            }}
-          />
-          <MenuChoice
-            label="Sessions"
-            options={SCOPE_OPTIONS}
-            value={scope.value}
-            source={scope.source}
-            onChoose={(next) => {
-              setUsage({ scope: next });
-              close();
-            }}
-          />
-          <MenuChoice
-            label="Claude cost calculated from"
-            options={COST_BASIS_OPTIONS}
-            value={costBasis.value}
-            source={costBasis.source}
-            onChoose={(next) => {
-              setUsage({ costBasis: next });
-              close();
-            }}
-          />
+          {sections.includes('metric') && (
+            <MenuChoice
+              label="Metric"
+              options={METRIC_OPTIONS}
+              value={metric.value}
+              source={metric.source}
+              onChoose={(next) => {
+                setUsage({ metric: next });
+                close();
+              }}
+            />
+          )}
+          {sections.includes('scope') && (
+            <MenuChoice
+              label="Sessions"
+              options={SCOPE_OPTIONS}
+              value={scope.value}
+              source={scope.source}
+              onChoose={(next) => {
+                setUsage({ scope: next });
+                close();
+              }}
+            />
+          )}
+          {sections.includes('costBasis') && (
+            <MenuChoice
+              label="Claude cost calculated from"
+              options={COST_BASIS_OPTIONS}
+              value={costBasis.value}
+              source={costBasis.source}
+              onChoose={(next) => {
+                setUsage({ costBasis: next });
+                close();
+              }}
+            />
+          )}
 
           <div className="pt-1.5">
             <Button
