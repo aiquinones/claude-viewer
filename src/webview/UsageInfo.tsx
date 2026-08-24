@@ -1,4 +1,5 @@
 import { Info } from 'lucide-react';
+import { useRef } from 'react';
 import {
   CACHE_MULTIPLIERS,
   ModelRates,
@@ -16,6 +17,7 @@ import {
   formatUsd,
   USD_PART_LABEL
 } from './usage-format';
+import { useCardDrop } from './hover-drop';
 import { Z } from './z-layers';
 
 interface UsageInfoProps {
@@ -29,15 +31,25 @@ interface UsageInfoProps {
 // priced at $249 reads as a bug — until the card shows that $148 of it is cache reads, because every
 // turn re-reads the context it's working in, and those tokens appear in no figure on the surface.
 export const UsageInfo = ({ breakdown }: UsageInfoProps) => {
+  const trigger = useRef<HTMLSpanElement>(null);
+  const card = useRef<HTMLDivElement>(null);
+  const { drop, measure } = useCardDrop(trigger, card);
+
   // A window with nothing in it has nothing to explain, and an (i) that opens an empty box is worse
-  // than no (i) at all.
+  // than no (i) at all. Below the hooks rather than above them, since the note it sits in renders
+  // either way.
   if (breakdown.models.length === 0) return null;
 
   // `align-middle` centres an inline box on the *x-height*, which leaves a 14px icon about a pixel
   // below where the eye reads the line's centre. Its bottom sits 0.23em under the baseline instead,
   // putting a 1.17em-tall icon on the cap-height centre — a length, so it holds if the text resizes.
   return (
-    <span className="group relative inline-flex align-[-0.23em]">
+    <span
+      ref={trigger}
+      onPointerEnter={measure}
+      onFocus={measure}
+      className="group relative inline-flex align-[-0.23em]"
+    >
       {/* Not a button — nothing happens on click. Tabbing here opens it via
           group-has-focus-visible; a mouse click on it doesn't, which is the point. */}
       <span
@@ -49,12 +61,19 @@ export const UsageInfo = ({ breakdown }: UsageInfoProps) => {
         <span className="sr-only">how this figure is priced</span>
       </span>
 
-      {/* `pb-1.5` rather than a margin: the gap stays inside the group, so the card survives the
-        mouse crossing it. It opens upward — this sits at the bottom of the surface. */}
+      {/* Padding rather than a margin: the gap stays inside the group, so the card survives the
+          mouse crossing it — which is why it moves ends with the card instead of being one rule.
+
+          Which end it opens toward is measured, because the two mount points differ: on the usage
+          surface the note is the last thing in the scroll body, and on the session page it's under
+          the headline at the top of one. */}
       <div
+        ref={card}
         id={CARD_ID}
         style={{ zIndex: Z.card }}
-        className="invisible absolute bottom-full left-0 pb-1.5 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-has-focus-visible:visible group-has-focus-visible:opacity-100"
+        className={`invisible absolute left-0 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-has-focus-visible:visible group-has-focus-visible:opacity-100 ${
+          drop === 'up' ? 'bottom-full pb-1.5' : 'top-full pt-1.5'
+        }`}
       >
         <div className="flex w-max max-w-[min(28rem,calc(100vw-3rem))] flex-col gap-3 rounded-md border border-border bg-popover p-3 text-xs shadow-lg">
           <CostParts breakdown={breakdown} />
