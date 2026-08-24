@@ -49,7 +49,18 @@
           "default": "standard",
           "markdownDescription": "Which approximation every **est. tokens** figure in the panel uses. Nothing here runs a real tokenizer — the point of an estimate is that it costs one division — so both options are claims, and `anthropic` is the one adjusted for how Claude actually reads text. Budgets are read in whichever units this produces."
         },
-        "claudeViewer.budgets.skills.description": {
+        "claudeViewer.theme.mode": {
+      "type": "string",
+      "enum": [
+        "inherit"
+      ],
+      "enumDescriptions": [
+        "Follow the editor's color theme, which is what the panel has always done."
+      ],
+      "default": "inherit",
+      "markdownDescription": "Which palette the panel draws in. `inherit` is the only mode today — every color in the panel is mapped onto the active VS Code theme, so switching themes switches the panel with it. `dark` and `light`, palettes of the panel's own, are coming: the panel's `...` lists them and says so."
+    },
+    "claudeViewer.budgets.skills.description": {
           "type": "number",
           "default": 100,
           "minimum": 0,
@@ -214,6 +225,8 @@
     "build": "node build.mjs",
     "watch": "node build.mjs --watch",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
@@ -240,6 +253,7 @@
     "tailwindcss": "^4.3.1",
     "typescript": "^5.4.5",
     "vite": "^8.2.0",
+    "vitest": "^4.1.11",
     "zod": "^3.24.1"
   }
 }

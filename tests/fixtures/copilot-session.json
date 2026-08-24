@@ -1,0 +1,1207 @@
+[
+  {
+    "expected": "idle",
+    "event": {
+      "type": "session.start",
+      "timestamp": "2026-08-22T06:22:52.041Z",
+      "data": {
+        "copilotVersion": "1.0.80"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "session.model_change",
+      "timestamp": "2026-08-22T06:22:52.918Z"
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "session.auto_mode_resolved",
+      "timestamp": "2026-08-22T06:53:29.611Z"
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "system.message",
+      "timestamp": "2026-08-22T06:53:31.286Z",
+      "data": {
+        "content": "[system.message content redacted, 123166 chars]"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "user.message",
+      "timestamp": "2026-08-22T06:53:31.300Z",
+      "data": {
+        "content": "hey do you have a context file about the repo?"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:53:31.350Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:53:34.402Z",
+      "data": {
+        "content": "Yes — the repo has a root context file describing the layout and the conventions."
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:53:34.403Z"
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "session.usage_checkpoint",
+      "timestamp": "2026-08-22T06:53:34.407Z"
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "skill.invoked",
+      "timestamp": "2026-08-22T06:55:10.276Z",
+      "data": {
+        "content": "[skill.invoked content redacted, 3592 chars]"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "session.auto_mode_resolved",
+      "timestamp": "2026-08-22T06:55:11.254Z"
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "system.message",
+      "timestamp": "2026-08-22T06:55:11.916Z",
+      "data": {
+        "content": "[system.message content redacted, 123166 chars]"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "user.message",
+      "timestamp": "2026-08-22T06:55:11.929Z",
+      "data": {
+        "content": "cool,\n\n/dev-feature rename the section headings on the settings screen"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:55:11.967Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:55:15.327Z",
+      "data": {
+        "content": ""
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:15.329Z",
+      "data": {
+        "toolName": "skill",
+        "toolCallId": "call_6gpOdJvx3K0NKtwkDzCzWQml"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:15.343Z",
+      "data": {
+        "toolCallId": "call_6gpOdJvx3K0NKtwkDzCzWQml"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "skill.invoked",
+      "timestamp": "2026-08-22T06:55:15.345Z",
+      "data": {
+        "content": "[skill.invoked content redacted, 3592 chars]"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "user.message",
+      "timestamp": "2026-08-22T06:55:15.384Z",
+      "data": {
+        "content": "<skill-context name=\"dev-feature\">[skill body redacted]</skill-context>"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:55:15.385Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:55:15.386Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:55:17.413Z",
+      "data": {
+        "content": "I will trace the section labels and read the components that render them."
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:17.415Z",
+      "data": {
+        "toolName": "view",
+        "toolCallId": "call_gw9kUXuSmPydF6UA5GMWbV5P"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:17.415Z",
+      "data": {
+        "toolName": "view",
+        "toolCallId": "call_JR9Hoxvgku9BCrhbvUXtooXq"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:17.416Z",
+      "data": {
+        "toolName": "rg",
+        "toolCallId": "call_Kt6BsSNR1pHdLko6IqbOdKHB"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:17.463Z",
+      "data": {
+        "toolCallId": "call_gw9kUXuSmPydF6UA5GMWbV5P"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:17.468Z",
+      "data": {
+        "toolCallId": "call_JR9Hoxvgku9BCrhbvUXtooXq"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:17.477Z",
+      "data": {
+        "toolCallId": "call_Kt6BsSNR1pHdLko6IqbOdKHB"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:55:17.513Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:55:17.514Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:55:19.995Z",
+      "data": {
+        "content": ""
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:19.997Z",
+      "data": {
+        "toolName": "view",
+        "toolCallId": "call_mzqANaPsuFDXXOrvOds9lS9T"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:19.997Z",
+      "data": {
+        "toolName": "view",
+        "toolCallId": "call_l5kDMLTO7cybEG0A04b4uHRx"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:19.998Z",
+      "data": {
+        "toolName": "view",
+        "toolCallId": "call_96DnUUeTXnia8KRpUKo9hiDo"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:19.999Z",
+      "data": {
+        "toolName": "view",
+        "toolCallId": "call_wIJBhQ21kElLtPG55y6yEh4j"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:19.999Z",
+      "data": {
+        "toolName": "rg",
+        "toolCallId": "call_zBrOi5ZjuATAwqTeLXWX8HHU"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:20.023Z",
+      "data": {
+        "toolCallId": "call_mzqANaPsuFDXXOrvOds9lS9T"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:20.028Z",
+      "data": {
+        "toolCallId": "call_l5kDMLTO7cybEG0A04b4uHRx"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:20.033Z",
+      "data": {
+        "toolCallId": "call_96DnUUeTXnia8KRpUKo9hiDo"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:20.038Z",
+      "data": {
+        "toolCallId": "call_wIJBhQ21kElLtPG55y6yEh4j"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:20.049Z",
+      "data": {
+        "toolCallId": "call_zBrOi5ZjuATAwqTeLXWX8HHU"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:55:20.088Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:55:20.089Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:55:22.898Z",
+      "data": {
+        "content": "Plan:\n- rename the headings\n- update the two stories that assert on them"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:55:22.899Z"
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "session.usage_checkpoint",
+      "timestamp": "2026-08-22T06:55:22.904Z"
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "system.message",
+      "timestamp": "2026-08-22T06:55:42.587Z",
+      "data": {
+        "content": "[system.message content redacted, 123166 chars]"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "user.message",
+      "timestamp": "2026-08-22T06:55:42.596Z",
+      "data": {
+        "content": "lgtm"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:55:42.639Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:55:45.038Z",
+      "data": {
+        "content": "I will make the approved copy-only edits on a branch."
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:45.042Z",
+      "data": {
+        "toolName": "bash",
+        "toolCallId": "call_HmGLIVh95vzRESzKBSeZhHkk"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:45.100Z",
+      "data": {
+        "toolCallId": "call_HmGLIVh95vzRESzKBSeZhHkk"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:55:45.152Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:55:45.153Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:55:47.151Z",
+      "data": {
+        "content": ""
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:47.154Z",
+      "data": {
+        "toolName": "bash",
+        "toolCallId": "call_PhEatcKZniY99DFSb3WZVl8x"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:47.290Z",
+      "data": {
+        "toolCallId": "call_PhEatcKZniY99DFSb3WZVl8x"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:55:47.335Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:55:47.336Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:55:52.023Z",
+      "data": {
+        "content": ""
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:52.025Z",
+      "data": {
+        "toolName": "apply_patch",
+        "toolCallId": "custom_call_f8cZN2VyXCrEfbU4GhbeHsPf"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:52.050Z",
+      "data": {
+        "toolCallId": "custom_call_f8cZN2VyXCrEfbU4GhbeHsPf"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:55:52.111Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:55:52.112Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:55:54.181Z",
+      "data": {
+        "content": ""
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:54.183Z",
+      "data": {
+        "toolName": "rg",
+        "toolCallId": "call_Idx0RpAHHpr2hImD1Nd94KfZ"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:54.184Z",
+      "data": {
+        "toolName": "bash",
+        "toolCallId": "call_kslKMXeFPiIj8zMmQkdjpdCh"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:54.228Z",
+      "data": {
+        "toolCallId": "call_Idx0RpAHHpr2hImD1Nd94KfZ"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:54.233Z",
+      "data": {
+        "toolCallId": "call_kslKMXeFPiIj8zMmQkdjpdCh"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:55:54.277Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:55:54.278Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:55:56.414Z",
+      "data": {
+        "content": ""
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:56.416Z",
+      "data": {
+        "toolName": "apply_patch",
+        "toolCallId": "custom_call_pZoKfxX5v7h6EHfkTLtoynU8"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:56.422Z",
+      "data": {
+        "toolCallId": "custom_call_pZoKfxX5v7h6EHfkTLtoynU8"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:55:56.471Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:55:56.472Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:55:57.524Z",
+      "data": {
+        "content": ""
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:55:57.525Z",
+      "data": {
+        "toolName": "bash",
+        "toolCallId": "call_U2XjdDvbJu0xvI5z7xTNfARA"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:55:59.567Z",
+      "data": {
+        "toolCallId": "call_U2XjdDvbJu0xvI5z7xTNfARA"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:55:59.614Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:55:59.614Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:56:01.660Z",
+      "data": {
+        "content": ""
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:56:01.662Z",
+      "data": {
+        "toolName": "bash",
+        "toolCallId": "call_pq9dJJy7A28QZZLyG2SlZknU"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:56:01.663Z",
+      "data": {
+        "toolName": "bash",
+        "toolCallId": "call_yOmZjX8BRU6sQNCup5UAANkq"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:56:02.686Z",
+      "data": {
+        "toolCallId": "call_yOmZjX8BRU6sQNCup5UAANkq"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:56:02.692Z",
+      "data": {
+        "toolCallId": "call_pq9dJJy7A28QZZLyG2SlZknU"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:56:02.742Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:56:02.742Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:56:04.975Z",
+      "data": {
+        "content": ""
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:56:04.976Z",
+      "data": {
+        "toolName": "read_bash",
+        "toolCallId": "call_e0w3LWc7945Rtf3fdcRI3dJq"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:56:04.987Z",
+      "data": {
+        "toolCallId": "call_e0w3LWc7945Rtf3fdcRI3dJq"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:56:05.033Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:56:05.034Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:56:06.265Z",
+      "data": {
+        "content": ""
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:56:06.267Z",
+      "data": {
+        "toolName": "bash",
+        "toolCallId": "call_C5csrL54sbGxEp7dmmtcoMq0"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:56:06.330Z",
+      "data": {
+        "toolCallId": "call_C5csrL54sbGxEp7dmmtcoMq0"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:56:06.379Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:56:06.380Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:56:09.496Z",
+      "data": {
+        "content": "The copy changes are in place; I am correcting a validation error."
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:56:09.497Z",
+      "data": {
+        "toolName": "bash",
+        "toolCallId": "call_zaqNXxn7QP3KaAh2tIjkfbSF"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:56:09.739Z",
+      "data": {
+        "toolCallId": "call_zaqNXxn7QP3KaAh2tIjkfbSF"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:56:09.786Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:56:09.787Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:56:12.861Z",
+      "data": {
+        "content": ""
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:56:12.862Z",
+      "data": {
+        "toolName": "bash",
+        "toolCallId": "call_ncOpdUrQwkQ2yEejWU4EO0q7"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:56:15.894Z",
+      "data": {
+        "toolCallId": "call_ncOpdUrQwkQ2yEejWU4EO0q7"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:56:15.942Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:56:15.943Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:56:17.414Z",
+      "data": {
+        "content": ""
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T06:56:17.415Z",
+      "data": {
+        "toolName": "bash",
+        "toolCallId": "call_4cmIBRC3ZVjCkEwQS6DSkxg5"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T06:56:21.196Z",
+      "data": {
+        "toolCallId": "call_4cmIBRC3ZVjCkEwQS6DSkxg5"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:56:21.246Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T06:56:21.247Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T06:56:25.704Z",
+      "data": {
+        "content": "Implemented on the branch:\n\n- renamed the headings\n- updated the stories"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T06:56:25.717Z"
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "session.usage_checkpoint",
+      "timestamp": "2026-08-22T06:56:25.726Z"
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "system.message",
+      "timestamp": "2026-08-22T07:01:59.442Z",
+      "data": {
+        "content": "[system.message content redacted, 123166 chars]"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "user.message",
+      "timestamp": "2026-08-22T07:01:59.451Z",
+      "data": {
+        "content": "pr pls"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T07:01:59.513Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T07:02:04.259Z",
+      "data": {
+        "content": "I will commit the focused copy changes and open the PR."
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T07:02:04.264Z",
+      "data": {
+        "toolName": "bash",
+        "toolCallId": "call_TqklawgTO5zfgWt0Nh0KFYLp"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T07:02:07.756Z",
+      "data": {
+        "toolCallId": "call_TqklawgTO5zfgWt0Nh0KFYLp"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T07:02:07.821Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T07:02:07.822Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T07:02:10.183Z",
+      "data": {
+        "content": ""
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_start",
+      "timestamp": "2026-08-22T07:02:10.186Z",
+      "data": {
+        "toolName": "bash",
+        "toolCallId": "call_aQ9thejxRZswAFfhxrPS0mdB"
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "tool.execution_complete",
+      "timestamp": "2026-08-22T07:02:10.229Z",
+      "data": {
+        "toolCallId": "call_aQ9thejxRZswAFfhxrPS0mdB"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T07:02:10.285Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.turn_start",
+      "timestamp": "2026-08-22T07:02:10.286Z"
+    }
+  },
+  {
+    "expected": "running",
+    "event": {
+      "type": "assistant.message",
+      "timestamp": "2026-08-22T07:02:11.773Z",
+      "data": {
+        "content": "PR opened: https://example.invalid/pull/1"
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "assistant.turn_end",
+      "timestamp": "2026-08-22T07:02:11.774Z"
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "session.usage_checkpoint",
+      "timestamp": "2026-08-22T07:02:11.780Z"
+    }
+  },
+  {
+    "expected": "idle",
+    "event": {
+      "type": "session.shutdown",
+      "timestamp": "2026-08-22T07:03:01.961Z"
+    }
+  }
+]

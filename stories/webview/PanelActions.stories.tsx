@@ -19,7 +19,9 @@ export default meta;
 
 type Story = StoryObj<typeof PanelActions>;
 
-// Hover either button for its tooltip; the magnifier's carries the chord. Click the refresh icon to see it spin.
+// Hover the magnifier or the refresh for a tooltip; the magnifier's carries the chord. Click the
+// refresh icon to see it spin, and the `...` for the panel's own options — that one has no tooltip,
+// since its contents name themselves once it's open.
 export const Default: Story = {
   args: {}
 };

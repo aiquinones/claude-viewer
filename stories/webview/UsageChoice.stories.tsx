@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { UsageMetric } from '@src/model/usage/types';
 import { UsageChoice } from '@src/webview/UsageChoice';
-import { ChoiceOption } from '@src/webview/usage-options';
+import { ChoiceOption } from '@src/webview/menu/choice-option';
 
 const METRICS: readonly ChoiceOption<UsageMetric>[] = [
   {

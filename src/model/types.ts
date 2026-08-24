@@ -3,6 +3,7 @@
 
 import { TokenEstimator } from './estimate-tokens';
 import { SettingsSection, ViewerSettings } from './settings/settings';
+import { PanelTheme } from './settings/theme';
 import {
   SessionDetail,
   UsageCostBasis,
@@ -183,6 +184,11 @@ export interface AgentSession {
   sessionId: string;
   tool: AgentTool;
   pid: number;
+  // Other live processes holding this same session. Resuming starts a second process and the first
+  // stays alive attached to the same conversation, so the surface picks one to draw and keeps the
+  // rest here — every field a row shows comes off the shared transcript, so listing them twice
+  // would be the same row twice. Empty in the normal case.
+  otherPids: number[];
   // Where the agent is working. A session inside a worktree reports the worktree, not the repo.
   cwd: string;
   // The log this session is appending to: a `.jsonl` transcript for Claude, `events.jsonl` for
@@ -440,9 +446,9 @@ export type HostMessage =
   // of every session is the thing it drops.
   | { type: 'sessionDetail'; detail: SessionDetail };
 
-// Webview → host. `surfaceUnavailable` carries only the surface's name: the host owns the
-// sentence, the same way it owns which paths `openFile` will accept. `openSettings` is the same
-// deal — the webview names the section it wants, the host turns that into the query.
+// Webview → host. `notBuilt` carries only the name of the thing: the host owns the sentence, the
+// same way it owns which paths `openFile` will accept. `openSettings` is the same deal — the
+// webview names the section it wants, the host turns that into the query.
 export type WebviewMessage =
   | { type: 'ready' }
   | { type: 'refresh' }
@@ -465,7 +471,9 @@ export type WebviewMessage =
   | { type: 'requestSessionDetail'; sessionId: string; tool: AgentTool }
   // No path: the graph is over every listed skill, and the host caches it per snapshot.
   | { type: 'requestGraph' }
-  | { type: 'surfaceUnavailable'; title: string }
+  // A surface with no view yet, or a theme with no palette yet. Named for what it says rather
+  // than for the landing page, since it's no longer only cards that reach it.
+  | { type: 'notBuilt'; title: string }
   // Which surface is on screen, `undefined` for the landing page. The id is a plain string here:
   // SurfaceId is derived from SURFACES, which is webview-only, so the host matches it against its
   // own constant the way it already matches command ids against package.json.
@@ -478,6 +486,9 @@ export type WebviewMessage =
   // The estimator dialog's Apply. Writes `claudeViewer.tokens.estimator` — the extension's own
   // settings, not Claude's.
   | { type: 'setEstimator'; estimator: TokenEstimator }
+  // The theme menu's pick. Writes `claudeViewer.theme.mode`, and only ever a mode that has a
+  // palette behind it — the others report through `notBuilt` and write nothing.
+  | { type: 'setTheme'; mode: PanelTheme }
   | {
       type: 'setUsage';
       metric?: UsageMetric;

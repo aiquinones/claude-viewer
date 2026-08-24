@@ -3,6 +3,7 @@ import { AgentActivity } from '../model/types';
 import { cn } from '@/lib/utils';
 import { ActivityBadge } from './ActivityBadge';
 import { AgentContext } from './AgentContext';
+import { AgentFlags } from './AgentFlags';
 import { AgentMenu } from './agent-menu/AgentMenu';
 import { useAgentMenu } from './agent-menu/useAgentMenu';
 import { AgentRowProps } from './agent-row-props';
@@ -10,7 +11,7 @@ import { RowColor, useRowColor } from './agent-color/useRowColor';
 import { AgentRowFooter } from './AgentRowFooter';
 import { AgentToolTag } from './AgentToolTag';
 import { activityOf } from './agent-activity';
-import { agentLabel, agentTooltip } from './agent-row-text';
+import { agentLabel } from './agent-row-text';
 import { displayFolder } from './display-path';
 import { formatAge } from './format-age';
 
@@ -51,11 +52,15 @@ export const AgentRow = ({
     >
       <button
         type="button"
-        title={agentTooltip(agent)}
         className="flex w-full min-w-0 flex-col gap-1.5 rounded-md px-3 py-2 text-left cursor-pointer"
       >
         <span className="flex w-full min-w-0 items-center gap-2">
           <ActivityBadge activity={activity} tail={agent.tail} />
+          {/* Anything wrong with the row, as icons. On this side rather than by the age: the age
+              is a word whose width changes as it counts up, so an icon anchored to it slides
+              around while you're reading. They sit inside the button, unlike the PR link — a
+              tooltip is spans, and a `<button>` can hold those. */}
+          <AgentFlags agent={agent} />
           <span
             className={cn(
               'truncate text-sm font-medium',
@@ -72,9 +77,15 @@ export const AgentRow = ({
 
         <span className="flex w-full min-w-0 items-center gap-2 pl-3.5">
           <AgentToolTag tool={agent.tool} />
-          <span className="mono truncate text-xs text-muted-foreground">
-            {displayFolder({ path: agent.cwd, workspaceRoot })}
-          </span>
+          {/* Only where it says something the panel hasn't. An agent sitting in the open folder
+              would print that folder's name back at you — the header already did. A worktree is
+              under the same root and still prints, since which worktree is the whole question when
+              two agents share a repo. */}
+          {agent.cwd !== workspaceRoot && (
+            <span className="mono truncate text-xs text-muted-foreground">
+              {displayFolder({ path: agent.cwd, workspaceRoot })}
+            </span>
+          )}
           {/* Only Copilot records the branch. It's the thing you want to know about an agent
               working somewhere else, so it goes on the row when it's there. */}
           {agent.branch && (

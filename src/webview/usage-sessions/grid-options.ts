@@ -2,7 +2,7 @@
 // which number the surface reads is in the header's `...` instead.
 
 import { AGENT_TOOLS, AGENT_TOOL_LABEL, AgentTool } from '../../model/types';
-import { ChoiceOption } from '../usage-options';
+import { ChoiceOption } from '../menu/choice-option';
 
 // Which CLI the grid is drawn for. Not a merged series: the two tools delete their history under
 // different rules — Claude Code on a `cleanupPeriodDays` sweep, Copilot on nothing it publishes —

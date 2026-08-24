@@ -39,7 +39,7 @@ export const readEvents = async (path: string): Promise<CopilotEventSummary> => 
   const events: CopilotEvent[] = parseEvents(read.value.text, read.value.truncated);
 
   return {
-    ...lastTurn(events),
+    ...copilotTail(events),
     lastPrompt: lastPrompt(events),
     version: await startVersion(path),
     lastActivityAt: read.value.mtimeMs,
@@ -80,7 +80,12 @@ const lastPrompt = (events: CopilotEvent[]): string | undefined => {
 // Walk back to the first event that settles what the agent is doing. The two "open" cases are
 // matched by id rather than by position: Copilot runs tools in parallel, so a completed one can sit
 // after a still-open one.
-const lastTurn = (events: CopilotEvent[]): Pick<CopilotEventSummary, 'tail' | 'pendingTool'> => {
+//
+// Exported because it's the whole status rule and it's pure — same seam `activity.ts` and
+// `context.ts` have, and what lets the tests read it without a disk.
+export const copilotTail = (
+  events: CopilotEvent[]
+): Pick<CopilotEventSummary, 'tail' | 'pendingTool'> => {
   const answered: Set<string> = new Set();
   const finished: Set<string> = new Set();
 
@@ -114,9 +119,25 @@ const lastTurn = (events: CopilotEvent[]): Pick<CopilotEventSummary, 'tail' | 'p
       continue;
     }
 
-    // The turn is over, and so is the process in the second case.
+    // The query is done: billed at the checkpoint, cancelled at the abort. Both are stated rather
+    // than inferred, and `abort` is the one path that reaches here with no `assistant.turn_end`
+    // behind it — a turn the user escaped leaves its `turn_start` as the last thing said about it.
+    if (event.type === 'session.usage_checkpoint' || event.type === 'abort') {
+      return { tail: 'settled' };
+    }
+
+    // The turn is over, and so is the process in the second case. A `turn_end` mid-query is
+    // followed by the next `turn_start` within 3ms, so the walk above reaches that first and this
+    // only fires on a turn that really is the last word in the log.
     if (event.type === 'assistant.turn_end' || event.type === 'session.shutdown') {
       return { tail: 'settled' };
+    }
+
+    // The model has the turn: it opened one, or it's writing into one. Without these the walk runs
+    // past a live turn to the *previous* turn_end and reports a working agent as idle — which is
+    // every turn after a session's first, since the first has no turn_end behind it to find.
+    if (event.type === 'assistant.turn_start' || event.type === 'assistant.message') {
+      return { tail: 'working' };
     }
 
     // The prompt landed and the model has it.

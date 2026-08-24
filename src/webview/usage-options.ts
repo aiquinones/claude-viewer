@@ -1,9 +1,6 @@
 // What each toggle on the usage surface offers. Every one of them picks between two readings of the
 // same sessions, so each option carries the sentence that says which — the labels are short enough
 // to be ambiguous on their own.
-//
-// The shape lives here rather than with `UsageChoice`: the segmented control is no longer the only
-// thing that draws these options, since the `...` renders the same ones as menu rows.
 
 import {
   UsageCostBasis,
@@ -13,14 +10,7 @@ import {
   USAGE_WINDOWS
 } from '../model/usage/types';
 import { WINDOW_BLURB, WINDOW_LABEL } from '../model/usage/window';
-
-export interface ChoiceOption<Id extends string> {
-  id: Id;
-  label: string;
-  // What the option means — on hover in a segmented control, under the label in the menu. A
-  // `backticked` run in it is set in mono either way.
-  hint: string;
-}
+import { ChoiceOption } from './menu/choice-option';
 
 export const WINDOW_OPTIONS: readonly ChoiceOption<UsageWindow>[] = USAGE_WINDOWS.map((window) => ({
   id: window,

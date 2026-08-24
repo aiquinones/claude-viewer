@@ -12,6 +12,9 @@ import { CopilotWorkspace, parseWorkspaceFile } from './workspace-schema';
 export interface LiveCopilotSession {
   sessionId: string;
   pid: number;
+  // The other processes holding the same directory. A resumed session is a second process and a
+  // crash leaves a lock behind, so more than one live pid on one session is a real state.
+  otherPids: number[];
   dir: string;
   workspace: CopilotWorkspace;
 }
@@ -42,8 +45,10 @@ const readSession = async ({
 }: ReadSessionArgs): Promise<LiveCopilotSession | undefined> => {
   const dir: string = join(root, sessionId);
 
-  const pid: number | undefined = await holdingPid(dir);
-  if (pid === undefined) return undefined;
+  const pids: number[] = await holdingPids(dir);
+  if (pids.length === 0) return undefined;
+
+  const [pid, ...otherPids]: number[] = pids;
 
   const read: Result<string, ConfigError> = await readTextFile(copilotWorkspacePath(dir));
   if (!read.ok) return undefined;
@@ -51,18 +56,16 @@ const readSession = async ({
   const workspace: CopilotWorkspace | undefined = parseWorkspaceFile(read.value);
   if (!workspace) return undefined;
 
-  return { sessionId, pid, dir, workspace };
+  return { sessionId, pid, otherPids, dir, workspace };
 };
 
-// The pid holding this session, if one still is. A directory can carry more than one lock — a
-// resumed session is a second process — so the first live one wins and the stale files are ignored.
-const holdingPid = async (dir: string): Promise<number | undefined> => {
+// Every pid still holding this session. A directory can carry more than one lock — a resumed
+// session is a second process — so the first live one holds the row and the rest ride beside it.
+// Locks whose process is gone are ignored: a crash removes nothing.
+const holdingPids = async (dir: string): Promise<number[]> => {
   const names: string[] = await listFiles(dir);
 
-  for (const name of names) {
-    const pid: number | undefined = lockedPid(name);
-    if (pid !== undefined && isRunning(pid)) return pid;
-  }
-
-  return undefined;
+  return names
+    .map(lockedPid)
+    .filter((pid): pid is number => pid !== undefined && isRunning(pid));
 };
