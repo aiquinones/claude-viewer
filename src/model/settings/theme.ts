@@ -12,6 +12,9 @@ export const THEME_MODES = ['inherit', 'auto', 'dark', 'light'] as const;
 
 export type ThemeMode = (typeof THEME_MODES)[number];
 
-// The editor's own colors, which is what the panel has always drawn — so an existing settings.json
-// keeps meaning what it meant.
-export const DEFAULT_THEME_MODE: ThemeMode = 'inherit';
+// The panel's own palette, in whichever polarity the editor is in. Not `inherit`, which is what
+// shipped before the palettes existed: a panel that reads every color off the active theme looks
+// like whatever that theme happens to do to a widget, and the palettes are here because that's
+// worth deciding rather than inheriting. Following the editor's light/dark is the part of the
+// inheritance that's always right.
+export const DEFAULT_THEME_MODE: ThemeMode = 'auto';

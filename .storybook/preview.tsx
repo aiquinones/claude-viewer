@@ -7,7 +7,7 @@ import {
   promptMarkdown,
   skillMarkdown
 } from '../stories/fixtures';
-import { THEME_MODES, ThemeMode } from '../src/model/settings/theme';
+import { DEFAULT_THEME_MODE, THEME_MODES, ThemeMode } from '../src/model/settings/theme';
 import { applyTheme, ThemeName } from './vscode-theme';
 
 // App reaches for the webview bridge at module scope, which doesn't exist outside the editor.
@@ -43,7 +43,9 @@ const isThemeMode = (value: unknown): value is ThemeMode =>
 // and which palette the panel is set to. Panel dark on Light+ is a real state to look at.
 const withVsCodeTheme: Decorator = (Story, context) => {
   const theme: ThemeName = context.globals.theme === 'light' ? 'light' : 'dark';
-  const panel: ThemeMode = isThemeMode(context.globals.panel) ? context.globals.panel : 'inherit';
+  const panel: ThemeMode = isThemeMode(context.globals.panel)
+    ? context.globals.panel
+    : DEFAULT_THEME_MODE;
 
   useEffect(() => applyTheme(theme), [theme]);
   useEffect(() => {
@@ -81,7 +83,7 @@ const preview: Preview = {
       }
     }
   },
-  initialGlobals: { theme: 'dark', panel: 'inherit' },
+  initialGlobals: { theme: 'dark', panel: 'auto' },
   parameters: {
     layout: 'fullscreen',
     controls: { matchers: { color: /(background|color)$/i } },

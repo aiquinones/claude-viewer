@@ -11,14 +11,11 @@ export const THEME_LABEL: Record<ThemeMode, string> = {
   light: 'Light'
 };
 
-// Two rows both starting with "Editor" is what earns hints here. Dark and Light wouldn't need one —
-// a sentence saying that Dark is dark is a line to read past — but they carry the half that isn't
-// obvious: that they hold whatever the editor is doing.
-const THEME_HINT: Record<ThemeMode, string> = {
-  inherit: 'Every color read from your VS Code theme.',
-  auto: "The panel's own palette, in the polarity your editor is in.",
-  dark: "The panel's dark palette, whatever the editor is set to.",
-  light: "The panel's light palette, whatever the editor is set to."
+// Only the two rows that both start with "Editor" get one — they're the pair a label can't separate.
+// Dark and Light say what they are, and a sentence repeating it is a line to read past.
+const THEME_HINT: Partial<Record<ThemeMode, string>> = {
+  inherit: 'Use active theme',
+  auto: "Use active's theme polarity"
 };
 
 export const THEME_OPTIONS: readonly ChoiceOption<ThemeMode>[] = THEME_MODES.map((mode) => ({

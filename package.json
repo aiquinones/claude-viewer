@@ -63,8 +63,8 @@
             "The panel's dark palette, whatever the editor is set to.",
             "The panel's light palette, whatever the editor is set to."
           ],
-          "default": "inherit",
-          "markdownDescription": "Which palette the panel draws in. `inherit` maps every color onto the active VS Code theme, so switching themes switches the panel with it. `auto` reads only whether that theme is light or dark and draws the panel's own palette to match. `dark` and `light` pick one of those palettes outright."
+          "default": "auto",
+          "markdownDescription": "Which palette the panel draws in. `auto`, the default, draws the panel's own palette in whichever polarity your editor is in — dark theme, dark panel. `inherit` instead reads every color off the active VS Code theme, which is what the panel did before it had palettes of its own. `dark` and `light` pick one outright."
         },
         "claudeViewer.budgets.skills.description": {
           "type": "number",

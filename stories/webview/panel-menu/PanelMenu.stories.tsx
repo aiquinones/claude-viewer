@@ -40,7 +40,7 @@ export default meta;
 
 type Story = StoryObj<typeof PanelMenu>;
 
-// Nothing configured: the check sits on Inherit and the line says it's the default.
+// Nothing configured: the check sits on Editor light/dark and the line says it's the default.
 export const Default: Story = {
   render: () => (
     <WithTheme source="default">
@@ -53,7 +53,7 @@ export const Default: Story = {
 // moves is the provenance line — which is the point of printing it.
 export const SetByUser: Story = {
   render: () => (
-    <WithTheme mode="inherit">
+    <WithTheme mode="auto">
       <PanelMenu />
     </WithTheme>
   )
@@ -68,12 +68,10 @@ export const SetForWorkspace: Story = {
   )
 };
 
-// The mode that reads the editor's polarity and nothing else. The row is a row like any other —
-// what makes it different happens in CSS, which is why the toolbar's Panel palette is where you see
-// it work.
-export const FollowsEditorPolarity: Story = {
+// Every color off the editor, which is what the panel drew before it had palettes of its own.
+export const InheritsEveryColor: Story = {
   render: () => (
-    <WithTheme mode="auto">
+    <WithTheme mode="inherit">
       <PanelMenu />
     </WithTheme>
   )
