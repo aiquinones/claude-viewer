@@ -15,7 +15,11 @@ interface MenuChoiceProps<Id extends string> {
   label: string;
   options: readonly ChoiceOption<Id>[];
   value: Id;
-  source: SettingSource;
+  // Where the value came from, printed beside the group's label. Optional: it's there because a
+  // *number* you can't argue with is a number you ignore, which is the usage menu's whole problem
+  // and no problem at all for a theme — nobody wonders which layer set what color they're looking
+  // at. Left out, the label has the row to itself.
+  source?: SettingSource;
   onChoose: (value: Id) => void;
 }
 
@@ -32,7 +36,7 @@ export const MenuChoice = <Id extends string>({
   <div className="flex flex-col gap-1 py-1.5 first:pt-0 last:pb-0">
     <div className="flex items-baseline gap-2 px-1.5 text-muted-foreground">
       <span>{label}</span>
-      <span className="ml-auto shrink-0 text-[0.6875rem]">{SOURCE_NOTE[source]}</span>
+      {source && <span className="ml-auto shrink-0 text-[0.6875rem]">{SOURCE_NOTE[source]}</span>}
     </div>
 
     {options.map((option) => (

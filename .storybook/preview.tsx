@@ -74,10 +74,10 @@ const preview: Preview = {
       toolbar: {
         icon: 'paintbrush',
         items: [
-          { value: 'inherit', title: 'Inherit' },
-          { value: 'auto', title: 'Editor light/dark' },
+          { value: 'auto', title: 'Auto' },
           { value: 'dark', title: 'Panel dark' },
-          { value: 'light', title: 'Panel light' }
+          { value: 'light', title: 'Panel light' },
+          { value: 'inherit', title: "Editor's color" }
         ],
         dynamicTitle: true
       }

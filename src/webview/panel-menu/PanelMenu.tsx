@@ -9,9 +9,11 @@ import { THEME_OPTIONS } from './theme-options';
 // changes how the *panel* looks rather than what any one surface shows, which is why it's in the
 // header row and says the same thing on every surface.
 //
-// One group so far. It's a menu rather than a segmented control because two of the three modes
-// aren't built — a dimmed row is how you learn a mode is coming, where a dimmed tile is a control
-// with a dead third of it.
+// One group so far. A menu rather than a segmented control because one of the rows carries a
+// sentence, and four tiles with a hint under one of them is not a control.
+//
+// No provenance line, unlike the usage menu: which layer set a color is not a thing anyone wonders,
+// where which layer set a *limit* is the whole reason that line exists.
 export const PanelMenu = () => {
   const { mode } = useSettings().theme;
   const setTheme = useSetTheme();
@@ -25,7 +27,6 @@ export const PanelMenu = () => {
             label="Theme"
             options={THEME_OPTIONS}
             value={mode.value}
-            source={mode.source}
             onChoose={(next) => {
               setTheme(next);
               close();

@@ -52,16 +52,16 @@
         "claudeViewer.theme.mode": {
           "type": "string",
           "enum": [
-            "inherit",
             "auto",
             "dark",
-            "light"
+            "light",
+            "inherit"
           ],
           "enumDescriptions": [
-            "Every color read from the active VS Code theme, which is what the panel has always done.",
-            "The panel's own palette, in the polarity your editor is in — dark theme, dark panel.",
+            "The panel's own palette, in whichever polarity your editor is in — dark theme, dark panel.",
             "The panel's dark palette, whatever the editor is set to.",
-            "The panel's light palette, whatever the editor is set to."
+            "The panel's light palette, whatever the editor is set to.",
+            "Every color read from the active VS Code theme, which is what the panel did before it had palettes of its own."
           ],
           "default": "auto",
           "markdownDescription": "Which palette the panel draws in. `auto`, the default, draws the panel's own palette in whichever polarity your editor is in — dark theme, dark panel. `inherit` instead reads every color off the active VS Code theme, which is what the panel did before it had palettes of its own. `dark` and `light` pick one outright."

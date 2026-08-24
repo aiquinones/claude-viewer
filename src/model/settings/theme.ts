@@ -4,11 +4,13 @@
 // The polarity read is a CSS selector rather than anything here — a webview's <body> carries
 // `vscode-light` / `vscode-dark`, so `auto` is a rule in styles.css and this file only names it.
 
-// Every mode, in the order the menu draws them: increasing specificity, from inheriting everything
-// to inheriting nothing.
+// Every mode, in the order the menu draws them: the three that draw the panel's own palette first,
+// then the one that gives the palette up and takes the editor's colors instead. That last one is a
+// different kind of answer, not a fourth palette, which is why it sits apart rather than in the
+// middle of them.
 //
 // Deliberately not annotated: a type here would erase the literals `ThemeMode` derives from.
-export const THEME_MODES = ['inherit', 'auto', 'dark', 'light'] as const;
+export const THEME_MODES = ['auto', 'dark', 'light', 'inherit'] as const;
 
 export type ThemeMode = (typeof THEME_MODES)[number];
 
