@@ -145,18 +145,39 @@ export const oneSkill: UsageReport = report([
 // Skills for the rows above to point at. `track` is deliberately not here: a window covering every
 // session on the machine names skills this workspace doesn't have, and those rows have to read as
 // labels — no card, no click.
-const DESCRIPTIONS: Record<string, string> = {
-  'dev-feature': 'Full feature development cycle — plan, implement, PR, release the worktree.',
-  'create-pr': 'Branch, commit, push, and open a pull request for the current work.',
-  'post-mortem': 'Reflect on the session and write what was learned back into the docs.',
-  publish: 'Ship a new version — preflight, changelog, then publish.'
+//
+// The sizes are spread across the range real skills occupy — ~275 to ~8,000 est. tokens per body —
+// so anything drawing a bar against them has something to compare rather than four identical rows.
+interface SkillFixture {
+  description: string;
+  chars: number;
+}
+
+const SKILL_FIXTURES: Record<string, SkillFixture> = {
+  'dev-feature': {
+    description: 'Full feature development cycle — plan, implement, PR, release the worktree.',
+    chars: 14_368
+  },
+  'create-pr': {
+    description: 'Branch, commit, push, and open a pull request for the current work.',
+    chars: 5_120
+  },
+  'post-mortem': {
+    description: 'Reflect on the session and write what was learned back into the docs.',
+    chars: 3_260
+  },
+  publish: {
+    description: 'Ship a new version — preflight, changelog, then publish.',
+    chars: 1_180
+  }
 };
 
-export const usageSkills: SkillEntry[] = Object.entries(DESCRIPTIONS).map(
-  ([name, description]) => ({
+export const usageSkills: SkillEntry[] = Object.entries(SKILL_FIXTURES).map(
+  ([name, { description, chars }]) => ({
     ...plainSkill,
     name,
     description,
+    chars,
     scope: 'user' as const,
     path: `/Users/dev/.claude/skills/${name}/SKILL.md`
   })

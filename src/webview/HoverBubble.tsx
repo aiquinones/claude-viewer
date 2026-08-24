@@ -1,17 +1,17 @@
 import { ReactNode } from 'react';
-import { Z } from '@/z-layers';
+import { Z } from './z-layers';
 
-// How much room the bubble needs on one side of a square before it will centre on it. About half
+// How much room the bubble needs on one side of its target before it will centre on it. About half
 // the width of the longest thing it says — "1.2M output tokens on Monday, August 18".
 const EDGE_PX: number = 120;
 
-// The air between the square and the bottom of the bubble.
+// The air between the target and the bottom of the bubble.
 const GAP_PX: number = 4;
 
-interface GridTooltipProps {
-  // Where the square is, in pixels from the top-left of the grid frame. Measured off the square
-  // when the pointer arrives rather than derived from the lattice: the squares scroll and the frame
-  // doesn't, so a column index says nothing about where a square actually is on screen.
+interface HoverBubbleProps {
+  // Where the target is, in pixels from the top-left of the frame that holds this. Measured off the
+  // element when the pointer arrives rather than derived from an index: the content scrolls and the
+  // frame doesn't, so a column number says nothing about where anything is on screen.
   x: number;
   y: number;
   // How wide the frame is, which is what decides whether the bubble has room to centre.
@@ -19,14 +19,14 @@ interface GridTooltipProps {
   children: ReactNode;
 }
 
-// One tooltip for the whole grid, moved to whichever square the pointer is on. Not `Tooltip` and
-// not a hover card per square: there are several hundred squares, and both components that already
-// exist here put a bubble in the DOM per trigger.
+// One bubble for a whole grid of things, moved to whichever the pointer is on. Not `Tooltip` and not
+// a hover card per item: the contribution grid has several hundred squares and a long session has as
+// many turns, and both components that already exist here put a bubble in the DOM per trigger.
 //
 // It sits outside the scrolling box and over it. Inside, the box cropped it — the top row's bubble
 // lost its upper half to `overflow-y-clip` and the leftmost one went behind the sticky weekday
-// column. Out here nothing clips it, so it's free to peek above the grid's own border.
-export const GridTooltip = ({ x, y, frameWidth, children }: GridTooltipProps) => {
+// column. Out here nothing clips it, so it's free to peek above the frame's own border.
+export const HoverBubble = ({ x, y, frameWidth, children }: HoverBubbleProps) => {
   // Centred unless it's within half a bubble of either end of the *visible* frame, where centring
   // would push it past the panel — which does crop, `overflow-x-clip` being what holds the surface
   // to its width.

@@ -58,6 +58,12 @@ export const scanClaudeHistory = async (cache: HistoryCache): Promise<SessionFol
   return [...cache.values()].flatMap((held) => [...held.folds.values()]);
 };
 
+// Which transcripts hold a given session, out of what the history scan has already read. A lookup
+// rather than a search — the cache is keyed by path and each entry knows its own sessions — and it
+// returns a list because a resumed session's turns can be spread across two files.
+export const pathsForSession = (cache: HistoryCache, sessionId: string): string[] =>
+  [...cache.entries()].filter(([, held]) => held.folds.has(sessionId)).map(([path]) => path);
+
 interface ScanFileArgs {
   path: string;
   cache: HistoryCache;

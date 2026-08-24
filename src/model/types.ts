@@ -4,6 +4,7 @@
 import { TokenEstimator } from './estimate-tokens';
 import { SettingsSection, ViewerSettings } from './settings/settings';
 import {
+  SessionDetail,
   UsageCostBasis,
   UsageHistory,
   UsageMetric,
@@ -433,7 +434,11 @@ export type HostMessage =
   | { type: 'usage'; report: UsageReport }
   // Every session on disk, for the Sessions tab. Its own message rather than a field on the report:
   // that one is a seven-day window on a 15s poll, this is the whole corpus on a slower one.
-  | { type: 'usageHistory'; history: UsageHistory };
+  | { type: 'usageHistory'; history: UsageHistory }
+  // One session read whole, answering a `requestSessionDetail`. Read on demand rather than shipped
+  // with the history: the fold behind that list exists so the corpus fits in memory, and every turn
+  // of every session is the thing it drops.
+  | { type: 'sessionDetail'; detail: SessionDetail };
 
 // Webview → host. `surfaceUnavailable` carries only the surface's name: the host owns the
 // sentence, the same way it owns which paths `openFile` will accept. `openSettings` is the same
@@ -454,6 +459,10 @@ export type WebviewMessage =
   // from its own cache, so a stale webview can't name one.
   | { type: 'killAgent'; sessionId: string }
   | { type: 'requestBody'; path: string }
+  // One session's turns and skill loads, for the session analysis surface. A session id and a CLI
+  // rather than a path: which file holds a Claude session is something only the host's history cache
+  // knows, and the panel should never be the thing that says which file to open.
+  | { type: 'requestSessionDetail'; sessionId: string; tool: AgentTool }
   // No path: the graph is over every listed skill, and the host caches it per snapshot.
   | { type: 'requestGraph' }
   | { type: 'surfaceUnavailable'; title: string }

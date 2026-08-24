@@ -6,13 +6,15 @@ import { loadSkillBody } from '../model/skill-body';
 import {
   AgentColors,
   AgentSession,
+  AgentTool,
   ConfigSnapshot,
   FileBody,
   SkillGraph,
   WebviewMessage
 } from '../model/types';
-import { UsageHistory, UsageReport } from '../model/usage/types';
+import { SessionDetail, UsageHistory, UsageReport } from '../model/usage/types';
 import { copySessionId, killAgent } from './agent-commands';
+import { requestSessionDetail } from './session-detail';
 import {
   currentAgentColors,
   onDidChangeAgentColors,
@@ -225,6 +227,9 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'copySessionId') return copySessionId(message.sessionId);
   if (message.type === 'killAgent') return killAgent(message.sessionId);
   if (message.type === 'requestBody') return _sendBody(message.path);
+  if (message.type === 'requestSessionDetail') {
+    return _sendSessionDetail({ sessionId: message.sessionId, tool: message.tool });
+  }
   if (message.type === 'requestGraph') return _sendGraph();
   if (message.type === 'surfaceUnavailable') return _surfaceUnavailable(message.title);
   if (message.type === 'surfaceChanged') return _onSurfaceChanged(message.surface);
@@ -360,6 +365,17 @@ const _postUsage = async (report: UsageReport): Promise<void> => {
 const _postUsageHistory = async (history: UsageHistory): Promise<void> => {
   if (!webviewReady) return;
   await panel?.webview.postMessage({ type: 'usageHistory', history });
+};
+
+// One session, read because a row was clicked. The reply carries the session id back so a panel that
+// has already moved on can drop it — the same rule `_sendBody` follows for a file.
+const _sendSessionDetail = async (args: {
+  sessionId: string;
+  tool: AgentTool;
+}): Promise<void> => {
+  const detail: SessionDetail = await requestSessionDetail(args);
+  if (!webviewReady) return;
+  await panel?.webview.postMessage({ type: 'sessionDetail', detail });
 };
 
 // Every agent list is also the answer to which colours are still worth keeping, so the prune rides

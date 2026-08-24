@@ -14,8 +14,10 @@ const usageEventSchema = z
         messageId: z.string().optional(),
         model: z.string().optional(),
         outputTokens: z.number().optional(),
-        // skill.invoked. `content` carries the whole SKILL.md inline and is deliberately not read.
+        // skill.invoked. `content` is the whole SKILL.md inline — the windowed scan wants only the
+        // name, and `invocations.ts` measures the body that was actually loaded.
         name: z.string().optional(),
+        content: z.string().optional(),
         // session.usage_checkpoint. A running total for the session, not a per-request figure.
         totalNanoAiu: z.number().optional()
       })
