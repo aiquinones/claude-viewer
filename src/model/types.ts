@@ -413,6 +413,27 @@ export interface Reveal {
   section?: string;
 }
 
+// Where something outside the webview is pointing the panel — the palette, the tree, a vscode://
+// link. One union rather than a field per destination, so the host holds one pending target and the
+// webview switches on it once.
+//
+// `surface` is a plain string for the reason `surfaceChanged` carries one: SurfaceId derives from
+// SURFACES, which is webview-only. The webview validates it before routing.
+export type PanelTarget =
+  | { to: 'skill'; path: string; section?: string }
+  | { to: 'surface'; surface: string }
+  // The tool rides along because that's what the page is resolved by — both CLIs mint their own
+  // session ids and nothing says the two namespaces can't collide. A link names only the id; the
+  // host resolves the tool before sending one of these.
+  | { to: 'session'; sessionId: string; tool: AgentTool };
+
+// A target on its way, plus what makes naming the same thing twice a second event rather than a
+// no-op. Same rule Reveal carried, one level up.
+export interface PanelNavigation {
+  target: PanelTarget;
+  nonce: number;
+}
+
 // The text of one config file, answering a `requestBody` — a SKILL.md below its frontmatter, or a
 // CLAUDE.md whole. `path` is echoed back so a reply that arrives after the selection moved on can
 // be dropped.
@@ -430,7 +451,7 @@ export type HostMessage =
   // Live processes, most recently active first. Empty is a normal answer. Its own message rather
   // than a snapshot field: an agent starting shouldn't cost a re-read of every skill.
   | { type: 'agents'; agents: AgentSession[] }
-  | ({ type: 'reveal' } & Reveal)
+  | ({ type: 'navigate' } & PanelNavigation)
   | ({ type: 'fileBody' } & FileBody)
   | { type: 'skillGraph'; graph: SkillGraph }
   // The whole map every time — it's a handful of entries, and a delta would be a protocol for

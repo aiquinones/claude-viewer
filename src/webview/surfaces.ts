@@ -142,6 +142,12 @@ const usageDetail = (usage: UsageReport | undefined): string => {
 const agentsDetail = (agents: AgentSession[]): string =>
   agents.length === 0 ? 'None running' : `${plural(agents.length, 'session')} running`;
 
+// A surface id from outside the webview — a vscode:// link, a palette command — into the id the
+// router switches on. Undefined for anything SURFACES doesn't hold, since the host keeps its own
+// copy of these names and nothing checks the two against each other.
+export const asSurfaceId = (id: string): SurfaceId | undefined =>
+  SURFACES.find((surface) => surface.id === id)?.id;
+
 // A surface's name, for a view that has to say where a button goes. Falls back to the plain word
 // rather than to an id — a button reading "Back to active-agents" is worse than a vague one.
 export const surfaceTitle = (id: SurfaceId): string =>

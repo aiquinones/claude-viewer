@@ -195,6 +195,13 @@ export const AnalyzeResolving: Story = {
   }
 };
 
+// The same wait for a session named by a vscode:// link. No `from`, because a link arrives from
+// outside the panel — so the arrow goes home like every other header's, rather than offering to
+// retrace a trip that never happened.
+export const AnalyzeResolvingFromLink: Story = {
+  args: { history: undefined, request: { sessionId: 'session-1', tool: 'claude', nonce: 1 } }
+};
+
 // The same request once the history holds it. From here it's the page a Sessions row opens — the
 // resolution sets the same state, so nothing downstream knows which way it was reached.
 export const AnalyzeOpens: Story = {

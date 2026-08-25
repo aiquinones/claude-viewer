@@ -13,7 +13,7 @@ import { SessionRequest, SessionTarget } from './session-analysis/session-target
 import { Spotlight } from './spotlight/Spotlight';
 import { kindForSurface, searchViews, surfaceForDoc } from './spotlight/surface-kind';
 import { useSpotlight } from './spotlight/useSpotlight';
-import { SurfaceId } from './surfaces';
+import { asSurfaceId, SurfaceId } from './surfaces';
 import { useSnapshot } from './useSnapshot';
 import { ViewSlider } from './ViewSlider';
 import { AgentsView } from './views/AgentsView';
@@ -43,7 +43,7 @@ export const App = () => {
     settings,
     agentColors,
     setAgentColor,
-    reveal,
+    navigation,
     refresh,
     openFile,
     openAgent,
@@ -60,7 +60,8 @@ export const App = () => {
   // because the surface has to outlive the slide home — clearing it would blank the pane mid-exit.
   const [surface, setSurface] = useState<SurfaceId | undefined>(undefined);
   const [showDetail, setShowDetail] = useState<boolean>(false);
-  // A skill picked in here. Same shape as the host's reveal, so SkillView takes one prop either way.
+  // A skill picked in here, and the one a `skill` target names. One shape either way, so SkillView
+  // takes one prop.
   const [selected, setSelected] = useState<Reveal | undefined>(undefined);
   // A session named on the agents surface, to be opened on the usage one. Held here because it
   // crosses surfaces — the asker has never read the history, and the surface that has can't be
@@ -93,13 +94,28 @@ export const App = () => {
     openSurface('usage');
   };
 
-  // The palette and vscode:// links name one skill, so a reveal has to open the skills surface.
-  // Otherwise it lands behind the landing page and looks like nothing happened.
+  // Everything that points the panel from outside it — the palette, the tree, a vscode:// link.
+  // Each target names the surface that renders it, since anything landing behind the landing page
+  // looks like nothing happened. No `from` on a session: there is no surface to go back to.
   useEffect(() => {
-    if (!reveal) return;
-    setSelected(reveal);
-    openSurface('skills');
-  }, [reveal]);
+    if (!navigation) return;
+    const { target, nonce } = navigation;
+
+    if (target.to === 'skill') {
+      setSelected({ path: target.path, section: target.section, nonce });
+      return openSurface('skills');
+    }
+
+    if (target.to === 'session') {
+      setSessionRequest({ sessionId: target.sessionId, tool: target.tool, nonce });
+      return openSurface('usage');
+    }
+
+    // Nothing here matches the host's copy of the surface ids against SURFACES, so a name it holds
+    // and this doesn't lands on the landing page rather than on a blank pane.
+    const asked: SurfaceId | undefined = asSurfaceId(target.surface);
+    if (asked) openSurface(asked);
+  }, [navigation]);
 
   // A request is spent once the surface it was for is gone. `UsageView` unmounts when another
   // surface opens and forgets which session it resolved, so without this, coming back to usage

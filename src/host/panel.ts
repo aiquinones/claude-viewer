@@ -8,6 +8,7 @@ import {
   AgentSession,
   ConfigSnapshot,
   FileBody,
+  PanelTarget,
   SkillGraph,
   WebviewMessage
 } from '../model/types';
@@ -89,26 +90,18 @@ let detailSubscription: vscode.Disposable | undefined;
 let colorsSubscription: vscode.Disposable | undefined;
 // The webview can't hear anything until it has booted and said so.
 let webviewReady: boolean = false;
-// A reveal that arrived before that, held until it can be delivered.
-let pendingReveal: PendingReveal | undefined;
-let revealNonce: number = 0;
+// A target that arrived before that, held until it can be delivered.
+let pendingTarget: PanelTarget | undefined;
+let navigationNonce: number = 0;
 // Which surface the webview is showing, `undefined` for the landing page. Only the agents poll
 // reads it, but the webview reports every surface — the next one that goes stale gets it free.
 let visibleSurface: string | undefined;
 
-// One skill to select, and optionally one heading inside it to land on.
-interface PendingReveal {
-  path: string;
-  section?: string;
-}
-
 interface OpenPanelArgs {
   context: vscode.ExtensionContext;
-  // Path of the skill to select once the panel is up.
-  revealPath?: string;
-  // A heading inside it, as a vscode:// link named it. The webview does the matching — the host
-  // has no idea what's in the file it's pointing at.
-  revealSection?: string;
+  // Where to land once the panel is up — a skill, a surface, or one session's analysis page.
+  // Absent means the landing page, which is what the launch command asks for.
+  target?: PanelTarget;
 }
 
 // Where the panel opens: an empty editor group right of the focused one if there is one, else the
@@ -124,20 +117,16 @@ const _panelColumn = (): vscode.ViewColumn => {
   return empty?.viewColumn ?? vscode.ViewColumn.Active;
 };
 
-export const openPanel = ({ context, revealPath, revealSection }: OpenPanelArgs): void => {
-  const asked: PendingReveal | undefined = revealPath
-    ? { path: revealPath, section: revealSection }
-    : undefined;
-
+export const openPanel = ({ context, target }: OpenPanelArgs): void => {
   if (panel) {
     // No column: reveal it where it already is. Passing one *moves* the panel, so `Beside` walked
     // it one column right every time the command ran.
     panel.reveal();
-    if (asked) void _reveal(asked);
+    if (target) void _navigate(target);
     return;
   }
 
-  pendingReveal = asked;
+  pendingTarget = target;
   webviewReady = false;
 
   panel = vscode.window.createWebviewPanel(
@@ -221,7 +210,7 @@ export const openPanel = ({ context, revealPath, revealSection }: OpenPanelArgs)
     detailSubscription = undefined;
     panel = undefined;
     webviewReady = false;
-    pendingReveal = undefined;
+    pendingTarget = undefined;
   });
 };
 
@@ -336,8 +325,8 @@ const _notBuilt = async (title: string): Promise<void> => {
   await vscode.window.showInformationMessage(`${title} isn't built yet — it's coming.`);
 };
 
-// The webview is listening now, so the snapshot goes out and any reveal that was waiting on it
-// follows. Posting the reveal any earlier would drop it on the floor.
+// The webview is listening now, so the snapshot goes out and any navigation that was waiting on it
+// follows. Posting the target any earlier would drop it on the floor.
 const _onReady = async (): Promise<void> => {
   webviewReady = true;
   await _postSettings(currentSettings());
@@ -350,19 +339,19 @@ const _onReady = async (): Promise<void> => {
   // starts a first scan — the landing card sat on "Reading session logs…" while nothing read.
   void currentUsage();
 
-  const waiting: PendingReveal | undefined = pendingReveal;
-  pendingReveal = undefined;
-  if (waiting) await _reveal(waiting);
+  const waiting: PanelTarget | undefined = pendingTarget;
+  pendingTarget = undefined;
+  if (waiting) await _navigate(waiting);
 };
 
-const _reveal = async ({ path, section }: PendingReveal): Promise<void> => {
+const _navigate = async (target: PanelTarget): Promise<void> => {
   if (!webviewReady) {
-    pendingReveal = { path, section };
+    pendingTarget = target;
     return;
   }
 
-  revealNonce += 1;
-  await panel?.webview.postMessage({ type: 'reveal', path, section, nonce: revealNonce });
+  navigationNonce += 1;
+  await panel?.webview.postMessage({ type: 'navigate', target, nonce: navigationNonce });
 };
 
 // Whole snapshot, no partial updates. Posting before `ready` goes nowhere, and `ready` sends the

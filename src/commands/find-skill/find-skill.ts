@@ -26,5 +26,5 @@ export const findSkill = async ({ context, initialQuery }: FindSkillArgs): Promi
   }
 
   const skill: SkillEntry | undefined = await pickSkill({ skills: snapshot.skills, initialQuery });
-  if (skill) openPanel({ context, revealPath: skill.path });
+  if (skill) openPanel({ context, target: { to: 'skill', path: skill.path } });
 };

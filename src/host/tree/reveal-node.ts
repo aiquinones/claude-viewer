@@ -11,4 +11,4 @@ interface RevealNodeArgs {
 
 // Same route the palette and vscode:// links take — the tree never renders detail.
 export const revealNode = ({ context, path }: RevealNodeArgs): void =>
-  openPanel({ context, revealPath: path });
+  openPanel({ context, target: { to: 'skill', path } });

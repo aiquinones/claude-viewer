@@ -44,10 +44,15 @@ const changeEmitter: vscode.EventEmitter<UsageHistory> = new vscode.EventEmitter
 
 export const onDidChangeUsageHistory: vscode.Event<UsageHistory> = changeEmitter.event;
 
-// No `currentUsageHistory()` here, unlike the other stores. Nothing outside the Sessions tab shows
-// this, so the first scan is the one `setUsageHistoryPollMode('live')` starts when the surface opens
-// — a `current*()` nobody calls is a store that never runs, which is exactly how the usage view
-// ended up sitting on its loading state.
+// The Sessions tab never calls this — its first scan is the one `setUsageHistoryPollMode('live')`
+// starts when the surface opens. It exists for the askers that have no surface: the Analyze Session
+// command and a vscode:// link naming one, both of which run with the panel shut.
+//
+// Scoped, and scanning only if nothing has scanned yet. Scoped because what the picker offers has
+// to be what the page can resolve — the surface narrows the same way.
+export const currentSessions = async (): Promise<SessionUsage[]> =>
+  (renarrowUsageHistory() ?? (await refreshUsageHistory())).sessions;
+
 export const refreshUsageHistory = async (): Promise<UsageHistory> => {
   scanned = await scanUsageHistory({ cache, now: Date.now(), workspaceRoot: workspaceRoot() });
   return publish();
