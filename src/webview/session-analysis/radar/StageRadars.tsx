@@ -70,8 +70,10 @@ export const StageRadars = ({ detail, metric, costBasis }: StageRadarsProps) => 
         </p>
       ) : (
         // Fixed squares that wrap rather than a breakpoint: a media query in here measures the
-        // panel, and wrapping needs no number to be right about.
-        <div className="flex flex-wrap gap-3">
+        // panel, and wrapping needs no number to be right about. `justify-center` is one rule for
+        // both widths — the pair centres side by side, and each centres on its own line once they
+        // wrap, since justification is per line.
+        <div className="flex flex-wrap justify-center gap-3">
           <StageRadar
             title={`${METRIC_LABEL[metric]} per stage`}
             stages={stages}

@@ -40,6 +40,7 @@ export const App = () => {
     changeUsage,
     changeEstimator,
     changeTheme,
+    changeStageNames,
     settings,
     agentColors,
     setAgentColor,
@@ -179,6 +180,7 @@ export const App = () => {
       openEstimator={openEstimator}
       setEstimator={changeEstimator}
       setTheme={changeTheme}
+      setStageNames={changeStageNames}
     >
       <AgentColorProvider colors={agentColors} setColor={setAgentColor}>
         <ViewSlider
