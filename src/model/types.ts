@@ -367,14 +367,14 @@ export interface TreeNode {
 //
 // A kind doubles as a filter word — `filter:skill` — so no kind may be a prefix of another, or the
 // shorter one would claim the token before you finished typing the longer one.
-export const SEARCH_KINDS = ['skill', 'memory'] as const;
+export const SEARCH_KINDS = ['skill', 'memory', 'view'] as const;
 
 export type SearchKind = (typeof SEARCH_KINDS)[number];
 
 // One searchable thing, chewed up ahead of the query: the label lowercased, plus a bitmask of the
 // positions each character occurs at. See docs/spotlight-search.md for what the masks buy.
 export interface SearchDoc {
-  // Unique across the index — a skill's path. Doubles as the row key.
+  // Unique across the index — a file's path, or a surface id for a `view`. Doubles as the row key.
   id: string;
   label: string;
   kind: SearchKind;
@@ -384,7 +384,8 @@ export interface SearchDoc {
   masks: Map<string, number[]>;
   // Position in the panel's own ordering, used to break a tie between equal scores.
   rank: number;
-  // Present but not in effect — a shadowed skill today. The row dims it.
+  // Present but not in effect — a shadowed skill, a memory nothing points at, a surface that
+  // isn't built yet. The row dims it.
   inactive?: boolean;
 }
 

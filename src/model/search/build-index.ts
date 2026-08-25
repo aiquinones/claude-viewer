@@ -16,12 +16,40 @@ interface MakeDocArgs extends DocSeed {
   rank: number;
 }
 
-// Everything in the snapshot the spotlight can find, in the panel's own order so `rank` breaks
-// score ties the way the lists already do. The next surface appends its own seeds here.
-export const buildSearchIndex = (snapshot: ConfigSnapshot): SearchDoc[] =>
-  [...skillSeeds(snapshot.skills), ...memorySeeds(snapshot.memory?.memories ?? [])].map(
-    (seed, rank) => makeDoc({ ...seed, rank })
-  );
+// One of the panel's own surfaces, as the index needs it. `SURFACES` lives in the webview and
+// model/ can't import it, so the caller hands over the two fields that matter — and the id it
+// passes is the one it gets back to navigate with.
+export interface SearchView {
+  id: string;
+  title: string;
+  // Not built yet: the row dims, and choosing it says so rather than opening anything.
+  soon?: boolean;
+}
+
+interface BuildSearchIndexArgs {
+  snapshot: ConfigSnapshot;
+  views?: SearchView[];
+}
+
+// Everything the spotlight can find, in the panel's own order so `rank` breaks score ties the way
+// the lists already do: the places first, then what's inside them. The next surface appends its
+// own seeds here.
+export const buildSearchIndex = ({ snapshot, views = [] }: BuildSearchIndexArgs): SearchDoc[] =>
+  [
+    ...viewSeeds(views),
+    ...skillSeeds(snapshot.skills),
+    ...memorySeeds(snapshot.memory?.memories ?? [])
+  ].map((seed, rank) => makeDoc({ ...seed, rank }));
+
+// The surfaces themselves. Their ids can't collide with a skill's or a memory's, which are
+// absolute paths.
+const viewSeeds = (views: SearchView[]): DocSeed[] =>
+  views.map((view) => ({
+    id: view.id,
+    label: view.title,
+    kind: 'view',
+    inactive: view.soon
+  }));
 
 // A memory nothing points at is `inactive` for the same reason a shadowed skill is: it's on disk
 // and no session will read it.
