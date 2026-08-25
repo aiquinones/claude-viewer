@@ -1,10 +1,10 @@
 // The words on the session charts. Here rather than inline for the reason `agent-context-labels.ts`
 // exists: the prose is the part that gets rewritten, and it shouldn't mean opening a component.
 
-// What the hover card gains where a skill's body entered the context, over the names under it.
-export const LOADED_HERE: string = 'Called here';
-
-// Those names, one per line rather than joined into a sentence — several skills land on one point
+// The names the hover card gains where a skill's body entered the context. No label over them: they
+// sit in the accent colour under a dot you're already hovering, which says what they are.
+//
+// One per line rather than joined into a sentence — several skills land on one point
 // often enough, and the bubble is `whitespace-nowrap`, so a joined list grew wider than the panel.
 // Named as the slash command because that's how you'd have asked for it, whichever of the three
 // routes actually loaded it.
