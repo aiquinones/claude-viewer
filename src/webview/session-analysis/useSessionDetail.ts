@@ -1,12 +1,11 @@
 import { useEffect } from 'react';
-import { AgentTool } from '../../model/types';
-import { SessionDetail, SessionUsage } from '../../model/usage/types';
+import { SessionDetail, SessionRef, SessionUsage } from '../../model/usage/types';
 
 interface UseSessionDetailArgs {
   session: SessionUsage;
   // The last reply the host sent, whichever session it was about.
   detail: SessionDetail | undefined;
-  onRequest: (args: { sessionId: string; tool: AgentTool }) => void;
+  onWatch: (session?: SessionRef) => void;
 }
 
 // One session's turns and skill loads, asked for on mount and dropped when it isn't the answer to
@@ -15,10 +14,13 @@ interface UseSessionDetailArgs {
 export const useSessionDetail = ({
   session,
   detail,
-  onRequest
+  onWatch
 }: UseSessionDetailArgs): SessionDetail | undefined => {
   useEffect(() => {
-    onRequest({ sessionId: session.sessionId, tool: session.tool });
+    onWatch({ sessionId: session.sessionId, tool: session.tool });
+    // Clearing on the way out is what stops the host re-reading the file. Going back to the Sessions
+    // tab doesn't change the surface, so this unmount is the only signal the host gets.
+    return () => onWatch(undefined);
   }, [session.sessionId, session.tool]);
 
   const mine: boolean =

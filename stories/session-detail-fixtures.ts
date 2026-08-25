@@ -6,7 +6,7 @@
 // body twice five seconds apart. Both of those are measured behaviours, not inventions.
 
 import { contextPointsFromTurns } from '@src/model/usage/session/contexts';
-import { AgentTool } from '@src/model/types';
+import { AgentSession, AgentTool } from '@src/model/types';
 import {
   ContextPoint,
   SessionDetail,
@@ -191,6 +191,47 @@ export const copilotSession: SessionUsage = {
   outputTokens: copilotTurns.reduce((sum, one) => sum + one.tokens.output, 0),
   turns: copilotTurns.length,
   days: []
+};
+
+// The agent still writing to `claudeSession`, for the stories about a page that reads itself. Ages
+// are relative to load, like every other agent fixture — a pinned timestamp reads as days idle by
+// the time anyone looks at it.
+export const liveClaudeAgent: AgentSession = {
+  sessionId: claudeSession.sessionId,
+  tool: 'claude',
+  pid: 10_700,
+  otherPids: [],
+  cwd: claudeSession.cwd,
+  transcriptPath: `/Users/dev/.claude/projects/-Users-dev-repos-example-app/${claudeSession.sessionId}.jsonl`,
+  title: claudeSession.title,
+  tail: 'working',
+  pendingTool: 'Bash',
+  lastActivityAt: Date.now() - 3 * SECOND,
+  startedAt: Date.now() - 156 * MINUTE,
+  version: '2.1.227',
+  entrypoint: 'claude-vscode',
+  issues: []
+};
+
+// The same, stopped at a permission prompt — the one state Copilot writes down rather than leaving
+// to be inferred, and the badge that says Waiting without consulting the clock.
+export const liveCopilotAgent: AgentSession = {
+  sessionId: copilotSession.sessionId,
+  tool: 'copilot',
+  pid: 11_200,
+  otherPids: [],
+  cwd: copilotSession.cwd,
+  transcriptPath: `/Users/dev/.copilot/session-state/${copilotSession.sessionId}/events.jsonl`,
+  title: copilotSession.title,
+  tail: 'blocked',
+  pendingTool: 'shell',
+  lastActivityAt: Date.now() - 40 * SECOND,
+  startedAt: Date.now() - 68 * MINUTE,
+  version: '1.0.80',
+  entrypoint: 'github/cli',
+  repository: 'example/example-app',
+  branch: 'main',
+  issues: []
 };
 
 // A session that ran no skills at all, which is most short ones.

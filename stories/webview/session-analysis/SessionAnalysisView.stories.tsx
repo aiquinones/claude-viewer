@@ -12,6 +12,8 @@ import {
   claudeSession,
   copilotDetail,
   copilotSession,
+  liveClaudeAgent,
+  liveCopilotAgent,
   missingDetail
 } from '../../session-detail-fixtures';
 import { usageSkills } from '../../usage-fixtures';
@@ -47,7 +49,7 @@ const meta: Meta<typeof SessionAnalysisView> = {
   args: {
     session: claudeSession,
     detail: claudeDetail,
-    onRequestDetail: () => undefined,
+    onWatch: () => undefined,
     skills: usageSkills,
     onOpenSkill: () => undefined,
     onCopyId: () => undefined,
@@ -129,9 +131,20 @@ export const Unreadable: Story = { args: { detail: missingDetail } };
 // practice — but a cold disk is exactly when it isn't.
 export const Loading: Story = { args: { detail: undefined } };
 
+// The session is still running, so the host re-reads it every couple of seconds and the badge beside
+// the name says why the numbers move. The same badge the Active Agents rows draw, on the same clock.
+export const LiveClaude: Story = { args: { agent: liveClaudeAgent } };
+
+// Waiting rather than Working, and it's a read state rather than an inferred one — Copilot writes an
+// unanswered permission request to its log, so nothing here consults the clock.
+export const LiveCopilot: Story = {
+  args: { session: copilotSession, detail: copilotDetail, agent: liveCopilotAgent }
+};
+
 // Opened from an agent row's menu rather than from the list. The arrow retraces that — its tooltip
 // reads "Back to Active Agents" — while the crumb beside it still says Usage, which is where this
-// page lives however you reached it.
+// page lives however you reached it. The badge is the other half of the same trip: a session you
+// reached from a running row is a session that is still running.
 export const FromAnAgentRow: Story = {
-  args: { origin: { label: 'Active Agents', onReturn: () => undefined } }
+  args: { agent: liveClaudeAgent, origin: { label: 'Active Agents', onReturn: () => undefined } }
 };

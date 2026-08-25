@@ -63,7 +63,10 @@ const meta: Meta<typeof UsageView> = {
     skills: usageSkills,
     onOpenSkill: () => undefined,
     sessionDetail: undefined,
-    onRequestSessionDetail: () => undefined,
+    onWatchSession: () => undefined,
+    // Nothing running. The analysis page draws a badge only for a session an agent still holds, and
+    // the surface's own tabs never read this.
+    agents: [],
     onCopySessionId: () => undefined,
     onClearRequest: () => undefined,
     onOpenSurface: () => undefined,

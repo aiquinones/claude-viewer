@@ -6,12 +6,12 @@ import {
   AgentColor,
   AgentColors,
   AgentSession,
-  AgentTool,
   ConfigSnapshot,
   Reveal
 } from '../model/types';
 import {
   SessionDetail,
+  SessionRef,
   UsageCostBasis,
   UsageHistory,
   UsageMetric,
@@ -39,8 +39,8 @@ export const useSnapshot = () => {
   // Later still: nothing outside the Sessions tab shows this, so the host doesn't start the pass
   // behind it until that surface is open.
   const [usageHistory, setUsageHistory] = useState<UsageHistory | undefined>(undefined);
-  // One session read whole, answering the last `requestSessionDetail`. Undefined until one is asked
-  // for — nothing shows this until a session row is clicked.
+  // One session read whole, answering the last `watchSession`. Undefined until one is asked for —
+  // nothing shows this until a session row is clicked.
   const [sessionDetail, setSessionDetail] = useState<SessionDetail | undefined>(undefined);
 
   useEffect(() => {
@@ -80,10 +80,12 @@ export const useSnapshot = () => {
 
   const killAgent = (sessionId: string): void => vscode.postMessage({ type: 'killAgent', sessionId });
 
-  // One session's turns and skill loads. The reply carries the session id back, so the view drops
-  // one that arrives after the selection moved on — the same rule `useFileBody` follows.
-  const requestSessionDetail = (args: { sessionId: string; tool: AgentTool }): void =>
-    vscode.postMessage({ type: 'requestSessionDetail', ...args });
+  // Which session the analysis page is on, or none once it closes. The host answers immediately and
+  // then keeps answering while a live agent is writing to it, so this both asks and says how long to
+  // go on asking. The reply carries the session id back, so the view drops one that arrives after
+  // the selection moved on — the same rule `useFileBody` follows.
+  const watchSession = (session?: SessionRef): void =>
+    vscode.postMessage({ type: 'watchSession', session });
 
   // Says which surface is on screen. The host polls the agent transcripts faster while theirs is
   // up, and it has no other way to know — a webview reports nothing about its own navigation.
@@ -127,7 +129,7 @@ export const useSnapshot = () => {
     usage,
     usageHistory,
     sessionDetail,
-    requestSessionDetail,
+    watchSession,
     changeUsage,
     changeEstimator,
     changeTheme,
