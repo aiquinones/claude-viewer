@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { TokenEstimator } from '../../model/estimate-tokens';
-import { AgentTool, SkillEntry } from '../../model/types';
+import { AgentSession, AgentTool, SkillEntry } from '../../model/types';
 import { summarizeTurns } from '../../model/usage/aggregate';
 import {
   SessionDetail,
+  SessionRef,
   SessionUsage,
   UsageMetric,
   UsageSummaryData
@@ -33,7 +34,11 @@ interface SessionAnalysisViewProps {
   // The last reply from the host, whichever session it was about. The hook drops one that isn't
   // this session's.
   detail: SessionDetail | undefined;
-  onRequestDetail: (args: { sessionId: string; tool: AgentTool }) => void;
+  // Names the session the page is on, and clears it on the way out. The host reads it once and then
+  // keeps re-reading while a live agent is writing to it, so this is what turns that off.
+  onWatch: (session?: SessionRef) => void;
+  // The live agent behind this session, if there is one. Absent on a session that's over.
+  agent?: AgentSession;
   skills: SkillEntry[];
   onOpenSkill: (path: string) => void;
   onCopyId: (sessionId: string) => void;
@@ -48,7 +53,8 @@ interface SessionAnalysisViewProps {
 export const SessionAnalysisView = ({
   session,
   detail,
-  onRequestDetail,
+  onWatch,
+  agent,
   skills,
   onOpenSkill,
   onCopyId,
@@ -56,16 +62,13 @@ export const SessionAnalysisView = ({
   onRefresh,
   onBack
 }: SessionAnalysisViewProps) => {
-  const mine: SessionDetail | undefined = useSessionDetail({
-    session,
-    detail,
-    onRequest: onRequestDetail
-  });
+  const mine: SessionDetail | undefined = useSessionDetail({ session, detail, onWatch });
 
   return (
     <div className="flex h-full flex-col">
       <SessionBreadcrumb
         session={session}
+        agent={agent}
         onBack={onBack}
         onCopyId={onCopyId}
         onSearch={onSearch}

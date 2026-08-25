@@ -6,6 +6,7 @@ import { startWatchingAgents, stopWatchingAgents } from './host/agents-store';
 import { startWatching, stopWatching } from './host/config-store';
 import { LAUNCH_COMMAND, openPanel } from './host/panel';
 import { startWatchingSettings } from './host/settings-store';
+import { stopWatchingSessionDetail } from './host/session-detail-store';
 import { registerTree } from './host/tree/register-tree';
 import { stopWatchingUsage } from './host/usage-store';
 
@@ -35,4 +36,6 @@ export const deactivate = (): void => {
   stopWatchingAgents();
   // Nothing to unwatch — usage has no watchers — but its poll outlives the panel if nothing stops it.
   stopWatchingUsage();
+  // Same deal for the session page's poll, and it drops the watched session with it.
+  stopWatchingSessionDetail();
 };

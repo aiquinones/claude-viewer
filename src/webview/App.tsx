@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { buildSearchIndex } from '../model/search/build-index';
-import { AgentSession, AgentTool, ConfigSnapshot, Reveal, SearchDoc } from '../model/types';
-import { SessionDetail, UsageHistory, UsageReport } from '../model/usage/types';
+import { AgentSession, ConfigSnapshot, Reveal, SearchDoc } from '../model/types';
+import { SessionDetail, SessionRef, UsageHistory, UsageReport } from '../model/usage/types';
 import { TokenEstimator } from '../model/estimate-tokens';
 import { AgentColorProvider } from './agent-color/AgentColorContext';
 import { EstimatorDialog } from './EstimatorDialog';
@@ -35,7 +35,7 @@ export const App = () => {
     usage,
     usageHistory,
     sessionDetail,
-    requestSessionDetail,
+    watchSession,
     changeUsage,
     changeEstimator,
     changeTheme,
@@ -156,7 +156,7 @@ export const App = () => {
               usage={usage}
               usageHistory={usageHistory}
               sessionDetail={sessionDetail}
-              onRequestSessionDetail={requestSessionDetail}
+              onWatchSession={watchSession}
               onOpenSkill={openSkill}
               onUnavailable={reportNotBuilt}
               reveal={selected}
@@ -202,10 +202,10 @@ interface DetailProps {
   agents: AgentSession[];
   usage: UsageReport | undefined;
   usageHistory: UsageHistory | undefined;
-  // One session read whole, and the way to ask for another. The usage surface asks when a session
+  // One session read whole, and the way to name another. The usage surface names one when a session
   // row is clicked; nothing else on the panel reads it.
   sessionDetail: SessionDetail | undefined;
-  onRequestSessionDetail: (args: { sessionId: string; tool: AgentTool }) => void;
+  onWatchSession: (session?: SessionRef) => void;
   // A skill named on another surface — the usage rows do this. Opens it on the skills surface.
   onOpenSkill: (path: string) => void;
   // Something the panel can't show yet. The host owns the sentence, the same way it does for a
@@ -232,7 +232,7 @@ const Detail = ({
   usage,
   usageHistory,
   sessionDetail,
-  onRequestSessionDetail,
+  onWatchSession,
   onOpenSkill,
   onUnavailable,
   reveal,
@@ -303,7 +303,8 @@ const Detail = ({
           workspaceRoot={snapshot.workspaceRoot}
           onOpenSkill={onOpenSkill}
           sessionDetail={sessionDetail}
-          onRequestSessionDetail={onRequestSessionDetail}
+          onWatchSession={onWatchSession}
+          agents={agents}
           onCopySessionId={onCopySessionId}
           onSearch={onSearch}
           onRefresh={onRefresh}

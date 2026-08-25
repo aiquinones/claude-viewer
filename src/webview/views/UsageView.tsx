@@ -1,9 +1,11 @@
 import { CSSProperties, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AgentTool, SkillEntry } from '../../model/types';
+import { findAgent } from '../../model/sessions/find-agent';
+import { AgentSession, SkillEntry } from '../../model/types';
 import {
   SessionDetail,
+  SessionRef,
   SessionUsage,
   UsageBreakdown,
   UsageHistory,
@@ -42,10 +44,13 @@ interface UsageViewProps {
   workspaceRoot: string | undefined;
   // Opens one on the skills surface. The panel owns navigation, so this leaves the view.
   onOpenSkill: (path: string) => void;
-  // The last session the host read, whichever one it was about, and the way to ask for another.
+  // The last session the host read, whichever one it was about, and the way to name another.
   // Picking a session opens the analysis page in place of the tabs.
   sessionDetail: SessionDetail | undefined;
-  onRequestSessionDetail: (args: { sessionId: string; tool: AgentTool }) => void;
+  onWatchSession: (session?: SessionRef) => void;
+  // The processes running right now. Only the analysis page reads them, and only to say whether the
+  // session it is showing is one of them — a page whose numbers move should say why.
+  agents: AgentSession[];
   // The session id onto the clipboard, from the analysis page's breadcrumb. The host holds the
   // clipboard, the same way it does for an agent row's menu.
   onCopySessionId: (sessionId: string) => void;
@@ -73,7 +78,8 @@ export const UsageView = ({
   workspaceRoot,
   onOpenSkill,
   sessionDetail,
-  onRequestSessionDetail,
+  onWatchSession,
+  agents,
   onCopySessionId,
   initialWindow = 'day',
   initialTab = 'sessions',
@@ -104,7 +110,8 @@ export const UsageView = ({
         <SessionAnalysisView
           session={session}
           detail={sessionDetail}
-          onRequestDetail={onRequestSessionDetail}
+          onWatch={onWatchSession}
+          agent={findAgent({ agents, sessionId: session.sessionId, tool: session.tool })}
           skills={skills}
           onOpenSkill={onOpenSkill}
           onCopyId={onCopySessionId}

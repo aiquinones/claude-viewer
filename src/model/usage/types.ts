@@ -251,6 +251,14 @@ export interface ContextPoint extends AgentContext {
   at: number;
 }
 
+// Which session something is about. The pair rather than the id alone: every read of one goes
+// through a per-CLI loader, so the tool is what says which file layout to open — and the panel
+// naming a session it can't reach is the whole reason the host resolves this against its own cache.
+export interface SessionRef {
+  sessionId: string;
+  tool: AgentTool;
+}
+
 // One session read whole, on demand. Unlike everything else on this surface it is neither windowed
 // nor folded: the session is the window, and the turns are the thing being drawn.
 export interface SessionDetail {
