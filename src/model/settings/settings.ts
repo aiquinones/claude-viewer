@@ -4,14 +4,7 @@
 import { z } from 'zod';
 import { TOKEN_ESTIMATORS, TokenEstimator } from '../estimate-tokens';
 import { DEFAULT_THEME_MODE, THEME_MODES, ThemeMode } from './theme';
-import {
-  USAGE_COST_BASES,
-  USAGE_METRICS,
-  USAGE_SCOPES,
-  UsageCostBasis,
-  UsageMetric,
-  UsageScope
-} from '../usage/types';
+import { USAGE_METRICS, USAGE_SCOPES, UsageMetric, UsageScope } from '../usage/types';
 
 // Which part of these settings a card's CTA opens the Settings UI on. The host turns one of these
 // into the query it filters by, so a section that isn't listed here can't be asked for.
@@ -81,7 +74,6 @@ export interface Budgets {
 export interface UsageSettings {
   metric: SettingValue<UsageMetric>;
   scope: SettingValue<UsageScope>;
-  costBasis: SettingValue<UsageCostBasis>;
 }
 
 // What the context bar on an agent row reads. The two thresholds are absolute token counts rather
@@ -139,11 +131,6 @@ export const DEFAULT_CONTENT_BUDGET: number = 2000;
 export const DEFAULT_USAGE_METRIC: UsageMetric = 'output-tokens';
 export const DEFAULT_USAGE_SCOPE: UsageScope = 'all';
 
-// Every billed token by default, because that's what the API charges. `output` is the narrower read
-// — what the model wrote, priced — and it's there because the full figure is dominated by context
-// re-reads, which is not what most people mean when they ask what a skill cost.
-export const DEFAULT_USAGE_COST_BASIS: UsageCostBasis = 'all';
-
 // Where a conversation starts being long enough to matter, and where it's long enough to stop
 // trusting. Not derived from any window: they're sizes at which a model gets worse, and that
 // happens at a token count rather than at a share of whatever room is left.
@@ -175,8 +162,7 @@ export const DEFAULT_SETTINGS: ViewerSettings = {
   },
   usage: {
     metric: { value: DEFAULT_USAGE_METRIC, source: 'default' },
-    scope: { value: DEFAULT_USAGE_SCOPE, source: 'default' },
-    costBasis: { value: DEFAULT_USAGE_COST_BASIS, source: 'default' }
+    scope: { value: DEFAULT_USAGE_SCOPE, source: 'default' }
   },
   context: {
     warnAt: { value: DEFAULT_CONTEXT_WARN_AT, source: 'default' },
@@ -243,7 +229,6 @@ const estimatorSchema = z.enum(TOKEN_ESTIMATORS);
 const themeModeSchema = z.enum(THEME_MODES);
 const metricSchema = z.enum(USAGE_METRICS);
 const scopeSchema = z.enum(USAGE_SCOPES);
-const costBasisSchema = z.enum(USAGE_COST_BASES);
 
 export const parseTokenEstimator = (raw: unknown): TokenEstimator | undefined => {
   const parsed = estimatorSchema.safeParse(raw);
@@ -262,11 +247,6 @@ export const parseUsageMetric = (raw: unknown): UsageMetric | undefined => {
 
 export const parseUsageScope = (raw: unknown): UsageScope | undefined => {
   const parsed = scopeSchema.safeParse(raw);
-  return parsed.success ? parsed.data : undefined;
-};
-
-export const parseUsageCostBasis = (raw: unknown): UsageCostBasis | undefined => {
-  const parsed = costBasisSchema.safeParse(raw);
   return parsed.success ? parsed.data : undefined;
 };
 

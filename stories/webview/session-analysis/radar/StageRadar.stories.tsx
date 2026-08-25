@@ -21,7 +21,6 @@ const stagesOf = (detail: SessionDetail, names: Record<string, string> = {}): Se
     invocations: detail.invocations,
     contexts: detail.contexts,
     metric: 'output-tokens',
-    costBasis: 'all',
     names
   });
 

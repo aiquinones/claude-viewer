@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { SessionDetail, UsageCostBasis, UsageMetric } from '../../model/usage/types';
+import { SessionDetail, UsageMetric } from '../../model/usage/types';
 import { plural } from '../format-size';
 import { METRIC_LABEL } from '../usage-format';
 import { ChartSection } from './charts/ChartSection';
@@ -11,16 +11,15 @@ import { formatValue } from './session-format';
 interface MetricSectionProps {
   detail: SessionDetail;
   metric: UsageMetric;
-  costBasis: UsageCostBasis;
 }
 
 // What each request cost, over the session's own turns rather than over a window. Scaled to its own
 // peak: there is no threshold at which a turn is too expensive, so the only thing worth reading off
 // the height is which requests were the big ones.
-export const MetricSection = ({ detail, metric, costBasis }: MetricSectionProps) => {
+export const MetricSection = ({ detail, metric }: MetricSectionProps) => {
   const points: SeriesPoint[] = useMemo(
-    () => toMetricSeries({ turns: detail.turns, metric, costBasis }),
-    [detail, metric, costBasis]
+    () => toMetricSeries({ turns: detail.turns, metric }),
+    [detail, metric]
   );
 
   const loads: LoadPoint[] = useMemo(

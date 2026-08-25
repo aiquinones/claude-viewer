@@ -5,7 +5,6 @@ import {
   ModelRates,
   PRICED_AT,
   ratesFor,
-  sumUsdParts,
   USD_PART_KEYS,
   UsdPart
 } from '../model/usage/pricing';
@@ -97,21 +96,12 @@ interface CostPartsProps {
 
 // Largest first rather than in the declared order: which piece dominates is the whole point, and it
 // isn't the one anybody expects.
-//
-// Every part is listed whatever the basis counts, with the uncounted ones struck through and totalled
-// at the bottom. That's the only way the two settings are comparable — a card that showed just the
-// counted parts would make `output` look like the whole story.
 const CostParts = ({ breakdown }: CostPartsProps) => {
   const parts: UsdPart[] = [...USD_PART_KEYS]
     .filter((part) => breakdown.costParts[part] > 0)
     .sort((left, right) => breakdown.costParts[right] - breakdown.costParts[left]);
 
   if (parts.length === 0) return null;
-
-  const outputOnly: boolean = breakdown.costBasis === 'output';
-  const uncounted: number = outputOnly
-    ? sumUsdParts(breakdown.costParts) - breakdown.costParts.output
-    : 0;
 
   return (
     <section className="flex flex-col gap-1">
@@ -124,22 +114,14 @@ const CostParts = ({ breakdown }: CostPartsProps) => {
             key={part}
             label={USD_PART_LABEL[part]}
             value={formatUsd(breakdown.costParts[part])}
-            counted={!outputOnly || part === 'output'}
           />
         ))}
       </dl>
-      {outputOnly ? (
+      {parts[0] === 'cacheRead' && (
         <p className="text-muted-foreground">
-          Counting output only, which is how <span className="mono">/usage</span> seems to weight a
-          skill. The rest comes to {formatUsd(uncounted)} at list prices.
+          Cache reads lead. During every extra step, the whole conversation needs to be read. Caching
+          makes this cheaper, but the conversation-to-be-read grows step by step.
         </p>
-      ) : (
-        parts[0] === 'cacheRead' && (
-          <p className="text-muted-foreground">
-            Cache reads lead. During every extra step, the whole conversation needs to be read.
-            Caching makes this cheaper, but the conversation-to-be-read grows step by step.
-          </p>
-        )
       )}
     </section>
   );
@@ -204,18 +186,13 @@ const Rates = ({ models }: RatesProps) => {
 interface LineProps {
   label: string;
   value: string;
-  // A figure the active basis leaves out. Struck through rather than hidden — what it costs to not
-  // count it is the thing worth seeing.
-  counted?: boolean;
 }
 
 // A fragment, not a wrapper: dt and dd have to be direct children of the grid or the columns stop
 // lining up.
-const Line = ({ label, value, counted = true }: LineProps) => (
+const Line = ({ label, value }: LineProps) => (
   <>
-    <dt className={counted ? 'text-muted-foreground' : 'text-muted-foreground/60'}>{label}</dt>
-    <dd className={`tabular-nums ${counted ? '' : 'text-muted-foreground/60 line-through'}`}>
-      {value}
-    </dd>
+    <dt className="text-muted-foreground">{label}</dt>
+    <dd className="tabular-nums">{value}</dd>
   </>
 );

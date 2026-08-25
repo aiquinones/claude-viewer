@@ -12,7 +12,6 @@ import {
 import {
   SessionDetail,
   SessionRef,
-  UsageCostBasis,
   UsageHistory,
   UsageMetric,
   UsageReport,
@@ -105,11 +104,8 @@ export const useSnapshot = () => {
 
   // The usage surface's toggles. The host writes the setting and posts the whole settings object
   // back, so nothing here guesses at what it wrote.
-  const changeUsage = (change: {
-    metric?: UsageMetric;
-    scope?: UsageScope;
-    costBasis?: UsageCostBasis;
-  }): void => vscode.postMessage({ type: 'setUsage', ...change });
+  const changeUsage = (change: { metric?: UsageMetric; scope?: UsageScope }): void =>
+    vscode.postMessage({ type: 'setUsage', ...change });
 
   // The estimator dialog's Apply. Same deal as the usage toggles: the host writes it and posts the
   // whole settings object back, so every number in the panel re-derives from one message.

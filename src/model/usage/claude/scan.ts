@@ -73,15 +73,25 @@ const scanFile = async ({ path, since, cache }: ScanFileArgs): Promise<UsageTurn
 
 // Exported for the history scan, which reads the same lines and keeps a per-session fold instead of
 // the turns. What counts as a turn has to be the one rule, or the two tabs disagree on a total.
+//
+// One request per turn, not one line: an assistant reply carrying a thinking block and two tool
+// calls is written as three lines, and every one of them repeats the *whole* request's usage. Left
+// alone that bills a session two or three times over. The callers that fold turns over a moving
+// window still keep their own dedupe — theirs is for a request split across two reads of the file,
+// which nothing local to one batch of lines can see.
 export const parseClaudeTurns = (lines: string[]): UsageTurn[] => {
   const turns: UsageTurn[] = [];
+  const seen: Set<string> = new Set();
 
   for (const line of lines) {
     const parsed: UsageLine | undefined = parseUsageLine(line);
     if (!parsed) continue;
 
     const turn: UsageTurn | undefined = toTurn(parsed);
-    if (turn) turns.push(turn);
+    if (!turn || seen.has(turn.id)) continue;
+
+    seen.add(turn.id);
+    turns.push(turn);
   }
 
   return turns;
