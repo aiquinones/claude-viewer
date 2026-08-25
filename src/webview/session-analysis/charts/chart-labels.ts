@@ -1,19 +1,14 @@
 // The words on the session charts. Here rather than inline for the reason `agent-context-labels.ts`
 // exists: the prose is the part that gets rewritten, and it shouldn't mean opening a component.
 
-// The line the hover card gains where a skill's body entered the context. Named as the slash command
-// because that's how you'd have asked for it, whichever of the three routes actually loaded it.
-export const loadedHere = (skills: string[]): string => {
-  const names: string[] = skills.map((skill) => `/${skill}`);
-  const verb: string = skills.length === 1 ? 'was' : 'were';
-  return `${joinNames(names)} ${verb} called here`;
-};
-
-// "a", "a and b", "a, b and c".
-const joinNames = (names: string[]): string =>
-  names.length <= 1
-    ? (names[0] ?? '')
-    : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+// The names the hover card gains where a skill's body entered the context. No label over them: they
+// sit in the accent colour under a dot you're already hovering, which says what they are.
+//
+// One per line rather than joined into a sentence — several skills land on one point
+// often enough, and the bubble is `whitespace-nowrap`, so a joined list grew wider than the panel.
+// Named as the slash command because that's how you'd have asked for it, whichever of the three
+// routes actually loaded it.
+export const loadedNames = (skills: string[]): string[] => skills.map((skill) => `/${skill}`);
 
 // Local time to the minute. The session is the reader's own and the date is on the row they came
 // from, so the hour is the part that places a request inside it.

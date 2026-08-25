@@ -117,3 +117,23 @@ export const CopilotDoubleLoad: Story = {
 
 // No requests at all — a session directory that exists and never got prompted.
 export const Empty: Story = { args: { points: [], loads: [], max: 0 } };
+
+// Six skills landing on one point — the case that turned the bubble into one line wider than the
+// panel. One name per line now, and it's placed on the tallest request, where the bubble has no room
+// above it and opens below the curve instead.
+export const CrowdedLoad: Story = {
+  args: (() => {
+    const tallest = points.reduce(
+      (best, point, index) => (point.value > points[best].value ? index : best),
+      0
+    );
+    const names = ['dev-feature', 'create-pr', 'claude-api', 'design', 'post-mortem', 'publish'];
+
+    return {
+      loads: toLoadPoints({
+        points,
+        invocations: names.map((skill) => ({ skill, at: points[tallest].at, via: 'command' as const }))
+      })
+    };
+  })()
+};
