@@ -2,6 +2,82 @@
 
 Notable changes to Claude Viewer, newest first.
 
+## 0.24.0 - 2026-08-25
+
+### Added
+
+- **A session splits into stages, and two wheels under the curves say what each one cost.** The
+  curves above answer "what did request 47 spend"; neither says which stretch of the work was the
+  expensive one, and the log already records where those stretches begin. A skill load opens a stage
+  and it runs until the next one opens another — so one wheel is what each stage spent and the other
+  is what it did to the context. A wheel rather than a third curve because stages are a handful of
+  named things being compared, not a sequence. The cost wheel follows the page's metric, so the two
+  readings of one session can't end up in different units, and growth is measured from the last
+  reading before the stage began, so the body a skill loaded counts against the stage that loaded it.
+- **A stage is a skill you named.** Drawing a spoke for every skill a session loaded gave a session
+  that ran `/commit` four times four axes nobody asked for. A skill listed in
+  `claudeViewer.stages.names` opens a stage wherever it loads; one that isn't is invisible to the
+  split and the stage that was running carries straight through it — which is the ignore half of the
+  ask with no second setting to keep in sync. Names are written from a dialog behind the heading's
+  (i), which lists every skill the session loaded rather than only the stages, since which of them is
+  a stage is the choice being made there. Three states, not two: no skills ran, so there is nothing
+  to split; skills ran and none is named, so the card offers the dialog rather than two empty wheels;
+  otherwise the pair.
+- **The spotlight finds the panel's own surfaces, not just what's in them.** `view` is a third search
+  kind and every surface is a document in the index, so Cmd+F is now the way to reach a surface as
+  well as a thing on one. Opening the box on a surface still narrows to that surface's own kind — a
+  pill that's on because it's always on is furniture rather than a filter — and a view is one
+  Backspace away on an empty box.
+- **The palette and a link can name a surface or one session.** Usage and Active Agents were
+  reachable only by opening the panel and clicking a card, and one session's page only by finding
+  that session again in a list of every session on disk. Three palette commands and three link shapes
+  go straight there. A link names a session by id alone: which CLI minted it is resolved on the host,
+  so a link author never has to know, and a miss opens the picker with the id typed in.
+- **An agent row's right-click opens that session on the usage surface.** A running agent is the one
+  row in the panel that says nothing about what it has spent. "Analyze session" is the fourth command
+  on the menu and the only one that goes somewhere rather than doing something. A session opened that
+  way gets a back arrow that retraces the ask — the arrow is "where I came from" and names the
+  surface in its tooltip, while the breadcrumb stays "up one level" and still says Usage, because
+  that is where the page lives however it was reached. A session that has not paid for anything yet
+  isn't in the history at all, and the page says which ways that happens rather than reporting a
+  failure.
+- **A session page keeps reading while its agent is still writing.** It read the session once on
+  mount and then sat frozen. It re-reads at the agents rate now, taking that rate from the agents
+  poll itself rather than a copy of the number, and the badge beside the session name is the same one
+  the agent rows draw, on the same one-second clock. The poll is on the host: a hidden panel still
+  holds its webview, so a timer in there would go on reading transcripts for a tab nobody is looking
+  at. A session that was over when you opened it and gets resumed in a terminal starts updating; one
+  that exits stops costing anything.
+
+### Changed
+
+- **The Claude cost basis option is gone, and every dollar figure is every billed token.**
+  `claudeViewer.usage.costBasis` let the figure count output tokens alone — on a real session that
+  hides four fifths of the bill: of $24.42 paid, $19.67 is cache reads and $2.67 is output. A cost
+  that can be set to a number the API never charged is a footgun, and a menu row offering it made it
+  read as a legitimate alternative. The (i) card still shows the four-way split, which was always the
+  useful half, and no longer has to strike three parts out to explain which setting you're on.
+
+### Fixed
+
+- **A session's cost counted every request two or three times.** One API request is written to a
+  transcript as several lines — a reply carrying a thinking block and two tool calls lands as three —
+  and every one of those lines repeats the *whole* request's usage block. Measured on a real session:
+  273 assistant lines, 167 requests, $41.25 read against $24.42 actually paid, with the turn chart
+  drawing 273 bars and the context curve stacking duplicate points. The dedupe is in the parser now,
+  where the two callers that already guarded it were each solving it separately.
+- **A load dot's skills read as a list, and its bubble can open downward.** Several skills land on one
+  point often — Copilot loads one twice for a typed command, and a busy turn can carry six — and
+  joining them into one sentence in a `nowrap` bubble grew it wider than the panel. One name per line
+  instead, and since that trades width for height, the bubble measures itself and flips below the
+  point where there isn't room above it.
+- **The first session chart's heading names the metric it's drawing.** It said "Turns" whichever
+  metric was picked, so the one thing the curve's height means was the one thing the heading didn't
+  say.
+- **The two stage wheels centre in the panel** instead of hugging the left edge with the rest of the
+  width empty beside them, and the (i) beside a chart heading sits on the row's centre rather than a
+  few pixels above the text next to it.
+
 ## 0.22.0 - 2026-08-24
 
 ### Added
