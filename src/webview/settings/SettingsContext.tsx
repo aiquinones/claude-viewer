@@ -27,6 +27,8 @@ interface SettingsBridge {
   // The panel menu's theme pick. Every mode the menu draws is one a setting may hold, so this goes
   // straight to the host — there is no "that one isn't built" case left to split on.
   setTheme: (mode: ThemeMode) => void;
+  // The stage-naming dialog's Save. The whole map — a skill left out of it keeps its own name.
+  setStageNames: (names: Record<string, string>) => void;
 }
 
 // The defaults are the context's default value, not `undefined`, so a component below no provider
@@ -38,7 +40,8 @@ const SettingsContext = createContext<SettingsBridge>({
   setUsage: () => undefined,
   openEstimator: () => undefined,
   setEstimator: () => undefined,
-  setTheme: () => undefined
+  setTheme: () => undefined,
+  setStageNames: () => undefined
 });
 
 interface SettingsProviderProps extends Partial<SettingsBridge> {
@@ -52,10 +55,19 @@ export const SettingsProvider = ({
   openEstimator = () => undefined,
   setEstimator = () => undefined,
   setTheme = () => undefined,
+  setStageNames = () => undefined,
   children
 }: SettingsProviderProps) => (
   <SettingsContext.Provider
-    value={{ settings, openSettings, setUsage, openEstimator, setEstimator, setTheme }}
+    value={{
+      settings,
+      openSettings,
+      setUsage,
+      openEstimator,
+      setEstimator,
+      setTheme,
+      setStageNames
+    }}
   >
     {children}
   </SettingsContext.Provider>
@@ -75,6 +87,9 @@ export const useSetEstimator = (): ((estimator: TokenEstimator) => void) =>
   useContext(SettingsContext).setEstimator;
 
 export const useSetTheme = (): ((mode: ThemeMode) => void) => useContext(SettingsContext).setTheme;
+
+export const useSetStageNames = (): ((names: Record<string, string>) => void) =>
+  useContext(SettingsContext).setStageNames;
 
 export const useEstimator = (): TokenEstimator =>
   useContext(SettingsContext).settings.tokens.estimator.value;

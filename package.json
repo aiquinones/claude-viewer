@@ -124,6 +124,15 @@
             "minimum": 1
           }
         },
+        "claudeViewer.stages.names": {
+          "type": "object",
+          "default": {},
+          "markdownDescription": "What the session page's stage radars call each stage, keyed by the skill that opened it. Set these from **Assign names to stages** on a session page, or here.\n\n```json\n{ \"dev-feature\": \"Build\" }\n```",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
         "claudeViewer.usage.metric": {
           "type": "string",
           "enum": [

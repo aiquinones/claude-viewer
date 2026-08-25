@@ -17,7 +17,14 @@ import {
 // into the query it filters by, so a section that isn't listed here can't be asked for.
 //
 // Deliberately not annotated: a type here would erase the literals `SettingsSection` derives from.
-export const SETTINGS_SECTIONS = ['budgets', 'usage', 'context', 'tokens', 'theme'] as const;
+export const SETTINGS_SECTIONS = [
+  'budgets',
+  'usage',
+  'context',
+  'tokens',
+  'theme',
+  'stages'
+] as const;
 
 export type SettingsSection = (typeof SETTINGS_SECTIONS)[number];
 
@@ -102,12 +109,20 @@ export interface ThemeSettings {
   mode: SettingValue<ThemeMode>;
 }
 
+// What the session page's stage radars call each stage. Keyed by the skill that opened it, because
+// that's what the log records and what the reader would recognise — a stage has no id of its own.
+// Absent keys keep the skill's name, which is why there is no default map to merge against.
+export interface StageSettings {
+  names: Record<string, string>;
+}
+
 export interface ViewerSettings {
   tokens: TokenSettings;
   theme: ThemeSettings;
   budgets: Budgets;
   usage: UsageSettings;
   context: ContextSettings;
+  stages: StageSettings;
 }
 
 // Measured against real skills. Anthropic's 17 official ones run ~55 to ~235 est. tokens per
@@ -168,6 +183,9 @@ export const DEFAULT_SETTINGS: ViewerSettings = {
     errorAt: { value: DEFAULT_CONTEXT_ERROR_AT, source: 'default' },
     windowFallback: { value: DEFAULT_CONTEXT_WINDOW_FALLBACK, source: 'default' },
     windows: {}
+  },
+  stages: {
+    names: {}
   }
 };
 
@@ -250,4 +268,19 @@ export const parseUsageScope = (raw: unknown): UsageScope | undefined => {
 export const parseUsageCostBasis = (raw: unknown): UsageCostBasis | undefined => {
   const parsed = costBasisSchema.safeParse(raw);
   return parsed.success ? parsed.data : undefined;
+};
+
+// Stage name overrides. One bad entry drops itself rather than the whole map, the rule the other two
+// maps here follow. A blank name is dropped rather than stored: an empty override would render as a
+// nameless spoke, and clearing the field in the dialog is how you go back to the skill's own name.
+export const parseStageNames = (raw: unknown): Record<string, string> => {
+  const record = z.record(z.unknown()).safeParse(raw);
+  if (!record.success) return {};
+
+  const names: Record<string, string> = {};
+  for (const [skill, value] of Object.entries(record.data)) {
+    const parsed = z.string().trim().min(1).safeParse(value);
+    if (parsed.success) names[skill] = parsed.data;
+  }
+  return names;
 };

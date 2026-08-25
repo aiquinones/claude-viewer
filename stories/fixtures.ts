@@ -327,7 +327,8 @@ export const budgetSettings = ({
     }
   },
   usage: DEFAULT_SETTINGS.usage,
-  context: DEFAULT_SETTINGS.context
+  context: DEFAULT_SETTINGS.context,
+  stages: DEFAULT_SETTINGS.stages
 });
 
 // A SKILL.md body, shaped like a real one and long enough that the headings actually stack while
