@@ -18,7 +18,9 @@ export interface SessionRequest extends SessionTarget {
   nonce: number;
   // Which surface asked. The page's back arrow returns there instead of to the usage tabs — a
   // journey that can't be reversed is one the reader has to navigate again from the landing page.
-  from: SurfaceId;
+  // Absent when the ask came from outside the panel: a link has no surface behind it, so the
+  // breadcrumb up to Usage is the whole answer.
+  from?: SurfaceId;
 }
 
 // Where a session page was opened from, when that isn't the tabs it lives above. The back arrow

@@ -194,6 +194,21 @@
         "category": "Claude Viewer"
       },
       {
+        "command": "claudeViewer.analyzeSession",
+        "title": "Analyze Session…",
+        "category": "Claude Viewer"
+      },
+      {
+        "command": "claudeViewer.openUsage",
+        "title": "Open Usage",
+        "category": "Claude Viewer"
+      },
+      {
+        "command": "claudeViewer.openActiveAgents",
+        "title": "Open Active Agents",
+        "category": "Claude Viewer"
+      },
+      {
         "command": "claudeViewer.refresh",
         "title": "Refresh",
         "category": "Claude Viewer",

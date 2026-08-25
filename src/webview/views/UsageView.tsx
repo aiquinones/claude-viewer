@@ -121,9 +121,11 @@ export const UsageView = ({
 
   // Where the reader came from, while a request is still the reason this page is up. The back arrow
   // retraces it; the crumb beside it still says Usage, which is where the page lives either way.
-  const origin: SessionOrigin | undefined = request && {
-    label: surfaceTitle(request.from),
-    onReturn: () => onOpenSurface(request.from)
+  // A request with no `from` came from outside the panel, so there is nothing to retrace.
+  const from: SurfaceId | undefined = request?.from;
+  const origin: SessionOrigin | undefined = from && {
+    label: surfaceTitle(from),
+    onReturn: () => onOpenSurface(from)
   };
 
   // Going up to the tabs ends the request as well as the page. Without that, a session picked off
@@ -170,13 +172,14 @@ export const UsageView = ({
         style={{ '--surface-accent': surfaceAccent('usage') } as CSSProperties}
       >
         {/* The arrow retraces the ask rather than going home: there is nothing above this yet to
-            go up to, and the surface the reader left is one press behind them. */}
+            go up to, and the surface the reader left is one press behind them. A link had no
+            surface behind it, so that one goes home like every other header's does. */}
         <UsageHeader
           subtitle="finding one session"
-          backLabel={`Back to ${surfaceTitle(request.from)}`}
+          backLabel={origin && `Back to ${origin.label}`}
           onSearch={onSearch}
           onRefresh={onRefresh}
-          onBack={() => onOpenSurface(request.from)}
+          onBack={origin ? origin.onReturn : onBack}
         />
         {targetState === 'pending' ? (
           <div className="flex flex-1 items-center justify-center">

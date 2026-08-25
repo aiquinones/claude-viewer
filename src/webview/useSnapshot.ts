@@ -7,7 +7,7 @@ import {
   AgentColors,
   AgentSession,
   ConfigSnapshot,
-  Reveal
+  PanelNavigation
 } from '../model/types';
 import {
   SessionDetail,
@@ -32,7 +32,8 @@ export const useSnapshot = () => {
   const [settings, setSettings] = useState<ViewerSettings>(DEFAULT_SETTINGS);
   // Rows nobody has coloured, until the host says which ones have been.
   const [agentColors, setAgentColors] = useState<AgentColors>({});
-  const [reveal, setReveal] = useState<Reveal | undefined>(undefined);
+  // Where something outside the webview last pointed the panel — the palette, the tree, a link.
+  const [navigation, setNavigation] = useState<PanelNavigation | undefined>(undefined);
   // Undefined until the first scan lands, which is later than everything else here — it reads every
   // session log on the machine, so the host starts it in the background and posts it when it's done.
   const [usage, setUsage] = useState<UsageReport | undefined>(undefined);
@@ -55,9 +56,10 @@ export const useSnapshot = () => {
       if (message?.type === 'usage') setUsage(message.report as UsageReport);
       if (message?.type === 'usageHistory') setUsageHistory(message.history as UsageHistory);
       if (message?.type === 'sessionDetail') setSessionDetail(message.detail as SessionDetail);
-      // A fresh object every time, so an effect keyed on it re-runs for a repeated reveal.
-      if (message?.type === 'reveal') {
-        setReveal({ path: message.path, section: message.section, nonce: message.nonce });
+      // A fresh object every time, so an effect keyed on it re-runs when the same thing is named
+      // twice — which is what the nonce riding along is for.
+      if (message?.type === 'navigate') {
+        setNavigation({ target: message.target, nonce: message.nonce });
       }
     };
     window.addEventListener('message', onMessage);
@@ -136,7 +138,7 @@ export const useSnapshot = () => {
     settings,
     agentColors,
     setAgentColor,
-    reveal,
+    navigation,
     refresh,
     openFile,
     openAgent,

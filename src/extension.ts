@@ -1,6 +1,11 @@
 import * as vscode from 'vscode';
+import { ANALYZE_SESSION_COMMAND, analyzeSession } from './commands/analyze-session/analyze-session';
 import { FIND_SKILL_COMMAND, findSkill } from './commands/find-skill/find-skill';
 import { handleUri } from './commands/handle-uri/handle-uri';
+import {
+  OPEN_SURFACE_COMMANDS,
+  openSurface
+} from './commands/open-surface/open-surface';
 import { initAgentColors } from './host/agent-colors-store';
 import { startWatchingAgents, stopWatchingAgents } from './host/agents-store';
 import { startWatching, stopWatching } from './host/config-store';
@@ -20,6 +25,12 @@ export const activate = (context: vscode.ExtensionContext): void => {
   context.subscriptions.push(
     vscode.commands.registerCommand(LAUNCH_COMMAND, () => openPanel({ context })),
     vscode.commands.registerCommand(FIND_SKILL_COMMAND, () => void findSkill({ context })),
+    vscode.commands.registerCommand(ANALYZE_SESSION_COMMAND, () => void analyzeSession({ context })),
+    // One body, one registration per surface it opens. Adding a surface to the palette is an entry
+    // in that map plus one in package.json.
+    ...Object.entries(OPEN_SURFACE_COMMANDS).map(([command, surface]) =>
+      vscode.commands.registerCommand(command, () => openSurface({ context, surface }))
+    ),
     vscode.window.registerUriHandler({ handleUri: (uri) => void handleUri({ context, uri }) }),
     startWatchingSettings(),
     ...registerTree({ context })
