@@ -11,7 +11,10 @@ import { spanLabel } from './grid-labels';
 // What a first history pass costs. It reads every transcript on the machine rather than the recent
 // ones — 87 files and 76MB here, measured at 287ms cold. Every pass after it reads only the bytes
 // appended since, which came out at 8ms.
-const HISTORY_EXPECTED_MS: number = 1400;
+//
+// Exported because `UsageView` waits on the same pass when a session is asked for by id, and two
+// guesses at one scan would drift apart.
+export const HISTORY_EXPECTED_MS: number = 1400;
 
 // How often the ages on the rows are recomputed. Nothing here changes on the second — the newest row
 // is usually hours old — so this is the slow end of the clock the agent rows run on.

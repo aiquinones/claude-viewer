@@ -68,6 +68,8 @@ const meta: Meta<typeof UsageView> = {
     // the surface's own tabs never read this.
     agents: [],
     onCopySessionId: () => undefined,
+    onClearRequest: () => undefined,
+    onOpenSurface: () => undefined,
     onSearch: () => undefined,
     onRefresh: () => undefined,
     onBack: () => undefined
@@ -181,4 +183,37 @@ export const SessionsShortRetention: Story = {
 // grid widens to hold it and the card beside the heading says why.
 export const SessionsResumedOldSession: Story = {
   args: { history: resumedOldSession }
+};
+
+// A session asked for by id from an agent row's menu, before the history pass it's resolved against
+// has landed. The tabs are not drawn behind this on purpose: the reader asked for one page, and the
+// grid arriving first would read as the wrong thing having opened.
+export const AnalyzeResolving: Story = {
+  args: {
+    history: undefined,
+    request: { sessionId: 'session-1', tool: 'claude', nonce: 1, from: 'active-agents' }
+  }
+};
+
+// The same request once the history holds it. From here it's the page a Sessions row opens — the
+// resolution sets the same state, so nothing downstream knows which way it was reached.
+export const AnalyzeOpens: Story = {
+  args: { request: { sessionId: 'session-1', tool: 'claude', nonce: 1, from: 'active-agents' } }
+};
+
+// A running agent that hasn't finished a turn has nothing folded for it, so the id resolves to
+// nothing. Ordinary rather than an error, which is why the note lists the ways it happens.
+export const AnalyzeNotFound: Story = {
+  args: { request: { sessionId: 'session-not-on-disk', tool: 'claude', nonce: 1, from: 'active-agents' } }
+};
+
+// The same miss with the scope set to this workspace, which is the one reason for it the reader can
+// do something about — so it's the one the note names instead of the others.
+export const AnalyzeNotFoundScoped: Story = {
+  args: { request: { sessionId: 'session-not-on-disk', tool: 'copilot', nonce: 1, from: 'active-agents' } },
+  render: (args) => (
+    <WithSettings scope="workspace">
+      <UsageView {...args} />
+    </WithSettings>
+  )
 };

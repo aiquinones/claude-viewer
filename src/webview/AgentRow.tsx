@@ -32,6 +32,7 @@ export const AgentRow = ({
   now,
   workspaceRoot,
   onOpen,
+  onAnalyze,
   onOpenLog,
   onCopySessionId,
   onKill
@@ -116,6 +117,7 @@ export const AgentRow = ({
           agent={agent}
           anchor={menu.anchor}
           onClose={menu.close}
+          onAnalyze={() => onAnalyze(agent)}
           onOpenLog={() => onOpenLog(agent)}
           onCopySessionId={() => onCopySessionId(agent)}
           onKill={() => onKill(agent)}

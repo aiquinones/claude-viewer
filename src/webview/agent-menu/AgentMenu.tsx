@@ -1,5 +1,5 @@
 import { CSSProperties, RefObject, useLayoutEffect, useRef, useState } from 'react';
-import { Copy, LucideIcon, OctagonX, ScrollText } from 'lucide-react';
+import { ChartLine, Copy, LucideIcon, OctagonX, ScrollText } from 'lucide-react';
 import { AgentSession } from '../../model/types';
 import { Button } from '@/components/ui/button';
 import { Z } from '../z-layers';
@@ -21,14 +21,18 @@ interface AgentMenuProps {
   // one command you don't want to press.
   initialConfirming?: boolean;
   onClose: () => void;
+  // Leaves the surface — it opens the usage surface's page for this session. The only command here
+  // that goes somewhere rather than doing something, which is why it's first.
+  onAnalyze: () => void;
   onOpenLog: () => void;
   onCopySessionId: () => void;
   onKill: () => void;
 }
 
-// The commands on one agent row, opened by right-clicking it. Everything here is about the process
+// The commands on one agent row, opened by right-clicking it. Everything here is about the session
 // rather than about the config the rest of the panel shows, which is why it's a menu on the row and
-// not a column of buttons: two of the three are things you do once and one of them ends a session.
+// not a column of buttons: one of the four goes somewhere, two are things you do once, and the last
+// ends a session.
 //
 // Not in here: the row colour. `ColorSwatches` and the store behind it are intact and it has no way
 // in — the corner dot that used to open it came off with the log button. Putting the swatches back
@@ -42,6 +46,7 @@ export const AgentMenu = ({
   anchor,
   initialConfirming = false,
   onClose,
+  onAnalyze,
   onOpenLog,
   onCopySessionId,
   onKill
@@ -72,6 +77,11 @@ export const AgentMenu = ({
         <KillConfirm onCancel={() => setConfirming(false)} onKill={() => run(onKill)} />
       ) : (
         <>
+          <MenuItem
+            icon={ChartLine}
+            label={MENU_ITEMS.analyze.label}
+            onClick={() => run(onAnalyze)}
+          />
           <MenuItem icon={ScrollText} label={MENU_ITEMS.log.label} onClick={() => run(onOpenLog)} />
           <MenuItem
             icon={Copy}

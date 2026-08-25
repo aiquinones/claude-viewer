@@ -140,3 +140,11 @@ export const LiveClaude: Story = { args: { agent: liveClaudeAgent } };
 export const LiveCopilot: Story = {
   args: { session: copilotSession, detail: copilotDetail, agent: liveCopilotAgent }
 };
+
+// Opened from an agent row's menu rather than from the list. The arrow retraces that — its tooltip
+// reads "Back to Active Agents" — while the crumb beside it still says Usage, which is where this
+// page lives however you reached it. The badge is the other half of the same trip: a session you
+// reached from a running row is a session that is still running.
+export const FromAnAgentRow: Story = {
+  args: { agent: liveClaudeAgent, origin: { label: 'Active Agents', onReturn: () => undefined } }
+};

@@ -10,6 +10,9 @@ export interface AgentRowProps {
   now: number;
   workspaceRoot: string | undefined;
   onOpen: (agent: AgentSession) => void;
+  // Leaves the surface for the usage one, which is the only command here that does. It carries the
+  // whole session because the resolution needs the tool as well as the id.
+  onAnalyze: (agent: AgentSession) => void;
   onOpenLog: (agent: AgentSession) => void;
   // The commands behind a right-click. Both go through the host: it holds the clipboard, and it
   // owns the pid the webview deliberately never names.

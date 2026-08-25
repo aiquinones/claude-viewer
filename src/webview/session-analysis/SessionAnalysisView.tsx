@@ -18,6 +18,7 @@ import { plural } from '../format-size';
 import { ContextSection } from './ContextSection';
 import { MetricSection } from './MetricSection';
 import { SessionBreadcrumb } from './SessionBreadcrumb';
+import { SessionOrigin } from './session-target';
 import { estimatorReason, sessionEstimator } from './session-estimator';
 import { formatValue } from './session-format';
 import { SkillLoadList } from './SkillLoadList';
@@ -45,6 +46,8 @@ interface SessionAnalysisViewProps {
   onSearch: () => void;
   onRefresh: () => void;
   onBack: () => void;
+  // Where the page was opened from, when that isn't the tabs above it. Only the breadcrumb reads it.
+  origin?: SessionOrigin;
 }
 
 // One session, taken apart: what each request cost, how full the context got, and which skills it
@@ -60,7 +63,8 @@ export const SessionAnalysisView = ({
   onCopyId,
   onSearch,
   onRefresh,
-  onBack
+  onBack,
+  origin
 }: SessionAnalysisViewProps) => {
   const mine: SessionDetail | undefined = useSessionDetail({ session, detail, onWatch });
 
@@ -70,6 +74,7 @@ export const SessionAnalysisView = ({
         session={session}
         agent={agent}
         onBack={onBack}
+        origin={origin}
         onCopyId={onCopyId}
         onSearch={onSearch}
         onRefresh={onRefresh}

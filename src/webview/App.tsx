@@ -9,6 +9,7 @@ import { useEstimatorDialog } from './useEstimatorDialog';
 import { Loading } from './loading/Loading';
 import { SettingsProvider } from './settings/SettingsContext';
 import { useThemeMode } from './settings/useThemeMode';
+import { SessionRequest, SessionTarget } from './session-analysis/session-target';
 import { Spotlight } from './spotlight/Spotlight';
 import { kindForSurface, surfaceForKind } from './spotlight/surface-kind';
 import { useSpotlight } from './spotlight/useSpotlight';
@@ -61,6 +62,10 @@ export const App = () => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
   // A skill picked in here. Same shape as the host's reveal, so SkillView takes one prop either way.
   const [selected, setSelected] = useState<Reveal | undefined>(undefined);
+  // A session named on the agents surface, to be opened on the usage one. Held here because it
+  // crosses surfaces — the asker has never read the history, and the surface that has can't be
+  // reached from a row.
+  const [sessionRequest, setSessionRequest] = useState<SessionRequest | undefined>(undefined);
   const { spotlightOpenedAt, openSpotlight, dismissSpotlight } = useSpotlight();
   // Opened from any number in the panel, so it lives here rather than on a surface.
   const { estimatorOpenedAt, openEstimator, dismissEstimator } = useEstimatorDialog();
@@ -77,6 +82,17 @@ export const App = () => {
     setShowDetail(true);
   };
 
+  // An agent row's Analyze session. The nonce is what makes naming the same session twice a second
+  // event rather than a no-op — the same rule `openSkill` follows, and for the same reason: you can
+  // go back to the row you came from and press it again.
+  //
+  // `from` is what makes that trip reversible: the page's back arrow retraces it rather than landing
+  // on the tabs of a surface the reader never chose.
+  const analyzeSession = (target: SessionTarget): void => {
+    setSessionRequest({ ...target, nonce: Date.now(), from: 'active-agents' });
+    openSurface('usage');
+  };
+
   // The palette and vscode:// links name one skill, so a reveal has to open the skills surface.
   // Otherwise it lands behind the landing page and looks like nothing happened.
   useEffect(() => {
@@ -84,6 +100,13 @@ export const App = () => {
     setSelected(reveal);
     openSurface('skills');
   }, [reveal]);
+
+  // A request is spent once the surface it was for is gone. `UsageView` unmounts when another
+  // surface opens and forgets which session it resolved, so without this, coming back to usage
+  // through the landing card would re-resolve the old request and open a page nobody asked for.
+  useEffect(() => {
+    if (surface !== 'usage') setSessionRequest(undefined);
+  }, [surface]);
 
   // The host reads some surfaces off disk faster while they're being looked at, so it needs to know
   // which one that is. Sent on the way home as well — `undefined` is the landing page, and a
@@ -161,6 +184,10 @@ export const App = () => {
               onUnavailable={reportNotBuilt}
               reveal={selected}
               onOpenAgent={openAgent}
+              onAnalyzeSession={analyzeSession}
+              sessionRequest={sessionRequest}
+              onClearSessionRequest={() => setSessionRequest(undefined)}
+              onOpenSurface={openSurface}
               onCopySessionId={copySessionId}
               onKillAgent={killAgent}
               onOpenFile={openFile}
@@ -213,8 +240,16 @@ interface DetailProps {
   onUnavailable: (title: string) => void;
   reveal?: Reveal;
   // Active Agents only: a row goes to the running agent, and the host works out where that is.
-  // Its menu's two other commands take a session id for the same reason.
+  // Two of its menu's commands take a session id for the same reason; the third stays in the panel
+  // and is the pair below.
   onOpenAgent: (sessionId: string) => void;
+  // The one row command that leaves the agents surface, and the session it asked for waiting on the
+  // usage one. Two props rather than one, because the two surfaces are the two ends of it.
+  onAnalyzeSession: (target: SessionTarget) => void;
+  sessionRequest: SessionRequest | undefined;
+  onClearSessionRequest: () => void;
+  // The way back out of a session page to the surface that asked for it.
+  onOpenSurface: (id: SurfaceId) => void;
   onCopySessionId: (sessionId: string) => void;
   onKillAgent: (sessionId: string) => void;
   onOpenFile: (path: string) => void;
@@ -237,6 +272,10 @@ const Detail = ({
   onUnavailable,
   reveal,
   onOpenAgent,
+  onAnalyzeSession,
+  sessionRequest,
+  onClearSessionRequest,
+  onOpenSurface,
   onCopySessionId,
   onKillAgent,
   onOpenFile,
@@ -276,6 +315,7 @@ const Detail = ({
           snapshot={snapshot}
           onOpenAgent={onOpenAgent}
           onOpenFile={onOpenFile}
+          onAnalyzeSession={onAnalyzeSession}
           onCopySessionId={onCopySessionId}
           onKillAgent={onKillAgent}
           onSearch={onSearch}
@@ -305,6 +345,9 @@ const Detail = ({
           sessionDetail={sessionDetail}
           onWatchSession={onWatchSession}
           agents={agents}
+          request={sessionRequest}
+          onClearRequest={onClearSessionRequest}
+          onOpenSurface={onOpenSurface}
           onCopySessionId={onCopySessionId}
           onSearch={onSearch}
           onRefresh={onRefresh}

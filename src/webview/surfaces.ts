@@ -142,6 +142,11 @@ const usageDetail = (usage: UsageReport | undefined): string => {
 const agentsDetail = (agents: AgentSession[]): string =>
   agents.length === 0 ? 'None running' : `${plural(agents.length, 'session')} running`;
 
+// A surface's name, for a view that has to say where a button goes. Falls back to the plain word
+// rather than to an id — a button reading "Back to active-agents" is worse than a vague one.
+export const surfaceTitle = (id: SurfaceId): string =>
+  SURFACES.find((surface) => surface.id === id)?.title ?? 'the panel';
+
 // A surface's accent, for a view that wants to match the card it was opened from.
 export const surfaceAccent = (id: SurfaceId): string =>
   SURFACES.find((surface) => surface.id === id)?.accent ?? 'var(--foreground)';

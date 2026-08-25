@@ -1,10 +1,11 @@
 // Everything the row menu says, in one place — the kill command names itself twice, once as an item
 // and once as the question it opens, and the two have to agree about what pressing it does.
 //
-// One line each. A menu item that explains itself underneath reads as a settings page: three of
+// One line each. A menu item that explains itself underneath reads as a settings page: four of
 // these fit on a row you opened on purpose, and the value each acts on sits beside it anyway.
 
 export const MENU_ITEMS = {
+  analyze: { label: 'Analyze session' },
   log: { label: 'Open the session log' },
   copy: { label: 'Copy session id' },
   kill: { label: 'Kill the process' }

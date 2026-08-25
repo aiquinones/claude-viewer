@@ -18,6 +18,7 @@ interface AgentListProps {
   collapsed: boolean;
   onToggle: () => void;
   onOpen: (agent: AgentSession) => void;
+  onAnalyze: (agent: AgentSession) => void;
   onOpenLog: (agent: AgentSession) => void;
   onCopySessionId: (agent: AgentSession) => void;
   onKill: (agent: AgentSession) => void;
@@ -37,6 +38,7 @@ export const AgentList = ({
   collapsed,
   onToggle,
   onOpen,
+  onAnalyze,
   onOpenLog,
   onCopySessionId,
   onKill
@@ -65,6 +67,7 @@ export const AgentList = ({
             now={now}
             workspaceRoot={workspaceRoot}
             onOpen={onOpen}
+            onAnalyze={onAnalyze}
             onOpenLog={onOpenLog}
             onCopySessionId={onCopySessionId}
             onKill={onKill}
