@@ -33,6 +33,12 @@ export const WholeName: Story = {
   args: { hit: hitsFor('commit')[0], active: false }
 };
 
+// One of the panel's own surfaces. Nothing about the row changes — the tag says `view` and the
+// title is capitalised, which is what tells it apart from a skill's slug.
+export const View: Story = {
+  args: { hit: hitsFor('usage')[0], active: false }
+};
+
 // The longest name in the fixtures, to prove the row truncates rather than pushing the kind tag off.
 export const LongName: Story = {
   args: { hit: hitsFor('mathol')[0], active: false }

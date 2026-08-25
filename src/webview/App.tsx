@@ -10,7 +10,7 @@ import { Loading } from './loading/Loading';
 import { SettingsProvider } from './settings/SettingsContext';
 import { useThemeMode } from './settings/useThemeMode';
 import { Spotlight } from './spotlight/Spotlight';
-import { kindForSurface, surfaceForKind } from './spotlight/surface-kind';
+import { kindForSurface, searchViews, surfaceForDoc } from './spotlight/surface-kind';
 import { useSpotlight } from './spotlight/useSpotlight';
 import { SurfaceId } from './surfaces';
 import { useSnapshot } from './useSnapshot';
@@ -94,7 +94,7 @@ export const App = () => {
 
   // Everything the spotlight can find. Rebuilt only when the host pushes a new snapshot.
   const searchIndex: SearchDoc[] = useMemo(
-    () => (snapshot ? buildSearchIndex(snapshot) : []),
+    () => (snapshot ? buildSearchIndex({ snapshot, views: searchViews() }) : []),
     [snapshot]
   );
 
@@ -105,14 +105,21 @@ export const App = () => {
     openSurface('skills');
   };
 
-  // A result knows its kind, and the kind names the surface that renders it.
+  // A result knows where it goes: a view names its own surface, everything else is opened by the
+  // surface that renders its kind.
   const chooseResult = (doc: SearchDoc): void => {
-    const target: SurfaceId | undefined = surfaceForKind(doc.kind);
-    if (!target) return dismissSpotlight();
-
-    setSelected({ path: doc.id, nonce: Date.now() });
-    openSurface(target);
     dismissSpotlight();
+
+    // A surface that isn't built is in the index and dimmed, the same as its landing card. Choosing
+    // it says so rather than sliding to an empty pane.
+    if (doc.kind === 'view' && doc.inactive) return reportNotBuilt(doc.label);
+
+    const target: SurfaceId | undefined = surfaceForDoc(doc);
+    if (!target) return;
+
+    // A view is the place, not a thing inside it — there's nothing to select.
+    if (doc.kind !== 'view') setSelected({ path: doc.id, nonce: Date.now() });
+    openSurface(target);
   };
 
   // `h-screen`, not `h-full`: this returns before ViewSlider, which is what otherwise gives the

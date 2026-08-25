@@ -3,6 +3,7 @@ import { searchIndex } from '@src/model/search/search';
 import { listed } from '@src/model/shadowing';
 import { buildSkillGraph } from '@src/model/skill-graph/build-graph';
 import { SkillFlow, toSkillFlow } from '@src/webview/flow/steps';
+import { searchViews } from '@src/webview/spotlight/surface-kind';
 import {
   BudgetValue,
   DEFAULT_SETTINGS,
@@ -567,8 +568,12 @@ export const memoryIndexMarkdown: string = `- [Keeps pull requests small](prefer
 - [Unfinished](half-written-note.md) — no type, no description.
 `;
 
-// The spotlight's input: the real index, over the same synthetic skills.
-export const searchDocs: SearchDoc[] = buildSearchIndex(snapshot({ skills: allSkills }));
+// The spotlight's input: the real index, over the same synthetic skills. The views are the real
+// ones — a surface is the panel's own furniture, not config read off someone's disk.
+export const searchDocs: SearchDoc[] = buildSearchIndex({
+  snapshot: snapshot({ skills: allSkills }),
+  views: searchViews()
+});
 
 export const hitsFor = (query: string): SearchHit[] => searchIndex({ index: searchDocs, query });
 
