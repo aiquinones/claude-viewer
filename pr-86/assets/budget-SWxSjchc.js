@@ -1,1 +1,0 @@
-import{n as e}from"./rolldown-runtime-DkW27tQK.js";var t,n,r,i;function a(){return(a=e((()=>{t=.75,n=({value:e,limit:t})=>{if(t<=0)return;let n=e/t;return{level:i(n),fraction:n,value:e,limit:t}},r=({value:e,warnAt:t,errorAt:n})=>n>0&&e>=n?`over`:t>0&&e>=t?`near`:`within`,i=e=>e>1?`over`:e>=t?`near`:`within`})))()}export{n,r,a as t};
