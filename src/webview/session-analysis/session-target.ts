@@ -1,4 +1,5 @@
 import { AgentTool } from '../../model/types';
+import { SurfaceId } from '../surfaces';
 
 // Which session the analysis page should open on, asked for from somewhere that isn't the usage
 // surface. An agent row's menu is the only asker today.
@@ -15,4 +16,16 @@ export interface SessionTarget {
 // nothing happens. Same shape and same reason as `Reveal`.
 export interface SessionRequest extends SessionTarget {
   nonce: number;
+  // Which surface asked. The page's back arrow returns there instead of to the usage tabs — a
+  // journey that can't be reversed is one the reader has to navigate again from the landing page.
+  from: SurfaceId;
+}
+
+// Where a session page was opened from, when that isn't the tabs it lives above. The back arrow
+// goes here and says so; the breadcrumb still points at Usage, which is where the page actually is.
+// Two controls, two destinations, both labelled — the arrow is "where I came from" and the crumb is
+// "up one level", which is what those two have always meant.
+export interface SessionOrigin {
+  label: string;
+  onReturn: () => void;
 }

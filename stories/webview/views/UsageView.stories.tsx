@@ -66,6 +66,7 @@ const meta: Meta<typeof UsageView> = {
     onRequestSessionDetail: () => undefined,
     onCopySessionId: () => undefined,
     onClearRequest: () => undefined,
+    onOpenSurface: () => undefined,
     onSearch: () => undefined,
     onRefresh: () => undefined,
     onBack: () => undefined
@@ -187,26 +188,26 @@ export const SessionsResumedOldSession: Story = {
 export const AnalyzeResolving: Story = {
   args: {
     history: undefined,
-    request: { sessionId: 'session-1', tool: 'claude', nonce: 1 }
+    request: { sessionId: 'session-1', tool: 'claude', nonce: 1, from: 'active-agents' }
   }
 };
 
 // The same request once the history holds it. From here it's the page a Sessions row opens — the
 // resolution sets the same state, so nothing downstream knows which way it was reached.
 export const AnalyzeOpens: Story = {
-  args: { request: { sessionId: 'session-1', tool: 'claude', nonce: 1 } }
+  args: { request: { sessionId: 'session-1', tool: 'claude', nonce: 1, from: 'active-agents' } }
 };
 
 // A running agent that hasn't finished a turn has nothing folded for it, so the id resolves to
 // nothing. Ordinary rather than an error, which is why the note lists the ways it happens.
 export const AnalyzeNotFound: Story = {
-  args: { request: { sessionId: 'session-not-on-disk', tool: 'claude', nonce: 1 } }
+  args: { request: { sessionId: 'session-not-on-disk', tool: 'claude', nonce: 1, from: 'active-agents' } }
 };
 
 // The same miss with the scope set to this workspace, which is the one reason for it the reader can
 // do something about — so it's the one the note names instead of the others.
 export const AnalyzeNotFoundScoped: Story = {
-  args: { request: { sessionId: 'session-not-on-disk', tool: 'copilot', nonce: 1 } },
+  args: { request: { sessionId: 'session-not-on-disk', tool: 'copilot', nonce: 1, from: 'active-agents' } },
   render: (args) => (
     <WithSettings scope="workspace">
       <UsageView {...args} />

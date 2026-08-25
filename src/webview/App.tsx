@@ -85,8 +85,11 @@ export const App = () => {
   // An agent row's Analyze session. The nonce is what makes naming the same session twice a second
   // event rather than a no-op — the same rule `openSkill` follows, and for the same reason: you can
   // go back to the row you came from and press it again.
+  //
+  // `from` is what makes that trip reversible: the page's back arrow retraces it rather than landing
+  // on the tabs of a surface the reader never chose.
   const analyzeSession = (target: SessionTarget): void => {
-    setSessionRequest({ ...target, nonce: Date.now() });
+    setSessionRequest({ ...target, nonce: Date.now(), from: 'active-agents' });
     openSurface('usage');
   };
 
@@ -184,6 +187,7 @@ export const App = () => {
               onAnalyzeSession={analyzeSession}
               sessionRequest={sessionRequest}
               onClearSessionRequest={() => setSessionRequest(undefined)}
+              onOpenSurface={openSurface}
               onCopySessionId={copySessionId}
               onKillAgent={killAgent}
               onOpenFile={openFile}
@@ -244,6 +248,8 @@ interface DetailProps {
   onAnalyzeSession: (target: SessionTarget) => void;
   sessionRequest: SessionRequest | undefined;
   onClearSessionRequest: () => void;
+  // The way back out of a session page to the surface that asked for it.
+  onOpenSurface: (id: SurfaceId) => void;
   onCopySessionId: (sessionId: string) => void;
   onKillAgent: (sessionId: string) => void;
   onOpenFile: (path: string) => void;
@@ -269,6 +275,7 @@ const Detail = ({
   onAnalyzeSession,
   sessionRequest,
   onClearSessionRequest,
+  onOpenSurface,
   onCopySessionId,
   onKillAgent,
   onOpenFile,
@@ -339,6 +346,7 @@ const Detail = ({
           onRequestSessionDetail={onRequestSessionDetail}
           request={sessionRequest}
           onClearRequest={onClearSessionRequest}
+          onOpenSurface={onOpenSurface}
           onCopySessionId={onCopySessionId}
           onSearch={onSearch}
           onRefresh={onRefresh}

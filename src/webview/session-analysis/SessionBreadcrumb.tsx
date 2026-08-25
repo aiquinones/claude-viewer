@@ -5,6 +5,7 @@ import { SessionUsage } from '../../model/usage/types';
 import { AgentToolIcon } from '../agent-icon/AgentToolIcon';
 import { displayFolder } from '../display-path';
 import { PanelActions } from '../PanelActions';
+import { SessionOrigin } from './session-target';
 import { sessionName } from '../usage-sessions/session-filter';
 import { Tooltip } from '../Tooltip';
 
@@ -14,26 +15,39 @@ const COPIED_MS: number = 1600;
 
 interface SessionBreadcrumbProps {
   session: SessionUsage;
-  // Back to the Sessions tab. State rather than navigation — the list keeps its filter and its
-  // scroll, because it was never unmounted.
+  // Up one level, to the Sessions tab. State rather than navigation — the list keeps its filter and
+  // its scroll, because it was never unmounted.
   onBack: () => void;
+  // Where the reader came from, when that isn't the tabs. Absent for a session opened from the list,
+  // where "up" and "back" are the same place and the arrow does what it always did.
+  origin?: SessionOrigin;
   onCopyId: (sessionId: string) => void;
   onSearch: () => void;
   onRefresh: () => void;
 }
 
 // `Usage › <session name>`, and under it the id you would paste into `claude --resume` and the
-// folder it ran in. The back arrow goes up one level rather than home: this is a page inside the
-// usage surface, which is what the breadcrumb is saying.
+// folder it ran in. The crumb goes up one level rather than home: this is a page inside the usage
+// surface, which is what the breadcrumb is saying.
+//
+// The arrow goes up too, until the page was opened from somewhere else — then it retraces that
+// instead, and its label says which. It's the one control on the page that can, since the crumb has
+// to keep naming where the page actually lives.
 export const SessionBreadcrumb = ({
   session,
   onBack,
+  origin,
   onCopyId,
   onSearch,
   onRefresh
 }: SessionBreadcrumbProps) => (
   <header className="flex items-center gap-2 border-b border-border px-4 py-3">
-    <Button variant="ghost" size="icon" title="Back to Usage" onClick={onBack}>
+    <Button
+      variant="ghost"
+      size="icon"
+      title={origin ? `Back to ${origin.label}` : 'Back to Usage'}
+      onClick={origin ? origin.onReturn : onBack}
+    >
       <ChevronLeft />
     </Button>
 

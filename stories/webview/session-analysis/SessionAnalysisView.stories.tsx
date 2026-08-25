@@ -128,3 +128,10 @@ export const Unreadable: Story = { args: { detail: missingDetail } };
 // Before the host answers. The read is one file, so this is on screen for a few milliseconds in
 // practice — but a cold disk is exactly when it isn't.
 export const Loading: Story = { args: { detail: undefined } };
+
+// Opened from an agent row's menu rather than from the list. The arrow retraces that — its tooltip
+// reads "Back to Active Agents" — while the crumb beside it still says Usage, which is where this
+// page lives however you reached it.
+export const FromAnAgentRow: Story = {
+  args: { origin: { label: 'Active Agents', onReturn: () => undefined } }
+};
