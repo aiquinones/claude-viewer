@@ -1,12 +1,14 @@
 import { Check, ChevronLeft, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { AgentSession } from '../../model/types';
 import { SessionUsage } from '../../model/usage/types';
 import { AgentToolIcon } from '../agent-icon/AgentToolIcon';
 import { displayFolder } from '../display-path';
 import { PanelActions } from '../PanelActions';
 import { sessionName } from '../usage-sessions/session-filter';
 import { Tooltip } from '../Tooltip';
+import { SessionActivity } from './SessionActivity';
 
 // How long the button holds its tick. The host also says so in the status bar; this is the half you
 // are actually looking at.
@@ -14,6 +16,10 @@ const COPIED_MS: number = 1600;
 
 interface SessionBreadcrumbProps {
   session: SessionUsage;
+  // The live agent writing to this session, if one still is. Absent on a session that's over, which
+  // is most of the list — nothing is drawn for those, since "not running" is what a page with no
+  // badge already says.
+  agent?: AgentSession;
   // Back to the Sessions tab. State rather than navigation — the list keeps its filter and its
   // scroll, because it was never unmounted.
   onBack: () => void;
@@ -27,6 +33,7 @@ interface SessionBreadcrumbProps {
 // usage surface, which is what the breadcrumb is saying.
 export const SessionBreadcrumb = ({
   session,
+  agent,
   onBack,
   onCopyId,
   onSearch,
@@ -51,6 +58,9 @@ export const SessionBreadcrumb = ({
         </span>
         <span className="truncate font-semibold">{sessionName(session)}</span>
         <AgentToolIcon tool={session.tool} size="md" />
+        {/* Why the numbers below move on their own. The same badge the Active Agents rows draw, on
+            the same clock — a page that reads itself should say so where its name is. */}
+        {agent && <SessionActivity agent={agent} />}
       </span>
       <span className="flex min-w-0 items-center gap-2">
         <SessionId sessionId={session.sessionId} onCopy={onCopyId} />

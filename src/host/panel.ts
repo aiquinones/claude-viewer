@@ -6,7 +6,6 @@ import { loadSkillBody } from '../model/skill-body';
 import {
   AgentColors,
   AgentSession,
-  AgentTool,
   ConfigSnapshot,
   FileBody,
   SkillGraph,
@@ -14,7 +13,13 @@ import {
 } from '../model/types';
 import { SessionDetail, UsageHistory, UsageReport } from '../model/usage/types';
 import { copySessionId, killAgent } from './agent-commands';
-import { requestSessionDetail } from './session-detail';
+import {
+  onDidChangeSessionDetail,
+  refreshSessionDetail,
+  setSessionDetailPollMode,
+  stopWatchingSessionDetail,
+  watchSession
+} from './session-detail-store';
 import {
   currentAgentColors,
   onDidChangeAgentColors,
@@ -80,6 +85,7 @@ let settingsSubscription: vscode.Disposable | undefined;
 let agentsSubscription: vscode.Disposable | undefined;
 let usageSubscription: vscode.Disposable | undefined;
 let historySubscription: vscode.Disposable | undefined;
+let detailSubscription: vscode.Disposable | undefined;
 let colorsSubscription: vscode.Disposable | undefined;
 // The webview can't hear anything until it has booted and said so.
 let webviewReady: boolean = false;
@@ -181,6 +187,9 @@ export const openPanel = ({ context, revealPath, revealSection }: OpenPanelArgs)
   usageSubscription = onDidChangeUsage((report) => void _postUsage(report));
   // The Sessions tab's own channel — every session on disk rather than the last seven days of them.
   historySubscription = onDidChangeUsageHistory((history) => void _postUsageHistory(history));
+  // One session, re-read while a live agent is still writing to it. Its own channel like the rest,
+  // and the only one whose subject the webview chooses.
+  detailSubscription = onDidChangeSessionDetail((detail) => void _postSessionDetail(detail));
 
   // A hidden tab still holds its webview — retainContextWhenHidden — so nothing tells the poll to
   // stop except this. Reading the disk every two seconds for a panel nobody is looking at is the
@@ -192,6 +201,9 @@ export const openPanel = ({ context, revealPath, revealSection }: OpenPanelArgs)
     setAgentPollMode('off');
     setUsagePollMode('off');
     setUsageHistoryPollMode('off');
+    // Also drops the watched session: the page went with the panel, and a watch left behind would
+    // read again the next time one opens.
+    stopWatchingSessionDetail();
     visibleSurface = undefined;
     snapshotSubscription?.dispose();
     snapshotSubscription = undefined;
@@ -205,6 +217,8 @@ export const openPanel = ({ context, revealPath, revealSection }: OpenPanelArgs)
     usageSubscription = undefined;
     historySubscription?.dispose();
     historySubscription = undefined;
+    detailSubscription?.dispose();
+    detailSubscription = undefined;
     panel = undefined;
     webviewReady = false;
     pendingReveal = undefined;
@@ -220,7 +234,8 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
       refreshSnapshot(),
       refreshAgents(),
       refreshUsage(),
-      refreshUsageHistory()
+      refreshUsageHistory(),
+      refreshSessionDetail()
     ]));
   }
   if (message.type === 'openFile') return _openFile(message.path);
@@ -228,9 +243,7 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'copySessionId') return copySessionId(message.sessionId);
   if (message.type === 'killAgent') return killAgent(message.sessionId);
   if (message.type === 'requestBody') return _sendBody(message.path);
-  if (message.type === 'requestSessionDetail') {
-    return _sendSessionDetail({ sessionId: message.sessionId, tool: message.tool });
-  }
+  if (message.type === 'watchSession') return watchSession(message.session);
   if (message.type === 'requestGraph') return _sendGraph();
   if (message.type === 'notBuilt') return _notBuilt(message.title);
   if (message.type === 'surfaceChanged') return _onSurfaceChanged(message.surface);
@@ -261,14 +274,18 @@ const _updatePollMode = (): void => {
     setAgentPollMode('off');
     setUsagePollMode('off');
     setUsageHistoryPollMode('off');
+    setSessionDetailPollMode('off');
     return;
   }
 
   setAgentPollMode(visibleSurface === AGENTS_SURFACE ? 'live' : 'background');
-  // No background rate for these two. Nothing off the surface itself moves fast enough to be worth a
-  // pass over every transcript on the machine.
+  // No background rate for these three. Nothing off the surface itself moves fast enough to be worth
+  // a pass over every transcript on the machine.
   setUsagePollMode(visibleSurface === USAGE_SURFACE ? 'live' : 'off');
   setUsageHistoryPollMode(visibleSurface === USAGE_SURFACE ? 'live' : 'off');
+  // The session page is inside the usage surface, so this is as much as the surface can say. Which
+  // session — and whether one is open at all — is the webview's answer, on `watchSession`.
+  setSessionDetailPollMode(visibleSurface === USAGE_SURFACE ? 'live' : 'off');
 };
 
 // The selected file's text, read on demand rather than shipped with every snapshot. Same path
@@ -370,13 +387,10 @@ const _postUsageHistory = async (history: UsageHistory): Promise<void> => {
   await panel?.webview.postMessage({ type: 'usageHistory', history });
 };
 
-// One session, read because a row was clicked. The reply carries the session id back so a panel that
-// has already moved on can drop it — the same rule `_sendBody` follows for a file.
-const _sendSessionDetail = async (args: {
-  sessionId: string;
-  tool: AgentTool;
-}): Promise<void> => {
-  const detail: SessionDetail = await requestSessionDetail(args);
+// One session, read because a row was clicked and then re-read while an agent is still writing to
+// it. The reply carries the session id back so a panel that has already moved on can drop it — the
+// same rule `_sendBody` follows for a file.
+const _postSessionDetail = async (detail: SessionDetail): Promise<void> => {
   if (!webviewReady) return;
   await panel?.webview.postMessage({ type: 'sessionDetail', detail });
 };
