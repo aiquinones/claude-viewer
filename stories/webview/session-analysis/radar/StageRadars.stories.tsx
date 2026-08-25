@@ -1,16 +1,32 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { CSSProperties } from 'react';
+import { CSSProperties, ReactElement, ReactNode } from 'react';
 import { DEFAULT_SETTINGS } from '@src/model/settings/settings';
 import { StageRadars } from '@src/webview/session-analysis/radar/StageRadars';
 import { SettingsProvider } from '@src/webview/settings/SettingsContext';
 import { surfaceAccent } from '@src/webview/surfaces';
-import { bareDetail, claudeDetail, copilotDetail } from '../../../session-detail-fixtures';
+import {
+  bareDetail,
+  claudeDetail,
+  copilotDetail,
+  stageNames
+} from '../../../session-detail-fixtures';
+
+// The stored names are the whole state this section reads: a skill in the map is a stage, and one
+// out of it is a skill the split ignores. So every story here is really a story about this map.
+const withNames =
+  (names: Record<string, string>) =>
+  (Story: () => ReactNode): ReactElement => (
+    <SettingsProvider settings={{ ...DEFAULT_SETTINGS, stages: { names } }}>
+      <Story />
+    </SettingsProvider>
+  );
 
 const meta: Meta<typeof StageRadars> = {
   title: 'Usage/StageRadars',
   component: StageRadars,
   args: { detail: claudeDetail, metric: 'output-tokens' },
   decorators: [
+    withNames(stageNames),
     (Story) => (
       <div
         className="w-[42rem] max-w-full p-4"
@@ -38,26 +54,18 @@ export const Cost: Story = { args: { metric: 'cost' } };
 // decides and not the reader.
 export const Copilot: Story = { args: { detail: copilotDetail, metric: 'cost' } };
 
-// No skills, so no stages. Both wheels say so rather than drawing an empty grid, and the (i) is
-// still there — how the splits are made is the question a reader has here most of all.
-export const NoStages: Story = { args: { detail: bareDetail } };
+// Skills ran and none of them is a stage yet, which is where every session starts. The card takes
+// the wheels' place and carries the way out of the state — two empty wheels would say the session
+// can't be split, when the truth is that nobody has split it.
+export const Unsplit: Story = { decorators: [withNames({})] };
 
-// Names already stored. Reopening the dialog from the (i) shows these back, which is what makes an
-// override something you can edit rather than only set.
-export const Renamed: Story = {
-  decorators: [
-    (Story) => (
-      <SettingsProvider
-        settings={{
-          ...DEFAULT_SETTINGS,
-          stages: { names: { 'dev-feature': 'Build', 'create-pr': 'Ship' } }
-        }}
-      >
-        <Story />
-      </SettingsProvider>
-    )
-  ]
-};
+// One skill named out of the four. The other three open no stage, so the one that does covers the
+// whole session — the ignore half of the feature, seen on the wheel.
+export const SomeIgnored: Story = { decorators: [withNames({ 'dev-feature': 'Build' })] };
+
+// No skills at all, so there is nothing to name and no card offering it. The (i) is still there —
+// how a session gets split is the question a reader has here most of all.
+export const NoSkills: Story = { args: { detail: bareDetail } };
 
 // The panel narrow enough that the two wheels stack. It's `flex-wrap` rather than a breakpoint — a
 // media query in the webview measures the panel, and wrapping needs no number to be right about.

@@ -4,7 +4,9 @@ interface ChartSectionProps {
   title: string;
   // What the chart is of, beside the heading — the request count, or how full the context got. Set
   // in normal case against the uppercase title, the same shape every grouped list here uses.
-  note: ReactNode;
+  // Optional: a section with nothing to count says nothing rather than drawing an empty box, which
+  // the row's gap would otherwise show as a hole between the title and the (i).
+  note?: ReactNode;
   // Anything that floats out of the heading — an (i) and the card it opens. Its own slot because
   // the note truncates, and `truncate` is `overflow: hidden`: a card hung inside it opens below a
   // one-line box and is clipped away entirely, with nothing on screen to say why.
@@ -18,7 +20,9 @@ export const ChartSection = ({ title, note, info, children }: ChartSectionProps)
   <section className="flex flex-col gap-2">
     <h2 className="flex items-baseline gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
       {title}
-      <span className="truncate font-normal normal-case tracking-normal">{note}</span>
+      {note !== undefined && (
+        <span className="truncate font-normal normal-case tracking-normal">{note}</span>
+      )}
       {/* `self-center`: the row is baseline-aligned for the text, and an icon isn't text. A box
           holding an svg and an `sr-only` span has no in-flow line box — `sr-only` is absolute — so
           it baselines on its bottom edge and the icon rides above the letters beside it. */}

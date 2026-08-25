@@ -1,6 +1,7 @@
-// One session cut into stages. A skill load opens a stage and it runs until the next skill opens
-// another, so the boundaries come off the log rather than off a guess about what the session was
-// doing. Pure — both numbers are read out of turns and contexts the host already sent.
+// One session cut into stages. A stage is *based on* a skill without being one: naming a skill is
+// what makes its loads open a stage, and a skill nobody named is invisible to the split — the stage
+// that was running carries straight through it. So the cuts are read off the log and which cuts
+// count is the reader's. Pure — both numbers come off turns and contexts the host already sent.
 
 import {
   ContextPoint,
@@ -13,12 +14,10 @@ import { turnValue } from './charts/series';
 // One skill's stages, folded together. A skill that opens a stage twice is one entry rather than
 // two: the radar keys an axis on the name, and two axes with one label is a chart nobody can read.
 export interface SessionStage {
-  // The skill that opened it. What the axis is keyed on, and what an override is keyed on.
+  // The skill that opened it. What the axis is keyed on, and what the name is keyed on.
   skill: string;
-  // What the reader calls it — their override, or the skill's own name.
+  // What the reader named it. Never the skill's own name — an unnamed skill opens no stage.
   label: string;
-  // Whether that label came from an override, so the hover can still name the skill behind it.
-  renamed: boolean;
   // The metric summed over the turns inside it.
   value: number;
   // What the context gained across it. Negative where something compacted mid-stage, which real
@@ -42,13 +41,14 @@ interface ToStagesArgs {
   invocations: SkillInvocation[];
   contexts: ContextPoint[];
   metric: UsageMetric;
-  // Stage name overrides, keyed by skill name. Absent keys keep the skill's own name.
+  // The stage names, keyed by skill. A skill in here opens a stage; one that isn't, doesn't.
   names: Record<string, string>;
 }
 
-// The stages of one session, in the order they first opened. Turns before the first skill load
-// belong to no stage and are dropped — the session was doing something, but nothing on disk says
-// what, and a bucket named for that would be a guess with a label on it.
+// The stages of one session, in the order they first opened. Empty until the reader has named at
+// least one skill. Turns before the first stage belong to no stage and are dropped — the session
+// was doing something, but nothing says what, and a bucket named for that would be a guess with a
+// label on it.
 export const toStages = ({
   turns,
   invocations,
@@ -56,7 +56,7 @@ export const toStages = ({
   metric,
   names
 }: ToStagesArgs): SessionStage[] => {
-  const bounds: Boundary[] = boundaries(invocations);
+  const bounds: Boundary[] = boundaries({ invocations, names });
   if (bounds.length === 0) return [];
 
   const sortedTurns: UsageTurn[] = [...turns].sort((left, right) => left.at - right.at);
@@ -73,8 +73,9 @@ export const toStages = ({
 
     const stage: SessionStage = {
       skill: bounds[i].skill,
-      label: names[bounds[i].skill] ?? bounds[i].skill,
-      renamed: names[bounds[i].skill] !== undefined,
+      // Trimmed for the same reason a blank name isn't a stage: what's stored is what someone
+      // typed, and the padding isn't part of the label.
+      label: names[bounds[i].skill].trim(),
       value: inside.reduce((sum, turn) => sum + turnValue({ turn, metric }), 0),
       growth: growthOver({ contexts: sortedContexts, start, end }),
       stages: 1,
@@ -89,11 +90,22 @@ export const toStages = ({
   return [...folded.values()].sort((left, right) => left.firstAt - right.firstAt);
 };
 
-// Which loads actually open a stage. A load of the skill that's already running doesn't: Copilot
-// injects a skill because you typed its name and loads it again five seconds later when the model
-// asks for what it already has, and a stage between those two would be five seconds wide.
-const boundaries = (invocations: SkillInvocation[]): Boundary[] => {
-  const sorted: SkillInvocation[] = [...invocations].sort((left, right) => left.at - right.at);
+interface BoundariesArgs {
+  invocations: SkillInvocation[];
+  names: Record<string, string>;
+}
+
+// Which loads actually open a stage. Unnamed skills are dropped first and the repeat rule runs over
+// what's left, so a named skill interrupted only by unnamed ones is still one stage — the reader
+// said those loads aren't stages, and a gap they can't see would split the one they can.
+//
+// A load of the skill that's already running doesn't open a stage either: Copilot injects a skill
+// because you typed its name and loads it again five seconds later when the model asks for what it
+// already has, and a stage between those two would be five seconds wide.
+const boundaries = ({ invocations, names }: BoundariesArgs): Boundary[] => {
+  const sorted: SkillInvocation[] = [...invocations]
+    .filter((load) => isNamed({ skill: load.skill, names }))
+    .sort((left, right) => left.at - right.at);
 
   const bounds: Boundary[] = [];
   for (const load of sorted) {
@@ -102,6 +114,15 @@ const boundaries = (invocations: SkillInvocation[]): Boundary[] => {
   }
   return bounds;
 };
+
+interface IsNamedArgs {
+  skill: string;
+  names: Record<string, string>;
+}
+
+// Whether a skill is a stage. A blank name is how the dialog says "not a stage", so it counts as
+// absent rather than as a stage with nothing on its spoke.
+const isNamed = ({ skill, names }: IsNamedArgs): boolean => (names[skill] ?? '').trim().length > 0;
 
 interface GrowthArgs {
   // Oldest first.
@@ -145,6 +166,15 @@ const merge = ({ held, stage }: MergeArgs): SessionStage => ({
 export const stagePeak = (stages: SessionStage[], read: (stage: SessionStage) => number): number =>
   stages.reduce((peak, stage) => Math.max(peak, read(stage)), 0);
 
-// Every skill that opened a stage, in the order they first did. What the naming dialog lists.
-export const stageSkills = (stages: SessionStage[]): string[] =>
-  stages.map((stage) => stage.skill);
+// Every skill this session loaded, in the order it first did. What the naming dialog lists — the
+// choice being made there is which of these are stages, so it can't be a list of the stages.
+export const invokedSkills = (invocations: SkillInvocation[]): string[] => {
+  const seen: Map<string, number> = new Map();
+
+  for (const load of invocations) {
+    const first: number | undefined = seen.get(load.skill);
+    if (first === undefined || load.at < first) seen.set(load.skill, load.at);
+  }
+
+  return [...seen.entries()].sort((left, right) => left[1] - right[1]).map(([skill]) => skill);
+};

@@ -30,13 +30,13 @@ interface StageRadarProps {
   format: (value: number) => string;
   // What one value is, for the bubble — "output tokens", "context".
   unit: string;
-  empty: string;
 }
 
-// One session's stages on a wheel: a spoke per skill that opened one, reaching as far as that stage
-// spent. A wheel rather than a third curve because a stage has no place on an axis of requests —
-// what's being compared is a handful of named things, not a sequence.
-export const StageRadar = ({ title, stages, read, format, unit, empty }: StageRadarProps) => {
+// One session's stages on a wheel: a spoke per stage, reaching as far as that stage spent. A wheel
+// rather than a third curve because a stage has no place on an axis of requests — what's being
+// compared is a handful of named things, not a sequence. Never drawn empty: with no stages there is
+// nothing to compare and the section says so instead, in words that depend on why.
+export const StageRadar = ({ title, stages, read, format, unit }: StageRadarProps) => {
   const gradientId: string = useId();
   const [hovered, setHovered] = useState<number | undefined>(undefined);
 
@@ -62,75 +62,66 @@ export const StageRadar = ({ title, stages, read, format, unit, empty }: StageRa
         {title}
       </h3>
 
-      {stages.length === 0 ? (
-        <p
-          className="flex items-center justify-center px-2 text-center text-sm text-muted-foreground"
-          style={{ width: RADAR_SIZE, height: RADAR_SIZE }}
+      {/* The bubble hangs off this rather than off the card, so its coordinates are the svg's own. */}
+      <div className="relative" style={{ width: RADAR_SIZE, height: RADAR_SIZE }}>
+        <svg
+          width={RADAR_SIZE}
+          height={RADAR_SIZE}
+          viewBox={`0 0 ${RADAR_SIZE} ${RADAR_SIZE}`}
+          onPointerMove={move}
+          onPointerLeave={() => setHovered(undefined)}
+          role="img"
+          aria-label={`${plural(stages.length, 'stage')}, up to ${format(max)} ${unit}`}
+          className="block"
         >
-          {empty}
-        </p>
-      ) : (
-        // The bubble hangs off this rather than off the card, so its coordinates are the svg's own.
-        <div className="relative" style={{ width: RADAR_SIZE, height: RADAR_SIZE }}>
-          <svg
-            width={RADAR_SIZE}
-            height={RADAR_SIZE}
-            viewBox={`0 0 ${RADAR_SIZE} ${RADAR_SIZE}`}
-            onPointerMove={move}
-            onPointerLeave={() => setHovered(undefined)}
-            role="img"
-            aria-label={`${plural(stages.length, 'stage')}, up to ${format(max)} ${unit}`}
-            className="block"
-          >
-            <defs>
-              <radialGradient id={gradientId}>
-                <stop offset="0%" className="chart-area-bottom" />
-                <stop offset="100%" className="chart-area-top" />
-              </radialGradient>
-            </defs>
+          <defs>
+            <radialGradient id={gradientId}>
+              <stop offset="0%" className="chart-area-bottom" />
+              <stop offset="100%" className="chart-area-top" />
+            </radialGradient>
+          </defs>
 
-            <Grid radar={radar} />
+          <Grid radar={radar} />
 
-            <path d={radarPath({ radar, values })} fill={`url(#${gradientId})`} />
-            <path
-              d={radarPath({ radar, values })}
-              fill="none"
-              strokeWidth={1.5}
-              strokeLinejoin="round"
-              className="chart-line"
+          <path d={radarPath({ radar, values })} fill={`url(#${gradientId})`} />
+          <path
+            d={radarPath({ radar, values })}
+            fill="none"
+            strokeWidth={1.5}
+            strokeLinejoin="round"
+            className="chart-line"
+          />
+
+          {values.map((value, index) => (
+            <circle
+              key={stages[index].skill}
+              cx={radar.valueAt({ index, value }).x}
+              cy={radar.valueAt({ index, value }).y}
+              r={index === hovered ? 4 : 2.5}
+              className={index === hovered ? 'chart-cursor' : 'chart-load-core'}
             />
+          ))}
 
-            {values.map((value, index) => (
-              <circle
-                key={stages[index].skill}
-                cx={radar.valueAt({ index, value }).x}
-                cy={radar.valueAt({ index, value }).y}
-                r={index === hovered ? 4 : 2.5}
-                className={index === hovered ? 'chart-cursor' : 'chart-load-core'}
-              />
-            ))}
+          {stages.map((stage, index) => (
+            <SpokeLabel
+              key={stage.skill}
+              label={radar.labelAt(index)}
+              text={stage.label}
+              lit={index === hovered}
+            />
+          ))}
+        </svg>
 
-            {stages.map((stage, index) => (
-              <SpokeLabel
-                key={stage.skill}
-                label={radar.labelAt(index)}
-                text={stage.label}
-                lit={index === hovered}
-              />
-            ))}
-          </svg>
-
-          {active && hovered !== undefined && (
-            <HoverBubble
-              x={radar.valueAt({ index: hovered, value: values[hovered] }).x}
-              y={radar.valueAt({ index: hovered, value: values[hovered] }).y}
-              frameWidth={RADAR_SIZE}
-            >
-              <BubbleText stage={active} value={read(active)} unit={unit} format={format} />
-            </HoverBubble>
-          )}
-        </div>
-      )}
+        {active && hovered !== undefined && (
+          <HoverBubble
+            x={radar.valueAt({ index: hovered, value: values[hovered] }).x}
+            y={radar.valueAt({ index: hovered, value: values[hovered] }).y}
+            frameWidth={RADAR_SIZE}
+          >
+            <BubbleText stage={active} value={read(active)} unit={unit} format={format} />
+          </HoverBubble>
+        )}
+      </div>
     </section>
   );
 };
@@ -206,7 +197,8 @@ interface BubbleTextProps {
 
 // The stage's name first and in full — the label on the spoke is cut to whatever room that spoke
 // had, so this is the only place the whole name is. Then the number, the way the curves' bubble
-// leads with it.
+// leads with it, and the skill under it: every stage is named something other than its skill now,
+// so the skill is always worth saying.
 const BubbleText = ({ stage, value, unit, format }: BubbleTextProps) => (
   <>
     <span className="block font-medium text-foreground">{stage.label}</span>
@@ -215,7 +207,7 @@ const BubbleText = ({ stage, value, unit, format }: BubbleTextProps) => (
       {' '}
       {unit} · {plural(stage.turns, 'request')}
     </span>
-    {stage.renamed && <span className="block text-muted-foreground">/{stage.skill}</span>}
+    <span className="block text-muted-foreground">/{stage.skill}</span>
     {stage.stages > 1 && (
       <span className="block text-muted-foreground">{plural(stage.stages, 'stage')}</span>
     )}

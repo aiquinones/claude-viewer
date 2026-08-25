@@ -138,6 +138,16 @@ export const claudeSession: SessionUsage = {
   days: []
 };
 
+// Every skill these fixtures load, named. Naming is what makes a skill a stage, so a story that
+// wants wheels has to hand this over — a session with nothing named has no stages by design, and
+// that state is a story of its own rather than the default.
+export const stageNames: Record<string, string> = {
+  'dev-feature': 'Build',
+  'claude-api': 'Research',
+  'create-pr': 'Ship',
+  publish: 'Release'
+};
+
 export const claudeDetail: SessionDetail = {
   sessionId: claudeSession.sessionId,
   tool: 'claude',

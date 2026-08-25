@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { toStages } from '@src/webview/session-analysis/stages';
+import { invokedSkills, toStages } from '@src/webview/session-analysis/stages';
 import {
   ContextPoint,
   EMPTY_TOKENS,
@@ -9,7 +9,8 @@ import {
 
 // What's under test is where the cuts fall. Every number on the radars is a sum over a span, so a
 // boundary in the wrong place is wrong twice — it overstates one stage and understates its
-// neighbour, and both of them still look plausible.
+// neighbour, and both of them still look plausible. A cut falls at a *named* skill's load, so
+// almost every case here has to hand over names as well as loads.
 
 interface TurnArgs {
   at: number;
@@ -49,6 +50,11 @@ interface StagesArgs {
   names?: Record<string, string>;
 }
 
+// Naming a skill is what makes it a stage, so a test that wants a stage has to name the skill. The
+// name doubles as the label, which is why these read as words rather than as the skill's own name.
+const named = (...skills: string[]): Record<string, string> =>
+  Object.fromEntries(skills.map((skill) => [skill, skill.toUpperCase()]));
+
 const stagesOf = ({ turns = [], invocations = [], contexts = [], names = {} }: StagesArgs) =>
   toStages({ turns, invocations, contexts, metric: 'output-tokens', names });
 
@@ -56,6 +62,7 @@ describe('toStages', () => {
   it('runs a stage from its skill load to the next one', () => {
     const stages = stagesOf({
       invocations: [load({ skill: 'design', at: 10 }), load({ skill: 'commit', at: 30 })],
+      names: named('design', 'commit'),
       turns: [
         turn({ at: 10, output: 100 }),
         turn({ at: 20, output: 200 }),
@@ -75,6 +82,7 @@ describe('toStages', () => {
   it('drops the turns before the first skill load', () => {
     const stages = stagesOf({
       invocations: [load({ skill: 'design', at: 50 })],
+      names: named('design'),
       turns: [turn({ at: 10, output: 999 }), turn({ at: 50, output: 7 })]
     });
 
@@ -84,6 +92,68 @@ describe('toStages', () => {
 
   it('has no stages at all when the session loaded no skills', () => {
     expect(stagesOf({ turns: [turn({ at: 1, output: 500 })] })).toEqual([]);
+  });
+
+  // The state the section draws a card for rather than two empty wheels. Skills ran, so there is a
+  // split to be had; nobody has chosen it, so there is nothing to draw.
+  it('has no stages while none of the skills that ran is named', () => {
+    const stages = stagesOf({
+      invocations: [load({ skill: 'design', at: 10 }), load({ skill: 'commit', at: 30 })],
+      turns: [turn({ at: 10, output: 100 }), turn({ at: 30, output: 200 })]
+    });
+
+    expect(stages).toEqual([]);
+  });
+
+  // The ignore half of the feature. An unnamed load isn't a boundary, so the turns either side of
+  // it belong to whatever stage was already running.
+  it('runs a stage straight through the loads of skills nobody named', () => {
+    const stages = stagesOf({
+      invocations: [
+        load({ skill: 'dev-feature', at: 10 }),
+        load({ skill: 'commit', at: 20 }),
+        load({ skill: 'review', at: 30 })
+      ],
+      names: named('dev-feature'),
+      turns: [
+        turn({ at: 10, output: 1 }),
+        turn({ at: 20, output: 2 }),
+        turn({ at: 30, output: 4 }),
+        turn({ at: 40, output: 8 })
+      ]
+    });
+
+    expect(stages.map((stage) => [stage.skill, stage.value, stage.turns])).toEqual([
+      ['dev-feature', 15, 4]
+    ]);
+  });
+
+  // Filtering happens before the repeat rule, so a named skill interrupted only by unnamed ones is
+  // still one stage. Splitting it would be a cut the reader can't see the reason for.
+  it('does not reopen a stage when an unnamed skill ran in the middle of it', () => {
+    const stages = stagesOf({
+      invocations: [
+        load({ skill: 'dev-feature', at: 10 }),
+        load({ skill: 'commit', at: 20 }),
+        load({ skill: 'dev-feature', at: 30 })
+      ],
+      names: named('dev-feature'),
+      turns: [turn({ at: 10, output: 5 }), turn({ at: 30, output: 5 })]
+    });
+
+    expect(stages).toHaveLength(1);
+    expect(stages[0]).toMatchObject({ skill: 'dev-feature', stages: 1, turns: 2, value: 10 });
+  });
+
+  // A blank name is how the dialog says "not a stage", so it has to read as absent rather than as a
+  // stage labelled with nothing.
+  it('treats a blank name as not a stage', () => {
+    const stages = stagesOf({
+      invocations: [load({ skill: 'design', at: 10 }), load({ skill: 'commit', at: 20 })],
+      names: { design: '   ', commit: 'Ship' }
+    });
+
+    expect(stages.map((stage) => stage.skill)).toEqual(['commit']);
   });
 
   // Copilot injects a skill because you typed its name, then loads it again seconds later when the
@@ -96,6 +166,7 @@ describe('toStages', () => {
         load({ skill: 'dev-feature', at: 15 }),
         load({ skill: 'commit', at: 40 })
       ],
+      names: named('dev-feature', 'commit'),
       turns: [turn({ at: 20, output: 100 }), turn({ at: 40, output: 60 })]
     });
 
@@ -113,6 +184,7 @@ describe('toStages', () => {
         load({ skill: 'review', at: 20 }),
         load({ skill: 'commit', at: 30 })
       ],
+      names: named('commit', 'review'),
       turns: [turn({ at: 10, output: 5 }), turn({ at: 20, output: 50 }), turn({ at: 30, output: 7 })]
     });
 
@@ -122,7 +194,8 @@ describe('toStages', () => {
 
   it('sorts the spokes by when each skill first opened a stage', () => {
     const stages = stagesOf({
-      invocations: [load({ skill: 'zulu', at: 10 }), load({ skill: 'alpha', at: 20 })]
+      invocations: [load({ skill: 'zulu', at: 10 }), load({ skill: 'alpha', at: 20 })],
+      names: named('zulu', 'alpha')
     });
 
     expect(stages.map((stage) => stage.skill)).toEqual(['zulu', 'alpha']);
@@ -133,6 +206,7 @@ describe('toStages', () => {
   it('measures growth from the last reading before the stage began', () => {
     const stages = stagesOf({
       invocations: [load({ skill: 'design', at: 10 }), load({ skill: 'commit', at: 30 })],
+      names: named('design', 'commit'),
       contexts: [context(5, 1_000), context(10, 9_000), context(30, 12_000), context(40, 20_000)]
     });
 
@@ -144,6 +218,7 @@ describe('toStages', () => {
   it('falls back to its own first reading when nothing precedes the stage', () => {
     const stages = stagesOf({
       invocations: [load({ skill: 'design', at: 10 })],
+      names: named('design'),
       contexts: [context(10, 9_000), context(20, 15_000)]
     });
 
@@ -155,6 +230,7 @@ describe('toStages', () => {
   it('keeps a negative growth rather than clamping it', () => {
     const stages = stagesOf({
       invocations: [load({ skill: 'design', at: 10 })],
+      names: named('design'),
       contexts: [context(5, 90_000), context(10, 92_000), context(20, 30_000)]
     });
 
@@ -164,22 +240,22 @@ describe('toStages', () => {
   it('reports no growth for a stage nothing measured', () => {
     const stages = stagesOf({
       invocations: [load({ skill: 'design', at: 10 }), load({ skill: 'commit', at: 30 })],
+      names: named('design', 'commit'),
       contexts: [context(10, 5_000), context(20, 8_000)]
     });
 
     expect(stages.map((stage) => stage.growth)).toEqual([3_000, 0]);
   });
 
-  it('labels a stage with its override and says the label was not the skill', () => {
+  // A name for a skill this session never ran says nothing about this session — the map is global
+  // and every other session's names are in it too.
+  it('labels a stage with its name and ignores names for skills that never ran', () => {
     const stages = stagesOf({
       invocations: [load({ skill: 'dev-feature', at: 10 }), load({ skill: 'commit', at: 20 })],
       names: { 'dev-feature': 'Build', 'never-ran': 'Elsewhere' }
     });
 
-    expect(stages.map((stage) => [stage.label, stage.renamed])).toEqual([
-      ['Build', true],
-      ['commit', false]
-    ]);
+    expect(stages.map((stage) => [stage.skill, stage.label])).toEqual([['dev-feature', 'Build']]);
   });
 
   // A resumed session writes its turns out of order often enough that the fold can't assume file
@@ -187,6 +263,7 @@ describe('toStages', () => {
   it('reads spans off the clock rather than off the order it was handed', () => {
     const stages = stagesOf({
       invocations: [load({ skill: 'commit', at: 30 }), load({ skill: 'design', at: 10 })],
+      names: named('commit', 'design'),
       turns: [turn({ at: 40, output: 9 }), turn({ at: 15, output: 4 })]
     });
 
@@ -194,5 +271,31 @@ describe('toStages', () => {
       ['design', 4],
       ['commit', 9]
     ]);
+  });
+});
+
+// What the naming dialog lists. Not the stages — the choice being made there is which skills become
+// stages, so a list of the stages would leave out every row worth adding.
+describe('invokedSkills', () => {
+  it('lists every skill that ran, once, in the order it first did', () => {
+    const skills = invokedSkills([
+      load({ skill: 'dev-feature', at: 10 }),
+      load({ skill: 'commit', at: 20 }),
+      load({ skill: 'dev-feature', at: 30 })
+    ]);
+
+    expect(skills).toEqual(['dev-feature', 'commit']);
+  });
+
+  // A resumed session writes its loads out of order, the same reason the spans are read off the
+  // clock rather than off file position.
+  it('orders by the clock rather than by the order it was handed', () => {
+    const skills = invokedSkills([load({ skill: 'commit', at: 30 }), load({ skill: 'design', at: 10 })]);
+
+    expect(skills).toEqual(['design', 'commit']);
+  });
+
+  it('lists nothing for a session that loaded no skills', () => {
+    expect(invokedSkills([])).toEqual([]);
   });
 });
