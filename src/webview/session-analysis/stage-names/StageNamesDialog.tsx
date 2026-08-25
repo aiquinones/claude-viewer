@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { RefObject, useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Z } from '../../z-layers';
@@ -33,6 +33,7 @@ export const StageNamesDialog = ({
 }: StageNamesDialogProps) => {
   const [draft, setDraft] = useState<Record<string, string>>(() => seed({ skills, current }));
   const box = useRef<HTMLDivElement>(null);
+  const first = useRef<HTMLInputElement>(null);
 
   const changed: boolean = skills.some(
     (skill) => (draft[skill] ?? '').trim() !== (current[skill] ?? '')
@@ -43,9 +44,20 @@ export const StageNamesDialog = ({
   const save = (): void =>
     changed ? onSave(mergeStageNames({ skills, current, draft })) : onDismiss();
 
-  // On the window rather than the box, for the reason the estimator dialog's listener is: the box is
-  // focusable but nothing inside it is focused on open. Enter saves from anywhere, including from a
-  // field — this is a form, and that's what Enter does in one.
+  // Focus, once, on open. Its own effect with no dependencies — sharing the listener's below would
+  // re-run it on every keystroke, and a `focus()` mid-typing takes the caret out of the field you
+  // are typing into. Nothing announces itself: the character lands, and the next one goes nowhere.
+  //
+  // The first field rather than the box: this is a form, and the thing you opened it to do is type.
+  // A session with no stages has no field, so the box takes it and Escape still has somewhere to
+  // fire from.
+  useEffect(() => {
+    if (first.current) first.current.focus();
+    else box.current?.focus();
+  }, []);
+
+  // On the window rather than the box, so Escape and Enter work from anywhere inside the dialog —
+  // including from a field, where Enter is what saves a form.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
@@ -61,7 +73,6 @@ export const StageNamesDialog = ({
       save();
     };
 
-    box.current?.focus();
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [onDismiss, onSave, draft, changed]);
@@ -100,11 +111,12 @@ export const StageNamesDialog = ({
           {skills.length === 0 ? (
             <p className="py-4 text-center text-sm text-muted-foreground">{NAMES_EMPTY}</p>
           ) : (
-            skills.map((skill) => (
+            skills.map((skill, index) => (
               <StageNameField
                 key={skill}
                 skill={skill}
                 value={draft[skill] ?? ''}
+                inputRef={index === 0 ? first : undefined}
                 onChange={(name) => setDraft((held) => ({ ...held, [skill]: name }))}
               />
             ))
@@ -144,13 +156,15 @@ const seed = ({ skills, current }: SeedArgs): Record<string, string> =>
 interface StageNameFieldProps {
   skill: string;
   value: string;
+  // Set on the first field only, so the dialog can put the caret there on open.
+  inputRef?: RefObject<HTMLInputElement>;
   onChange: (name: string) => void;
 }
 
 // One stage: the skill that opened it, and what to call it instead. The skill name stays on screen
 // while you type over it — it's what the override is keyed on, and a row that only showed the new
 // name would stop saying which stage you were renaming.
-const StageNameField = ({ skill, value, onChange }: StageNameFieldProps) => (
+const StageNameField = ({ skill, value, inputRef, onChange }: StageNameFieldProps) => (
   <label className="flex items-center gap-3 text-sm">
     <span className="mono w-36 shrink-0 truncate text-xs text-muted-foreground" title={skill}>
       /{skill}
@@ -158,6 +172,7 @@ const StageNameField = ({ skill, value, onChange }: StageNameFieldProps) => (
     {/* `flat-focus`: VS Code injects an unlayered `input:focus { outline }` into every webview, and
         no utility outranks it — see the gotcha the spotlight input hit. */}
     <input
+      ref={inputRef}
       type="text"
       value={value}
       placeholder={NAMES_PLACEHOLDER}
