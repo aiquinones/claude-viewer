@@ -1,6 +1,6 @@
 import { PointerEvent, useId, useRef, useState } from 'react';
 import { HoverBubble } from '../../HoverBubble';
-import { clockTime, loadedHere } from './chart-labels';
+import { clockTime, LOADED_HERE, loadedNames } from './chart-labels';
 import { ChartGuides } from './ChartGuides';
 import { ChartGuide } from './context-guides';
 import {
@@ -205,8 +205,8 @@ interface BubbleTextProps {
   load: LoadPoint | undefined;
 }
 
-// The number first, since that's what the curve is. The time and the model place it; the skill line
-// only appears where one was loaded, which is what the dot under the pointer is asking about.
+// The number first, since that's what the curve is. The time and the model place it; the skill names
+// only appear where one was loaded, which is what the dot under the pointer is asking about.
 const BubbleText = ({ point, unit, format, load }: BubbleTextProps) => (
   <>
     <span className="font-medium text-foreground">{format(point.value)}</span>
@@ -215,6 +215,15 @@ const BubbleText = ({ point, unit, format, load }: BubbleTextProps) => (
       {unit} · {clockTime(point.at)}
       {point.model ? ` · ${point.model}` : ''}
     </span>
-    {load && <span className="chart-load-note mt-0.5 block">{loadedHere(load.skills)}</span>}
+    {load && (
+      <span className="mt-1 block">
+        <span className="block text-muted-foreground">{LOADED_HERE}</span>
+        {loadedNames(load.skills).map((name) => (
+          <span key={name} className="chart-load-note block">
+            {name}
+          </span>
+        ))}
+      </span>
+    )}
   </>
 );
