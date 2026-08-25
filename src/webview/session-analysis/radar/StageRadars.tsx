@@ -59,12 +59,8 @@ export const StageRadars = ({ detail, metric, costBasis }: StageRadarsProps) => 
   return (
     <ChartSection
       title={STAGES_TITLE}
-      note={
-        <span className="inline-flex items-center gap-1.5">
-          {plural(stages.length, 'stage')}
-          <StagesInfo onAssignNames={openStageNames} />
-        </span>
-      }
+      note={plural(stages.length, 'stage')}
+      info={<StagesInfo onAssignNames={openStageNames} />}
     >
       {stages.length === 0 ? (
         // One message rather than two empty wheels saying the same sentence — with nothing to

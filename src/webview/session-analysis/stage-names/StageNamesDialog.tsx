@@ -78,7 +78,7 @@ export const StageNamesDialog = ({
         aria-modal
         aria-labelledby={TITLE_ID}
         tabIndex={-1}
-        className="flat-focus flex max-h-[70vh] w-full max-w-md flex-col overflow-clip rounded-xl border border-border bg-popover shadow-2xl outline-none"
+        className="flat-focus flex h-fit max-h-[70vh] w-full max-w-md flex-col overflow-clip rounded-xl border border-border bg-popover shadow-2xl outline-none"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <header className="flex items-start gap-3 border-b border-border px-4 py-3">
