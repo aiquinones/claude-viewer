@@ -19,7 +19,10 @@ export const ChartSection = ({ title, note, info, children }: ChartSectionProps)
     <h2 className="flex items-baseline gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
       {title}
       <span className="truncate font-normal normal-case tracking-normal">{note}</span>
-      {info}
+      {/* `self-center`: the row is baseline-aligned for the text, and an icon isn't text. A box
+          holding an svg and an `sr-only` span has no in-flow line box — `sr-only` is absolute — so
+          it baselines on its bottom edge and the icon rides above the letters beside it. */}
+      {info && <span className="inline-flex self-center">{info}</span>}
     </h2>
     {children}
   </section>
