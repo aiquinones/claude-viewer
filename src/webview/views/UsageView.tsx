@@ -16,12 +16,15 @@ import { plural } from '../format-size';
 import { Loading } from '../loading/Loading';
 import { PanelActions } from '../PanelActions';
 import { SessionAnalysisView } from '../session-analysis/SessionAnalysisView';
+import { SessionNotFound } from '../session-analysis/SessionNotFound';
+import { SessionRequest } from '../session-analysis/session-target';
+import { SessionTargetState, useSessionTarget } from '../session-analysis/useSessionTarget';
 import { useSettings } from '../settings/SettingsContext';
 import { surfaceAccent } from '../surfaces';
 import { UsageCostNote } from '../UsageCostNote';
 import { UsageSlices } from '../UsageSlices';
 import { UsageTab, UsageTabs } from '../UsageTabs';
-import { SessionsTab } from '../usage-sessions/SessionsTab';
+import { HISTORY_EXPECTED_MS, SessionsTab } from '../usage-sessions/SessionsTab';
 import { UsageSummary } from '../UsageSummary';
 
 // What a first scan costs. It reads every session log on the machine, though most of them are
@@ -55,6 +58,12 @@ interface UsageViewProps {
   initialTab?: UsageTab;
   // Which session the analysis page opens on. Same deal — the panel always opens on the tabs.
   initialSession?: SessionUsage;
+  // A session asked for from off this surface, by id. An agent row's menu is the only asker, and it
+  // can't hand over a `SessionUsage` — it has never read the history. Resolved here instead.
+  request?: SessionRequest;
+  // Drops that request, from the note shown when it names a session the history doesn't hold. The
+  // panel owns it, so clearing it is the panel's to do.
+  onClearRequest: () => void;
   onSearch: () => void;
   onRefresh: () => void;
   onBack: () => void;
@@ -78,6 +87,8 @@ export const UsageView = ({
   initialWindow = 'day',
   initialTab = 'sessions',
   initialSession,
+  request,
+  onClearRequest,
   onSearch,
   onRefresh,
   onBack
@@ -89,7 +100,14 @@ export const UsageView = ({
   // The session being taken apart, or none. State rather than navigation: the tabs stay mounted, so
   // coming back keeps the Sessions filter text and its scroll position.
   const [session, setSession] = useState<SessionUsage | undefined>(initialSession);
-  const { metric } = useSettings().usage;
+  const { metric, scope } = useSettings().usage;
+  // A session named by id from off this surface. Resolving one sets the same state a Sessions row
+  // sets, so once it lands there is nothing different about how it was opened.
+  const targetState: SessionTargetState = useSessionTarget({
+    request,
+    sessions: history?.sessions,
+    onResolve: setSession
+  });
 
   const breakdown: UsageBreakdown | undefined = report?.windows[window];
 
@@ -116,23 +134,47 @@ export const UsageView = ({
     );
   }
 
+  // Asked for one session and not there yet. The tabs are deliberately not drawn behind this: the
+  // reader asked for a page rather than for the surface it lives on, and a grid nobody asked for
+  // arriving first reads as the wrong thing having opened.
+  if (request && targetState !== 'idle') {
+    return (
+      <div
+        className="flex h-full flex-col"
+        style={{ '--surface-accent': surfaceAccent('usage') } as CSSProperties}
+      >
+        <UsageHeader
+          subtitle="finding one session"
+          onSearch={onSearch}
+          onRefresh={onRefresh}
+          onBack={onBack}
+        />
+        {targetState === 'pending' ? (
+          <div className="flex flex-1 items-center justify-center">
+            <Loading label="Finding this session…" expectedMs={HISTORY_EXPECTED_MS} />
+          </div>
+        ) : (
+          <SessionNotFound
+            target={request}
+            scoped={scope.value === 'workspace'}
+            onDismiss={onClearRequest}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div
       className="flex h-full flex-col"
       style={{ '--surface-accent': surfaceAccent('usage') } as CSSProperties}
     >
-      <header className="flex items-center gap-2 border-b border-border px-4 py-3">
-        <Button variant="ghost" size="icon" title="Back" onClick={onBack}>
-          <ChevronLeft />
-        </Button>
-        <div className="mr-auto flex min-w-0 flex-col gap-0.5">
-          <span className="text-sm font-semibold">Usage</span>
-          <span className="truncate text-xs text-muted-foreground">
-            {subtitle({ tab, breakdown, history })}
-          </span>
-        </div>
-        <PanelActions onSearch={onSearch} onRefresh={onRefresh} />
-      </header>
+      <UsageHeader
+        subtitle={subtitle({ tab, breakdown, history })}
+        onSearch={onSearch}
+        onRefresh={onRefresh}
+        onBack={onBack}
+      />
 
       <UsageSummary
         breakdown={breakdown}
@@ -181,6 +223,28 @@ export const UsageView = ({
     </div>
   );
 };
+
+interface UsageHeaderProps {
+  subtitle: string;
+  onSearch: () => void;
+  onRefresh: () => void;
+  onBack: () => void;
+}
+
+// The surface's own header. Two branches draw it — the tabs, and the wait in front of a session
+// asked for by id — and the only thing that differs between them is the line under the title.
+const UsageHeader = ({ subtitle, onSearch, onRefresh, onBack }: UsageHeaderProps) => (
+  <header className="flex items-center gap-2 border-b border-border px-4 py-3">
+    <Button variant="ghost" size="icon" title="Back" onClick={onBack}>
+      <ChevronLeft />
+    </Button>
+    <div className="mr-auto flex min-w-0 flex-col gap-0.5">
+      <span className="text-sm font-semibold">Usage</span>
+      <span className="truncate text-xs text-muted-foreground">{subtitle}</span>
+    </div>
+    <PanelActions onSearch={onSearch} onRefresh={onRefresh} />
+  </header>
+);
 
 interface SubtitleArgs {
   tab: UsageTab;

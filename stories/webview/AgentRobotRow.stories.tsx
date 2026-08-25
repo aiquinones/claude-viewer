@@ -24,6 +24,7 @@ const meta: Meta<typeof AgentRobotRow> = {
   args: {
     workspaceRoot: WORKSPACE,
     onOpen: () => undefined,
+    onAnalyze: () => undefined,
     onOpenLog: () => undefined,
     onCopySessionId: () => undefined,
     onKill: () => undefined

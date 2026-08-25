@@ -20,6 +20,7 @@ const meta: Meta<typeof AgentsView> = {
   args: {
     onOpenAgent: () => undefined,
     onOpenFile: () => undefined,
+    onAnalyzeSession: () => undefined,
     onCopySessionId: () => undefined,
     onKillAgent: () => undefined,
     onSearch: () => undefined,

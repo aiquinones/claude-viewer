@@ -1,6 +1,7 @@
 import { CSSProperties, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { AgentSession, ConfigSnapshot } from '../../model/types';
+import { SessionTarget } from '../session-analysis/session-target';
 import { Button } from '@/components/ui/button';
 import { AgentList } from '../AgentList';
 import { AGENT_VIEW_MODES, AgentViewMode, DEFAULT_AGENT_VIEW_MODE } from '../agent-view-modes';
@@ -35,8 +36,12 @@ interface AgentsViewProps {
   // decides what "the agent itself" resolves to, so this carries a session id and nothing more.
   onOpenAgent: (sessionId: string) => void;
   onOpenFile: (path: string) => void;
-  // The two commands on a row's menu that aren't a file. Session ids, for the same reason
-  // `onOpenAgent` takes one: what the host does with a session is the host's business.
+  // The one command on a row that leaves this surface: the usage surface's page for that session.
+  // It carries the tool as well as the id, since that's what the page is resolved by.
+  onAnalyzeSession: (target: SessionTarget) => void;
+  // The two commands on a row's menu that go to the host rather than anywhere in the panel. Session
+  // ids, for the same reason `onOpenAgent` takes one: what the host does with a session is the
+  // host's business.
   onCopySessionId: (sessionId: string) => void;
   onKillAgent: (sessionId: string) => void;
   onSearch: () => void;
@@ -54,6 +59,7 @@ export const AgentsView = ({
   initialCollapsed = [],
   onOpenAgent,
   onOpenFile,
+  onAnalyzeSession,
   onCopySessionId,
   onKillAgent,
   onSearch,
@@ -119,6 +125,9 @@ export const AgentsView = ({
               collapsed={collapsed.includes('here')}
               onToggle={() => toggle('here')}
               onOpen={(agent) => onOpenAgent(agent.sessionId)}
+              onAnalyze={(agent) =>
+                onAnalyzeSession({ sessionId: agent.sessionId, tool: agent.tool })
+              }
               onOpenLog={(agent) => onOpenFile(agent.transcriptPath)}
               onCopySessionId={(agent) => onCopySessionId(agent.sessionId)}
               onKill={(agent) => onKillAgent(agent.sessionId)}
@@ -132,6 +141,9 @@ export const AgentsView = ({
               collapsed={collapsed.includes('elsewhere')}
               onToggle={() => toggle('elsewhere')}
               onOpen={(agent) => onOpenAgent(agent.sessionId)}
+              onAnalyze={(agent) =>
+                onAnalyzeSession({ sessionId: agent.sessionId, tool: agent.tool })
+              }
               onOpenLog={(agent) => onOpenFile(agent.transcriptPath)}
               onCopySessionId={(agent) => onCopySessionId(agent.sessionId)}
               onKill={(agent) => onKillAgent(agent.sessionId)}

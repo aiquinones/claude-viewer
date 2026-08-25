@@ -15,6 +15,7 @@ const meta: Meta<typeof AgentMenu> = {
     agent: workingAgent,
     anchor: { x: 40, y: 40 },
     onClose: () => undefined,
+    onAnalyze: () => undefined,
     onOpenLog: () => undefined,
     onCopySessionId: () => undefined,
     onKill: () => undefined
@@ -32,12 +33,13 @@ export default meta;
 
 type Story = StoryObj<typeof AgentMenu>;
 
-// The three commands, one line each. The value a command acts on — the head of the session id, the
-// pid — sits beside its label rather than under it.
+// The four commands, one line each. The value a command acts on — the head of the session id, the
+// pid — sits beside its label rather than under it, and the two that act on nothing in particular
+// print no value at all.
 export const Default: Story = {};
 
-// A Copilot row. The menu is the same three commands: both CLIs write a log, carry a session id and
-// run in a process, which is the whole reason this isn't per-tool.
+// A Copilot row. The menu is the same four commands: both CLIs write a log, carry a session id, run
+// in a process and are read by the usage surface — which is the whole reason this isn't per-tool.
 export const Copilot: Story = { args: { agent: copilotWorkingAgent } };
 
 // Opened near the bottom-right corner, where the menu has to flip to the other side of the pointer

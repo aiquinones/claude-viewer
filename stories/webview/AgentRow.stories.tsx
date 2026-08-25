@@ -24,6 +24,7 @@ const meta: Meta<typeof AgentRow> = {
     now: Date.now(),
     workspaceRoot: WORKSPACE,
     onOpen: () => undefined,
+    onAnalyze: () => undefined,
     onOpenLog: () => undefined,
     onCopySessionId: () => undefined,
     onKill: () => undefined
