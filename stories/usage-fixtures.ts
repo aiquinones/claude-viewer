@@ -1,5 +1,5 @@
 import { SkillEntry } from '@src/model/types';
-import { UsageCostBasis, UsageReport, UsageTurn } from '@src/model/usage/types';
+import { UsageReport, UsageTurn } from '@src/model/usage/types';
 import { buildUsageReport } from '@src/model/usage/report';
 import { plainSkill } from './fixtures';
 
@@ -54,14 +54,8 @@ const turn = ({
   };
 };
 
-const report = (turns: UsageTurn[], costBasis: UsageCostBasis = 'all'): UsageReport =>
-  buildUsageReport({
-    turns,
-    now: Date.now(),
-    scope: 'all',
-    workspaceRoot: undefined,
-    costBasis
-  });
+const report = (turns: UsageTurn[]): UsageReport =>
+  buildUsageReport({ turns, now: Date.now(), scope: 'all', workspaceRoot: undefined });
 
 // A day's work under one wrapper skill, the way a real day reads: most of it attributed, a chunk of
 // it not, and the rest spread over the skills that wrapper invoked.
@@ -122,18 +116,6 @@ export const quietDay: UsageReport = report([
 
 // Nothing at all — a fresh machine, or a workspace scope that matches no session.
 export const noUsage: UsageReport = report([]);
-
-// The same turns as `dayOfWork`, priced on output alone. The two side by side are the argument for
-// the setting: the cache reads a full figure counts are most of it, and they're context re-reads
-// rather than anything a skill produced.
-export const outputOnlyBasis: UsageReport = report(
-  [
-    turn({ minutesAgo: 20, skill: 'dev-feature', output: 4_820 }),
-    turn({ minutesAgo: 90, skill: 'create-pr', output: 1_260 }),
-    turn({ minutesAgo: 200, output: 5_910 })
-  ],
-  'output'
-);
 
 // One skill, everything. The bar scale is relative to the largest row, so this is the story that
 // says a single full bar still looks deliberate.

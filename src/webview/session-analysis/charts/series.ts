@@ -2,13 +2,7 @@
 // arithmetic of its own beyond fitting them to a box.
 
 import { usdPartsFor, sumUsdParts, UsdParts } from '../../../model/usage/pricing';
-import {
-  ContextPoint,
-  SkillInvocation,
-  UsageCostBasis,
-  UsageMetric,
-  UsageTurn
-} from '../../../model/usage/types';
+import { ContextPoint, SkillInvocation, UsageMetric, UsageTurn } from '../../../model/usage/types';
 
 // One point on a chart. Both series produce these, so the chart never learns which of the two it is
 // drawing — what a value means is the caller's `format` and `unit`.
@@ -26,36 +20,34 @@ export interface SeriesPoint {
 interface ToMetricSeriesArgs {
   turns: UsageTurn[];
   metric: UsageMetric;
-  costBasis: UsageCostBasis;
 }
 
 // What each request was worth under the metric you're reading.
-export const toMetricSeries = ({ turns, metric, costBasis }: ToMetricSeriesArgs): SeriesPoint[] =>
+export const toMetricSeries = ({ turns, metric }: ToMetricSeriesArgs): SeriesPoint[] =>
   turns.map((turn) => ({
     id: turn.id,
     at: turn.at,
     model: turn.model,
     ...(turn.skill ? { skill: turn.skill } : {}),
-    value: turnValue({ turn, metric, costBasis })
+    value: turnValue({ turn, metric })
   }));
 
 export interface TurnValueArgs {
   turn: UsageTurn;
   metric: UsageMetric;
-  costBasis: UsageCostBasis;
 }
 
 // What one request was worth under the metric being read. Cost is dollars on a Claude turn and
 // nano-AIU on a Copilot one, and a session ran under one CLI — so the chart is one unit, and the
 // heading says which. Exported because the stage radar sums the same number over a span of turns:
 // two readings of one session that disagreed about what a turn cost would be worse than either.
-export const turnValue = ({ turn, metric, costBasis }: TurnValueArgs): number => {
+export const turnValue = ({ turn, metric }: TurnValueArgs): number => {
   if (metric === 'output-tokens') return turn.tokens.output;
   if (turn.tool === 'copilot') return turn.nanoAiu ?? 0;
 
   const parts: UsdParts | undefined = usdPartsFor({ model: turn.model, tokens: turn.tokens });
   if (!parts) return 0;
-  return costBasis === 'output' ? parts.output : sumUsdParts(parts);
+  return sumUsdParts(parts);
 };
 
 // How full the context was at each request. Its own series rather than a field on the metric one:

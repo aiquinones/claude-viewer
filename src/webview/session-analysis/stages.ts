@@ -5,7 +5,6 @@
 import {
   ContextPoint,
   SkillInvocation,
-  UsageCostBasis,
   UsageMetric,
   UsageTurn
 } from '../../model/usage/types';
@@ -43,7 +42,6 @@ interface ToStagesArgs {
   invocations: SkillInvocation[];
   contexts: ContextPoint[];
   metric: UsageMetric;
-  costBasis: UsageCostBasis;
   // Stage name overrides, keyed by skill name. Absent keys keep the skill's own name.
   names: Record<string, string>;
 }
@@ -56,7 +54,6 @@ export const toStages = ({
   invocations,
   contexts,
   metric,
-  costBasis,
   names
 }: ToStagesArgs): SessionStage[] => {
   const bounds: Boundary[] = boundaries(invocations);
@@ -78,7 +75,7 @@ export const toStages = ({
       skill: bounds[i].skill,
       label: names[bounds[i].skill] ?? bounds[i].skill,
       renamed: names[bounds[i].skill] !== undefined,
-      value: inside.reduce((sum, turn) => sum + turnValue({ turn, metric, costBasis }), 0),
+      value: inside.reduce((sum, turn) => sum + turnValue({ turn, metric }), 0),
       growth: growthOver({ contexts: sortedContexts, start, end }),
       stages: 1,
       turns: inside.length,

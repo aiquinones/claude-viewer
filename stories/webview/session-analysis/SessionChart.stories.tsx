@@ -17,11 +17,7 @@ import { claudeDetail, copilotDetail } from '../../session-detail-fixtures';
 
 // Run through the real builders rather than written out by hand, so the curve, the dots and the
 // bubble agree with each other the way they do in the panel.
-const points = toMetricSeries({
-  turns: claudeDetail.turns,
-  metric: 'output-tokens',
-  costBasis: 'all'
-});
+const points = toMetricSeries({ turns: claudeDetail.turns, metric: 'output-tokens' });
 
 const loads = toLoadPoints({ points, invocations: claudeDetail.invocations });
 
@@ -102,11 +98,7 @@ export const WithGuides: Story = {
 // session.
 export const CopilotDoubleLoad: Story = {
   args: (() => {
-    const series = toMetricSeries({
-      turns: copilotDetail.turns,
-      metric: 'output-tokens',
-      costBasis: 'all'
-    });
+    const series = toMetricSeries({ turns: copilotDetail.turns, metric: 'output-tokens' });
     return {
       points: series,
       loads: toLoadPoints({ points: series, invocations: copilotDetail.invocations }),

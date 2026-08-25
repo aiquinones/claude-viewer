@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Info, Tags } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SessionDetail, UsageCostBasis, UsageMetric } from '../../../model/usage/types';
+import { SessionDetail, UsageMetric } from '../../../model/usage/types';
 import { plural } from '../../format-size';
 import { HoverCard } from '../../HoverCard';
 import { useSetStageNames, useSettings } from '../../settings/SettingsContext';
@@ -25,13 +25,12 @@ import {
 interface StageRadarsProps {
   detail: SessionDetail;
   metric: UsageMetric;
-  costBasis: UsageCostBasis;
 }
 
 // The session split at its skill loads, drawn twice: what each stage spent, and what each stage did
 // to the context. Two wheels rather than two more curves — the stages are a handful of named things
 // being compared, and the curves above already own the sequence.
-export const StageRadars = ({ detail, metric, costBasis }: StageRadarsProps) => {
+export const StageRadars = ({ detail, metric }: StageRadarsProps) => {
   const names: Record<string, string> = useSettings().stages.names;
   const setStageNames = useSetStageNames();
   const { stageNamesOpenedAt, openStageNames, dismissStageNames } = useStageNamesDialog();
@@ -43,10 +42,9 @@ export const StageRadars = ({ detail, metric, costBasis }: StageRadarsProps) => 
         invocations: detail.invocations,
         contexts: detail.contexts,
         metric,
-        costBasis,
         names
       }),
-    [detail, metric, costBasis, names]
+    [detail, metric, names]
   );
 
   // Saving writes the setting and closes. The labels move when the host posts the settings back,

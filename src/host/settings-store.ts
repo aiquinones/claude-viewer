@@ -8,7 +8,6 @@ import {
   DEFAULT_CONTEXT_WINDOW_FALLBACK,
   DEFAULT_DESCRIPTION_BUDGET,
   DEFAULT_TOKEN_ESTIMATOR,
-  DEFAULT_USAGE_COST_BASIS,
   DEFAULT_USAGE_METRIC,
   DEFAULT_USAGE_SCOPE,
   parseBudgetTokens,
@@ -18,7 +17,6 @@ import {
   parseStageNames,
   parseThemeMode,
   parseTokenEstimator,
-  parseUsageCostBasis,
   parseUsageMetric,
   parseUsageScope,
   SettingsSection,
@@ -26,7 +24,7 @@ import {
   ViewerSettings
 } from '../model/settings/settings';
 import { DEFAULT_THEME_MODE, ThemeMode } from '../model/settings/theme';
-import { UsageCostBasis, UsageMetric, UsageScope } from '../model/usage/types';
+import { UsageMetric, UsageScope } from '../model/usage/types';
 
 // Registered in package.json under contributes.configuration — the section, the keys and the
 // defaults there all have to agree with this file.
@@ -36,7 +34,6 @@ const CONTENT_KEY: string = 'budgets.skills.content';
 const OVERRIDES_KEY: string = 'budgets.skills.overrides';
 const USAGE_METRIC_KEY: string = 'usage.metric';
 const USAGE_SCOPE_KEY: string = 'usage.scope';
-const USAGE_COST_BASIS_KEY: string = 'usage.costBasis';
 const CONTEXT_WARN_KEY: string = 'context.warnAt';
 const CONTEXT_ERROR_KEY: string = 'context.errorAt';
 const CONTEXT_WINDOW_KEY: string = 'context.window';
@@ -99,12 +96,6 @@ export const currentSettings = (): ViewerSettings => {
         key: USAGE_SCOPE_KEY,
         parse: parseUsageScope,
         fallback: DEFAULT_USAGE_SCOPE
-      }),
-      costBasis: readValue({
-        config,
-        key: USAGE_COST_BASIS_KEY,
-        parse: parseUsageCostBasis,
-        fallback: DEFAULT_USAGE_COST_BASIS
       })
     },
     context: {
@@ -175,29 +166,21 @@ export const writeStageNames = async (names: Record<string, string>): Promise<vo
 interface WriteUsageArgs {
   metric?: UsageMetric;
   scope?: UsageScope;
-  costBasis?: UsageCostBasis;
 }
 
-// The usage surface's toggles write these three keys. This is the extension's own configuration, not
+// The usage surface's toggles write these two keys. This is the extension's own configuration, not
 // Claude's — `~/.claude` is still never written — and it goes to the global layer because which
 // number you want to look at is a preference rather than a property of the repo.
 //
 // A write that fails is reported rather than thrown. The toggle draws the value settings.json holds,
 // so a rejection nobody catches leaves a control that reads as dead: you press it, nothing moves,
 // and there's nothing on screen saying why.
-export const writeUsageSettings = async ({
-  metric,
-  scope,
-  costBasis
-}: WriteUsageArgs): Promise<void> => {
+export const writeUsageSettings = async ({ metric, scope }: WriteUsageArgs): Promise<void> => {
   const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(SECTION);
 
   try {
     if (metric) await config.update(USAGE_METRIC_KEY, metric, vscode.ConfigurationTarget.Global);
     if (scope) await config.update(USAGE_SCOPE_KEY, scope, vscode.ConfigurationTarget.Global);
-    if (costBasis) {
-      await config.update(USAGE_COST_BASIS_KEY, costBasis, vscode.ConfigurationTarget.Global);
-    }
   } catch (error) {
     await reportWriteFailure(error);
   }

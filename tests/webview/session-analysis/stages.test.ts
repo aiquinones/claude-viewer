@@ -50,14 +50,7 @@ interface StagesArgs {
 }
 
 const stagesOf = ({ turns = [], invocations = [], contexts = [], names = {} }: StagesArgs) =>
-  toStages({
-    turns,
-    invocations,
-    contexts,
-    metric: 'output-tokens',
-    costBasis: 'all',
-    names
-  });
+  toStages({ turns, invocations, contexts, metric: 'output-tokens', names });
 
 describe('toStages', () => {
   it('runs a stage from its skill load to the next one', () => {

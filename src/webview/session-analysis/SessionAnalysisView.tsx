@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { TokenEstimator } from '../../model/estimate-tokens';
-import { AgentSession, AgentTool, SkillEntry } from '../../model/types';
+import { AgentSession, SkillEntry } from '../../model/types';
 import { summarizeTurns } from '../../model/usage/aggregate';
 import {
   SessionDetail,
@@ -104,15 +104,15 @@ interface BodyProps {
 }
 
 const Body = ({ detail, session, skills, onOpenSkill }: BodyProps) => {
-  const { metric, costBasis } = useSettings().usage;
+  const { metric } = useSettings().usage;
   const setting: TokenEstimator = useSettings().tokens.estimator.value;
   // Component state, and it writes nothing. The estimator is a preference about every number in the
   // panel; turning it off here is a question about this page, and leaving puts it back.
   const [useSession, setUseSession] = useState<boolean>(false);
 
   const summary: UsageSummaryData = useMemo(
-    () => summarizeTurns({ turns: detail.turns, costBasis: costBasis.value }),
-    [detail, costBasis.value]
+    () => summarizeTurns({ turns: detail.turns }),
+    [detail]
   );
 
   const derived: TokenEstimator = sessionEstimator({ tool: detail.tool, models: summary.models });
@@ -130,11 +130,11 @@ const Body = ({ detail, session, skills, onOpenSkill }: BodyProps) => {
 
         {metric.value === 'cost' && detail.tool === 'claude' && <UsageCostNote summary={summary} />}
 
-        <MetricSection detail={detail} metric={metric.value} costBasis={costBasis.value} />
+        <MetricSection detail={detail} metric={metric.value} />
 
         <ContextSection detail={detail} />
 
-        <StageRadars detail={detail} metric={metric.value} costBasis={costBasis.value} />
+        <StageRadars detail={detail} metric={metric.value} />
 
         <SkillLoadList
           loads={loads}
@@ -171,16 +171,14 @@ const Headline = ({ detail, summary, metric }: HeadlineProps) => (
         {METRIC_LABEL[metric].toLowerCase()} · {plural(summary.total.turns, 'request')}
       </span>
     </div>
-    <UsageMenu className="ml-auto mt-1 shrink-0" sections={MENU_SECTIONS[detail.tool]} />
+    <UsageMenu className="ml-auto mt-1 shrink-0" sections={MENU_SECTIONS} />
   </section>
 );
 
-// Which settings the `...` offers, per CLI. The scope is gone from both — you are looking at one
-// session, and it is in whatever folder it is in.
-const MENU_SECTIONS: Record<AgentTool, readonly UsageMenuSection[]> = {
-  claude: ['metric', 'costBasis'],
-  copilot: ['metric']
-};
+// Which settings the `...` offers. The scope is gone — you are looking at one session, and it is in
+// whatever folder it is in. Same for both CLIs, since the metric is the only thing left and it means
+// the same on either.
+const MENU_SECTIONS: readonly UsageMenuSection[] = ['metric'];
 
 const costOf = (summary: UsageSummaryData, detail: SessionDetail): number =>
   detail.tool === 'claude' ? summary.total.usd : summary.total.nanoAiu;

@@ -7,7 +7,6 @@ import { ThemeMode } from './settings/theme';
 import {
   SessionDetail,
   SessionRef,
-  UsageCostBasis,
   UsageHistory,
   UsageMetric,
   UsageReport,
@@ -521,9 +520,4 @@ export type WebviewMessage =
   // dialog held a draft of it and a merge on the host would be a second opinion about which name
   // wins. A skill with no name in here keeps its own.
   | { type: 'setStageNames'; names: Record<string, string> }
-  | {
-      type: 'setUsage';
-      metric?: UsageMetric;
-      scope?: UsageScope;
-      costBasis?: UsageCostBasis;
-    };
+  | { type: 'setUsage'; metric?: UsageMetric; scope?: UsageScope };

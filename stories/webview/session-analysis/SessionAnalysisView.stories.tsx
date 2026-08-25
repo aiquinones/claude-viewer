@@ -3,7 +3,7 @@ import { CSSProperties, ReactNode } from 'react';
 import { surfaceAccent } from '@src/webview/surfaces';
 import { TokenEstimator } from '@src/model/estimate-tokens';
 import { DEFAULT_SETTINGS, ViewerSettings } from '@src/model/settings/settings';
-import { UsageCostBasis, UsageMetric } from '@src/model/usage/types';
+import { UsageMetric } from '@src/model/usage/types';
 import { SettingsProvider } from '@src/webview/settings/SettingsContext';
 import { SessionAnalysisView } from '@src/webview/session-analysis/SessionAnalysisView';
 import {
@@ -18,16 +18,15 @@ import {
 } from '../../session-detail-fixtures';
 import { usageSkills } from '../../usage-fixtures';
 
-// The metric, the cost basis and the estimator are settings, so a story that wants one of them says
-// so the way the host does — through the provider.
+// The metric and the estimator are settings, so a story that wants one of them says so the way the
+// host does — through the provider.
 interface WithSettingsArgs {
   metric?: UsageMetric;
-  costBasis?: UsageCostBasis;
   estimator?: TokenEstimator;
   children: ReactNode;
 }
 
-const WithSettings = ({ metric, costBasis, estimator, children }: WithSettingsArgs) => {
+const WithSettings = ({ metric, estimator, children }: WithSettingsArgs) => {
   const settings: ViewerSettings = {
     ...DEFAULT_SETTINGS,
     tokens: {
@@ -35,8 +34,7 @@ const WithSettings = ({ metric, costBasis, estimator, children }: WithSettingsAr
     },
     usage: {
       ...DEFAULT_SETTINGS.usage,
-      metric: { value: metric ?? 'output-tokens', source: metric ? 'user' : 'default' },
-      costBasis: { value: costBasis ?? 'all', source: costBasis ? 'user' : 'default' }
+      metric: { value: metric ?? 'output-tokens', source: metric ? 'user' : 'default' }
     }
   };
 

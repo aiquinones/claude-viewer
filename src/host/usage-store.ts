@@ -62,8 +62,7 @@ const publish = (): UsageReport => {
     turns,
     now: Date.now(),
     scope: currentSettings().usage.scope.value,
-    workspaceRoot: workspaceRoot(),
-    costBasis: currentSettings().usage.costBasis.value
+    workspaceRoot: workspaceRoot()
   });
 
   report = next;

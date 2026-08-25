@@ -9,7 +9,7 @@ import { bareDetail, claudeDetail, copilotDetail } from '../../../session-detail
 const meta: Meta<typeof StageRadars> = {
   title: 'Usage/StageRadars',
   component: StageRadars,
-  args: { detail: claudeDetail, metric: 'output-tokens', costBasis: 'all' },
+  args: { detail: claudeDetail, metric: 'output-tokens' },
   decorators: [
     (Story) => (
       <div
