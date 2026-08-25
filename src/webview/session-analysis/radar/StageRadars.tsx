@@ -8,32 +8,37 @@ import { useSetStageNames, useSettings } from '../../settings/SettingsContext';
 import { METRIC_LABEL } from '../../usage-format';
 import { ChartSection } from '../charts/ChartSection';
 import { formatValue } from '../session-format';
-import { SessionStage, stageSkills, toStages } from '../stages';
+import { invokedSkills, SessionStage, toStages } from '../stages';
 import { StageNamesDialog } from '../stage-names/StageNamesDialog';
 import { useStageNamesDialog } from '../stage-names/useStageNamesDialog';
 import { StageRadar } from './StageRadar';
 import {
   ASSIGN_NAMES,
   CONTEXT_RADAR_TITLE,
-  EMPTY_STAGES,
   formatGrowth,
   GROWTH_UNIT,
+  NO_SKILLS,
   STAGES_NOTE,
   STAGES_TITLE
 } from './stage-labels';
+import { UnsplitStages } from './UnsplitStages';
 
 interface StageRadarsProps {
   detail: SessionDetail;
   metric: UsageMetric;
 }
 
-// The session split at its skill loads, drawn twice: what each stage spent, and what each stage did
-// to the context. Two wheels rather than two more curves — the stages are a handful of named things
-// being compared, and the curves above already own the sequence.
+// The session split at the loads of the skills the reader named, drawn twice: what each stage spent
+// and what each stage did to the context. Two wheels rather than two more curves — the stages are a
+// handful of named things being compared, and the curves above already own the sequence.
 export const StageRadars = ({ detail, metric }: StageRadarsProps) => {
   const names: Record<string, string> = useSettings().stages.names;
   const setStageNames = useSetStageNames();
   const { stageNamesOpenedAt, openStageNames, dismissStageNames } = useStageNamesDialog();
+
+  // Every skill the session ran, named or not. What the dialog lists, and what separates "nothing
+  // to split" from "nothing named yet" — two states that both draw no wheels for opposite reasons.
+  const skills: string[] = useMemo(() => invokedSkills(detail.invocations), [detail]);
 
   const stages: SessionStage[] = useMemo(
     () =>
@@ -57,15 +62,18 @@ export const StageRadars = ({ detail, metric }: StageRadarsProps) => {
   return (
     <ChartSection
       title={STAGES_TITLE}
-      note={plural(stages.length, 'stage')}
+      note={stages.length > 0 ? plural(stages.length, 'stage') : undefined}
       info={<StagesInfo onAssignNames={openStageNames} />}
     >
-      {stages.length === 0 ? (
-        // One message rather than two empty wheels saying the same sentence — with nothing to
-        // compare there is no pair, and the same words in two boxes read as a mistake.
+      {/* Three states, and which one you're in is why the wheels aren't there. No skills ran, so
+          there is nothing to split; skills ran and none is named, so there is a split to choose;
+          otherwise the pair. */}
+      {skills.length === 0 ? (
         <p className="rounded-lg border border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
-          {EMPTY_STAGES}
+          {NO_SKILLS}
         </p>
+      ) : stages.length === 0 ? (
+        <UnsplitStages onAssignNames={openStageNames} />
       ) : (
         // Fixed squares that wrap rather than a breakpoint: a media query in here measures the
         // panel, and wrapping needs no number to be right about. `justify-center` is one rule for
@@ -78,7 +86,6 @@ export const StageRadars = ({ detail, metric }: StageRadarsProps) => {
             read={(stage) => stage.value}
             format={(value) => formatValue({ value, metric, tool: detail.tool })}
             unit={METRIC_LABEL[metric].toLowerCase()}
-            empty={EMPTY_STAGES}
           />
           <StageRadar
             title={CONTEXT_RADAR_TITLE}
@@ -86,7 +93,6 @@ export const StageRadars = ({ detail, metric }: StageRadarsProps) => {
             read={(stage) => stage.growth}
             format={formatGrowth}
             unit={GROWTH_UNIT}
-            empty={EMPTY_STAGES}
           />
         </div>
       )}
@@ -95,7 +101,7 @@ export const StageRadars = ({ detail, metric }: StageRadarsProps) => {
       {stageNamesOpenedAt !== undefined && (
         <StageNamesDialog
           key={stageNamesOpenedAt}
-          skills={stageSkills(stages)}
+          skills={skills}
           current={names}
           onSave={save}
           onDismiss={dismissStageNames}

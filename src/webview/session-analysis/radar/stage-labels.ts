@@ -5,19 +5,26 @@ import { formatContextTokens } from '../../format-size';
 
 export const STAGES_TITLE: string = 'Stages';
 
-// What the (i) beside the heading says. The claim is that the splits are read rather than guessed,
-// which is the thing a reader would otherwise wonder about a chart of "stages".
+// What the (i) beside the heading says. Two claims, and the second is the one a reader would
+// otherwise wonder about: the cuts are read off the log, and which of them count is theirs.
 export const STAGES_NOTE: string =
-  'We use the reading of skills to deterministically split the session in different stages';
+  'A stage runs from one skill load to the next. Name a skill to make its loads open a stage — the ones you leave unnamed are ignored, and whatever stage was running carries through them.';
 
-// The CTA inside that card.
-export const ASSIGN_NAMES: string = 'Assign names to stages';
+// The CTA inside that card, and the one on the card that stands in for the wheels.
+export const ASSIGN_NAMES: string = 'Edit stages';
+
+export const SPLIT_SESSION: string = 'View how your session splits between stages';
 
 export const CONTEXT_RADAR_TITLE: string = 'Context growth';
 
-// Said where the session loaded no skills at all, which is most short sessions. Not an error — a
-// session with no stages is a session nobody split.
-export const EMPTY_STAGES: string = 'No skills were loaded, so this session has no stages.';
+// Said where the session loaded no skills at all, which is most short sessions. Not an error, and
+// nothing to offer with it — there is no skill here to name.
+export const NO_SKILLS: string = 'No skill was invoked in this session.';
+
+// Said where skills ran and none of them is a stage yet. The wheels would have nothing on them, so
+// the card takes their place and carries the way out of the state.
+export const UNSPLIT_STAGES: string =
+  'Stages are the skills you choose to name. None are named for this session yet.';
 
 // A growth figure, signed. `formatContextTokens` on a negative number prints a bare minus in front
 // of a raw count; the sign is the part worth seeing here, since a stage that shrank the context is

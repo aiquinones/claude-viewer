@@ -1,28 +1,25 @@
-import { RefObject, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Z } from '../../z-layers';
-import {
-  NAMES_CAVEAT,
-  NAMES_EMPTY,
-  NAMES_PLACEHOLDER,
-  NAMES_TITLE,
-  mergeStageNames
-} from './stage-names';
+import { StageNameField } from './StageNameField';
+import { NAMES_CAVEAT, NAMES_EMPTY, NAMES_TITLE, mergeStageNames } from './stage-names';
 
 interface StageNamesDialogProps {
-  // The skills that opened a stage in this session, in the order they first did. Only these are
-  // listed — a stage you can't see on the radar behind the dialog isn't one you're renaming.
+  // Every skill this session loaded, in the order it first did — not just the ones that are stages.
+  // Which of them is a stage is the choice being made here, so a list of the stages would leave out
+  // every row worth adding.
   skills: string[];
-  // Every override that's stored, including ones for skills this session never ran. Seeds the
-  // fields, and the ones not listed here ride through Save untouched.
+  // Every name that's stored, including ones for skills this session never ran. Seeds the fields,
+  // and the ones not listed here ride through Save untouched.
   current: Record<string, string>;
   onSave: (names: Record<string, string>) => void;
   onDismiss: () => void;
 }
 
-// Renaming the stages of one session. It holds a draft: the fields move freely and nothing is
-// written until Save, the same deal `EstimatorDialog` makes and for the same reason — these names
+// Which of one session's skills are stages, and what each is called — one field does both, since a
+// named skill is a stage and a blank one isn't. It holds a draft: the fields move freely and nothing
+// is written until Save, the same deal `EstimatorDialog` makes and for the same reason — these names
 // are what the radars are labelled with, and a field being typed into shouldn't relabel a chart
 // character by character.
 export const StageNamesDialog = ({
@@ -118,6 +115,9 @@ export const StageNamesDialog = ({
                 value={draft[skill] ?? ''}
                 inputRef={index === 0 ? first : undefined}
                 onChange={(name) => setDraft((held) => ({ ...held, [skill]: name }))}
+                onToggle={() =>
+                  setDraft((held) => ({ ...held, [skill]: (held[skill] ?? '').trim() ? '' : skill }))
+                }
               />
             ))
           )}
@@ -152,32 +152,3 @@ interface SeedArgs {
 // the placeholder, which is how a field says it isn't overriding anything.
 const seed = ({ skills, current }: SeedArgs): Record<string, string> =>
   Object.fromEntries(skills.map((skill) => [skill, current[skill] ?? '']));
-
-interface StageNameFieldProps {
-  skill: string;
-  value: string;
-  // Set on the first field only, so the dialog can put the caret there on open.
-  inputRef?: RefObject<HTMLInputElement>;
-  onChange: (name: string) => void;
-}
-
-// One stage: the skill that opened it, and what to call it instead. The skill name stays on screen
-// while you type over it — it's what the override is keyed on, and a row that only showed the new
-// name would stop saying which stage you were renaming.
-const StageNameField = ({ skill, value, inputRef, onChange }: StageNameFieldProps) => (
-  <label className="flex items-center gap-3 text-sm">
-    <span className="mono w-36 shrink-0 truncate text-xs text-muted-foreground" title={skill}>
-      /{skill}
-    </span>
-    {/* `flat-focus`: VS Code injects an unlayered `input:focus { outline }` into every webview, and
-        no utility outranks it — see the gotcha the spotlight input hit. */}
-    <input
-      ref={inputRef}
-      type="text"
-      value={value}
-      placeholder={NAMES_PLACEHOLDER}
-      onChange={(event) => onChange(event.target.value)}
-      className="flat-focus min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
-    />
-  </label>
-);

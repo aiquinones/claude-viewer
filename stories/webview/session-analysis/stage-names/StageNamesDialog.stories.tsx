@@ -24,25 +24,26 @@ export default meta;
 
 type Story = StoryObj<typeof StageNamesDialog>;
 
-// Nothing overridden, which is how it opens the first time. Every field draws its placeholder, so
-// the list reads as "these are the stages" before it reads as a form.
-export const NoOverrides: Story = {};
+// Nothing named, which is how it opens the first time. Every field draws its placeholder, so the
+// list reads as "here is what ran, pick the stages" before it reads as a form. The row buttons all
+// offer the skill's own name, since that's the fastest way out of this state.
+export const Nothing: Story = {};
 
-// Names already stored. This is the case worth having: an override you can't see is one you can't
-// take back, and the fields are where it's shown.
-export const WithOverrides: Story = {
+// Two of the four named. The buttons split with them — an X on a named row, the fill on a blank one
+// — which is what makes both directions one control rather than a checkbox and a field.
+export const SomeNamed: Story = {
   args: { current: { 'dev-feature': 'Build', 'create-pr': 'Ship' } }
 };
 
 // A stored name for a skill this session never ran. It isn't listed — the dialog speaks only for
-// the stages in front of you — and Save carries it through untouched.
-export const OverrideFromAnotherSession: Story = {
+// the skills in front of you — and Save carries it through untouched.
+export const NameFromAnotherSession: Story = {
   args: { current: { 'dev-feature': 'Build', 'some-other-skill': 'Elsewhere' } }
 };
 
-// Enough stages that the list scrolls. The dialog stops growing rather than putting Save off the
+// Enough skills that the list scrolls. The dialog stops growing rather than putting Save off the
 // bottom of the panel.
-export const ManyStages: Story = {
+export const ManySkills: Story = {
   args: {
     skills: [
       'dev-feature',
@@ -61,6 +62,6 @@ export const ManyStages: Story = {
   }
 };
 
-// Reached from a session that loaded no skills. The (i) is drawn beside the empty wheels too, so
-// this is a state you can actually get to.
-export const NoStages: Story = { args: { skills: [] } };
+// Reached from a session that loaded no skills. The (i) is drawn beside that state's message too,
+// so this is a state you can actually get to.
+export const NoSkills: Story = { args: { skills: [] } };

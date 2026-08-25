@@ -3,19 +3,20 @@ import { CSSProperties } from 'react';
 import { SessionDetail } from '@src/model/usage/types';
 import { formatUsageTokens } from '@src/webview/usage-format';
 import { StageRadar } from '@src/webview/session-analysis/radar/StageRadar';
-import { EMPTY_STAGES, formatGrowth } from '@src/webview/session-analysis/radar/stage-labels';
+import { formatGrowth } from '@src/webview/session-analysis/radar/stage-labels';
 import { SessionStage, toStages } from '@src/webview/session-analysis/stages';
 import { surfaceAccent } from '@src/webview/surfaces';
 import {
-  bareDetail,
   claudeDetail,
   copilotDetail,
+  stageNames,
   twoStageDetail
 } from '../../../session-detail-fixtures';
 
 // Through the real rule rather than written out, so a story can't show a wheel the loader would
-// never produce.
-const stagesOf = (detail: SessionDetail, names: Record<string, string> = {}): SessionStage[] =>
+// never produce. Names default to the fixture's own: a stage exists because a skill was named, so a
+// call with none would hand every story an empty wheel.
+const stagesOf = (detail: SessionDetail, names: Record<string, string> = stageNames): SessionStage[] =>
   toStages({
     turns: detail.turns,
     invocations: detail.invocations,
@@ -32,8 +33,7 @@ const meta: Meta<typeof StageRadar> = {
     stages: stagesOf(claudeDetail),
     read: (stage: SessionStage) => stage.value,
     format: formatUsageTokens,
-    unit: 'output tokens',
-    empty: EMPTY_STAGES
+    unit: 'output tokens'
   },
   decorators: [
     (Story) => (
@@ -71,20 +71,10 @@ export const TwoStages: Story = { args: { stages: stagesOf(twoStageDetail) } };
 // rings become circles here: a polygon through one point is nothing.
 export const OneStage: Story = { args: { stages: stagesOf(copilotDetail) } };
 
-// No skills were loaded, so nothing split the session. Not an error — an empty wheel would be a
-// claim that every stage cost zero.
-export const NoStages: Story = { args: { stages: stagesOf(bareDetail) } };
-
-// A renamed stage. The spoke carries the reader's own word for it; the skill behind it is in the
-// hover, since that's what the override is keyed on.
-export const Renamed: Story = {
-  args: {
-    stages: stagesOf(claudeDetail, {
-      'dev-feature': 'Build',
-      'create-pr': 'Ship',
-      publish: 'Release'
-    })
-  }
+// One skill named out of the four this session ran. The other three open no stage, so the one that
+// does covers the whole session — which is what "ignore a skill" looks like on the wheel.
+export const SkillsIgnored: Story = {
+  args: { stages: stagesOf(claudeDetail, { 'dev-feature': 'Build' }) }
 };
 
 // A name long enough to reach the next spoke's. It truncates rather than overlapping — a wheel
