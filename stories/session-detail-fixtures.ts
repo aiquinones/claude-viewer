@@ -234,6 +234,13 @@ export const liveCopilotAgent: AgentSession = {
   issues: []
 };
 
+// Two stages, which is the case the radar can't close into a polygon — two vertices are a line.
+// Cut from the long session rather than invented, so the turns behind the two spokes are real ones.
+export const twoStageDetail: SessionDetail = {
+  ...claudeDetail,
+  invocations: claudeLoads.filter((load) => load.skill === 'dev-feature' || load.skill === 'publish')
+};
+
 // A session that ran no skills at all, which is most short ones.
 const bareTurns: UsageTurn[] = claudeSessionTurns
   .slice(0, 4)

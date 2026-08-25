@@ -517,6 +517,10 @@ export type WebviewMessage =
   // The theme menu's pick. Writes `claudeViewer.theme.mode`, and only ever a mode that has a
   // palette behind it — the others report through `notBuilt` and write nothing.
   | { type: 'setTheme'; mode: ThemeMode }
+  // The stage-naming dialog's Save. Writes `claudeViewer.stages.names` — the whole map, since the
+  // dialog held a draft of it and a merge on the host would be a second opinion about which name
+  // wins. A skill with no name in here keeps its own.
+  | { type: 'setStageNames'; names: Record<string, string> }
   | {
       type: 'setUsage';
       metric?: UsageMetric;

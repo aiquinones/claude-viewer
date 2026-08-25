@@ -45,6 +45,7 @@ import {
   onDidChangeSettings,
   revealSettings,
   writeEstimator,
+  writeStageNames,
   writeThemeMode,
   writeUsageSettings
 } from './settings-store';
@@ -239,6 +240,7 @@ const _onMessage = async (message: WebviewMessage): Promise<void> => {
   if (message.type === 'openSettings') return revealSettings(message.section);
   if (message.type === 'setEstimator') return writeEstimator(message.estimator);
   if (message.type === 'setTheme') return writeThemeMode(message.mode);
+  if (message.type === 'setStageNames') return writeStageNames(message.names);
   if (message.type === 'setUsage') {
     return writeUsageSettings({
       metric: message.metric,

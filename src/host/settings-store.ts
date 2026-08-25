@@ -15,6 +15,7 @@ import {
   parseContextTokens,
   parseContextWindows,
   parseOverrides,
+  parseStageNames,
   parseThemeMode,
   parseTokenEstimator,
   parseUsageCostBasis,
@@ -42,6 +43,7 @@ const CONTEXT_WINDOW_KEY: string = 'context.window';
 const CONTEXT_FALLBACK_KEY: string = 'context.windowFallback';
 const ESTIMATOR_KEY: string = 'tokens.estimator';
 const THEME_MODE_KEY: string = 'theme.mode';
+const STAGE_NAMES_KEY: string = 'stages.names';
 
 // What the Settings UI opens filtered to. A plain query rather than `@ext:`, so it doesn't carry a
 // second copy of the publisher id.
@@ -125,6 +127,9 @@ export const currentSettings = (): ViewerSettings => {
         fallback: DEFAULT_CONTEXT_WINDOW_FALLBACK
       }),
       windows: parseContextWindows(config.get(CONTEXT_WINDOW_KEY))
+    },
+    stages: {
+      names: parseStageNames(config.get(STAGE_NAMES_KEY))
     }
   };
 };
@@ -148,6 +153,20 @@ export const writeThemeMode = async (mode: ThemeMode): Promise<void> => {
 
   try {
     await config.update(THEME_MODE_KEY, mode, vscode.ConfigurationTarget.Global);
+  } catch (error) {
+    await reportWriteFailure(error);
+  }
+};
+
+// The stage-naming dialog's Save. The whole map rather than one entry: the dialog holds a draft of
+// every stage in the session and Save is what writes it, so a merge here would be a second rule
+// about which name wins. Global layer for the reason the estimator's is — what you call a stage is
+// a preference, and the same skill opens the same stage in every repo.
+export const writeStageNames = async (names: Record<string, string>): Promise<void> => {
+  const config: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(SECTION);
+
+  try {
+    await config.update(STAGE_NAMES_KEY, names, vscode.ConfigurationTarget.Global);
   } catch (error) {
     await reportWriteFailure(error);
   }

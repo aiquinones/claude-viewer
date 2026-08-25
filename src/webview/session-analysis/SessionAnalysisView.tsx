@@ -17,6 +17,7 @@ import { UsageMenu, UsageMenuSection } from '../usage-menu/UsageMenu';
 import { plural } from '../format-size';
 import { ContextSection } from './ContextSection';
 import { MetricSection } from './MetricSection';
+import { StageRadars } from './radar/StageRadars';
 import { SessionBreadcrumb } from './SessionBreadcrumb';
 import { SessionOrigin } from './session-target';
 import { estimatorReason, sessionEstimator } from './session-estimator';
@@ -132,6 +133,8 @@ const Body = ({ detail, session, skills, onOpenSkill }: BodyProps) => {
         <MetricSection detail={detail} metric={metric.value} costBasis={costBasis.value} />
 
         <ContextSection detail={detail} />
+
+        <StageRadars detail={detail} metric={metric.value} costBasis={costBasis.value} />
 
         <SkillLoadList
           loads={loads}

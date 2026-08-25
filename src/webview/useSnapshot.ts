@@ -120,6 +120,11 @@ export const useSnapshot = () => {
   // `reportNotBuilt` and write nothing.
   const changeTheme = (mode: ThemeMode): void => vscode.postMessage({ type: 'setTheme', mode });
 
+  // The stage-naming dialog's Save. The whole map, the way the dialog held it — the host writes it
+  // and posts the settings back, so nothing here guesses at what landed.
+  const changeStageNames = (names: Record<string, string>): void =>
+    vscode.postMessage({ type: 'setStageNames', names });
+
   // One row's colour. The host stores it and posts the whole map back, so nothing here guesses at
   // what it wrote.
   const setAgentColor = (args: { sessionId: string; color?: AgentColor }): void =>
@@ -135,6 +140,7 @@ export const useSnapshot = () => {
     changeUsage,
     changeEstimator,
     changeTheme,
+    changeStageNames,
     settings,
     agentColors,
     setAgentColor,

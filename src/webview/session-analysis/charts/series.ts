@@ -36,18 +36,20 @@ export const toMetricSeries = ({ turns, metric, costBasis }: ToMetricSeriesArgs)
     at: turn.at,
     model: turn.model,
     ...(turn.skill ? { skill: turn.skill } : {}),
-    value: valueOf({ turn, metric, costBasis })
+    value: turnValue({ turn, metric, costBasis })
   }));
 
-interface ValueOfArgs {
+export interface TurnValueArgs {
   turn: UsageTurn;
   metric: UsageMetric;
   costBasis: UsageCostBasis;
 }
 
-// Cost is dollars on a Claude turn and nano-AIU on a Copilot one, and a session ran under one CLI —
-// so the chart is one unit, and the heading says which.
-const valueOf = ({ turn, metric, costBasis }: ValueOfArgs): number => {
+// What one request was worth under the metric being read. Cost is dollars on a Claude turn and
+// nano-AIU on a Copilot one, and a session ran under one CLI — so the chart is one unit, and the
+// heading says which. Exported because the stage radar sums the same number over a span of turns:
+// two readings of one session that disagreed about what a turn cost would be worse than either.
+export const turnValue = ({ turn, metric, costBasis }: TurnValueArgs): number => {
   if (metric === 'output-tokens') return turn.tokens.output;
   if (turn.tool === 'copilot') return turn.nanoAiu ?? 0;
 
