@@ -30,7 +30,9 @@ export const MetricSection = ({ detail, metric, costBasis }: MetricSectionProps)
 
   return (
     <ChartSection
-      title="Turns"
+      // The metric, not "Turns" — the curve's height is what you came to read, and the count of
+      // requests behind it is already the note beside this.
+      title={METRIC_LABEL[metric]}
       note={
         <>
           {plural(points.length, 'request')}
