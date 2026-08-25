@@ -45,10 +45,10 @@ export const ViewResults: Story = {
   args: { initialQuery: 'us' }
 };
 
-// Opened from inside the skills surface, so it starts narrowed before you type a character. Two
-// pills, because leaving the surface you're on is still something the box has to do.
+// Opened from inside the skills surface, so it starts narrowed before you type a character. One
+// pill — being on a surface doesn't mean you're looking for a surface.
 export const FilteredToSkills: Story = {
-  args: { initialFilters: ['skill', 'view'], initialQuery: 'dep' }
+  args: { initialFilters: ['skill'], initialQuery: 'dep' }
 };
 
 // Narrowed to the surfaces alone — Active Agents and Usage are the two with an `a` in them.

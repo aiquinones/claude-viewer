@@ -24,14 +24,15 @@ export const searchViews = (): SearchView[] =>
     soon: surface.status === 'soon'
   }));
 
-// Opening the spotlight from inside a surface starts narrowed to it — plus `view`, so jumping to
-// another surface is still one of the things the box can do. Two pills mean "either kind". From
-// the landing page — no surface — it starts on everything.
+// Opening the spotlight from inside a surface starts narrowed to it. From the landing page — no
+// surface — it starts on everything.
+//
+// A `view` pill is deliberately not added here: a pill says what you're searching *for*, and
+// opening the box inside the skills surface means you're looking for a skill. A surface holding
+// nothing indexed adds no pill at all, so views are still reachable from most of the panel.
 export const kindForSurface = (surface: SurfaceId | undefined): SearchKind[] => {
-  if (!surface) return [];
-
-  const kind: SearchKind | undefined = KIND_BY_SURFACE[surface];
-  return kind ? [kind, 'view'] : ['view'];
+  const kind: SearchKind | undefined = surface ? KIND_BY_SURFACE[surface] : undefined;
+  return kind ? [kind] : [];
 };
 
 // Where choosing a result goes. A `view` names its surface outright, so it routes by its own id

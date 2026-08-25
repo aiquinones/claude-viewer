@@ -40,16 +40,25 @@ describe('surfaceForDoc', () => {
 });
 
 describe('kindForSurface', () => {
-  // Opening from a surface narrows to what it holds — and to views, so jumping somewhere else is
-  // still one of the things the box can do.
-  it('adds view to the kind a surface holds', () => {
-    expect(kindForSurface('skills')).toEqual(['skill', 'view']);
-    expect(kindForSurface('memory')).toEqual(['memory', 'view']);
+  it('narrows to the kind a surface holds, and nothing else', () => {
+    expect(kindForSurface('skills')).toEqual(['skill']);
+    expect(kindForSurface('memory')).toEqual(['memory']);
   });
 
-  it('leaves only view where a surface has nothing indexed', () => {
-    expect(kindForSurface('usage')).toEqual(['view']);
-    expect(kindForSurface('system-prompt')).toEqual(['view']);
+  // No `view` pill anywhere: a pill says what you're searching for, and being on a surface doesn't
+  // mean you're looking for a surface.
+  it('never adds a view pill', () => {
+    for (const surface of SURFACES) {
+      expect(kindForSurface(surface.id)).not.toContain('view');
+    }
+  });
+
+  // Which is what keeps views reachable from most of the panel — three surfaces index nothing, so
+  // they open the box on everything.
+  it('narrows nothing where a surface has nothing indexed', () => {
+    expect(kindForSurface('usage')).toEqual([]);
+    expect(kindForSurface('system-prompt')).toEqual([]);
+    expect(kindForSurface('active-agents')).toEqual([]);
   });
 
   it('narrows nothing from the landing page', () => {
