@@ -3,52 +3,47 @@ import { SurfaceCard } from '@src/webview/SurfaceCard';
 import { SURFACES, SurfaceId } from '@src/webview/surfaces';
 import './surface-card-options.css';
 
-// Five repaints of the landing card, to pick between. The card component, the glow and the 4:3
-// shape are untouched in all of them — only the ground under the tint and how much tint changes.
-//
-// Look at each one four ways: the panel toolbar switches the palette (Auto / Panel dark / Panel
-// light / Editor's color) and the theme toolbar switches the editor underneath it. The complaint
-// these answer — too dark in dark, too washed in light — is a light/dark pair, so a variant that
-// only fixes one half hasn't fixed it.
+// Option C — an accent tint over the page background — and how heavy that tint should be in the
+// light palette. Dark is settled at 18% and every step below leaves it alone, so flipping the
+// paintbrush toolbar to Panel dark should show four identical grids. That's the check, not a
+// side effect: a step that changes dark has changed the half that was already right.
+// The palette comes from the paintbrush toolbar, deliberately not pinned here: a story-level
+// `globals` wins over a toolbar selection *and* disables the control, which would lock these to
+// one palette — the opposite of what a story comparing two palettes needs.
 const meta: Meta = {
   title: 'Landing/Card options'
 };
 
 export default meta;
 
-interface CardOption {
+interface TintStep {
   id: string;
   name: string;
-  // One line on what this one does differently, printed above its grid.
+  // One line on what this step changes, printed above its grid.
   note: string;
 }
 
-const OPTIONS: CardOption[] = [
-  { id: 'a', name: 'A · Current', note: '8% accent over the page background. What ships today.' },
+const STEPS: TintStep[] = [
+  { id: 'a', name: '1 · As shipped', note: '18% accent over the page background. What C is now.' },
   {
     id: 'b',
-    name: 'B · Card ground',
-    note: 'Same tint, over --card — the panel’s raised ground, which already lifts in dark and settles in light.'
+    name: '2 · More accent',
+    note: 'Same ground, 26%. Darker and more saturated together — against a near-white page the accent carries both.'
   },
   {
     id: 'c',
-    name: 'C · Deeper wash',
-    note: 'Page background still, 18% accent. The tint does the whole job, and corrects both polarities at once.'
+    name: '3 · Lower ground',
+    note: 'Still 18%, over --card rather than the page. Drops the brightness without adding colour.'
   },
   {
     id: 'd',
-    name: 'D · Card ground, deeper wash',
-    note: 'B and C together — raised ground and a 16% tint. The most separated of the five.'
-  },
-  {
-    id: 'e',
-    name: 'E · Directional',
-    note: 'B’s ground with the tint raked from the top-left, so the glow travels against a light direction. Its hover snaps rather than eases.'
+    name: '4 · Both',
+    note: '26% over --card. The far end — if this is too much, the answer is between 2 and 3.'
   }
 ];
 
-// What each card counts, roughly what a real machine shows — the numbers aren't the point here, but
-// a card with no second line is a different shape and would compare badly.
+// What each card counts, roughly what a real machine shows — a card with no second line is a
+// different shape and would compare badly.
 const DETAILS: Record<SurfaceId, string> = {
   skills: '37 found · ~2.1k est. tokens',
   'system-prompt': '4 files · ~9.4k est. tokens',
@@ -58,13 +53,13 @@ const DETAILS: Record<SurfaceId, string> = {
 };
 
 interface CardGridProps {
-  option: string;
+  step: string;
 }
 
-// The grid LandingView really puts the cards in, so an option is judged at the size and spacing it
-// would actually get — five accents at once is the case a stronger tint has to survive.
-const CardGrid = ({ option }: CardGridProps) => (
-  <div className={`card-opt-${option} grid w-full max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2`}>
+// The grid LandingView really puts the cards in, so a step is judged at the size and spacing it
+// would actually get — five accents at once is the case a heavier tint has to survive.
+const CardGrid = ({ step }: CardGridProps) => (
+  <div className={`card-lc-${step} grid w-full max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2`}>
     {SURFACES.map((surface) => (
       <SurfaceCard
         key={surface.id}
@@ -78,38 +73,37 @@ const CardGrid = ({ option }: CardGridProps) => (
 
 type Story = StoryObj;
 
-// All five stacked, which is the story to open first: the differences are small enough that the
-// only honest way to see them is with the previous one still on screen.
-export const AllOptions: Story = {
+// All four stacked, which is the story to open first: the steps are close enough that the only
+// honest way to see one is with the one above it still on screen.
+export const LightSteps: Story = {
   render: () => (
     <div className="flex h-screen flex-col gap-10 overflow-y-auto overflow-x-clip bg-background p-6">
-      {OPTIONS.map((option) => (
-        <section key={option.id} className="flex flex-col gap-3">
+      {STEPS.map((step) => (
+        <section key={step.id} className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-semibold text-foreground">{option.name}</h2>
+            <h2 className="text-sm font-semibold text-foreground">{step.name}</h2>
             <span className="max-w-2xl text-xs leading-relaxed text-muted-foreground">
-              {option.note}
+              {step.note}
             </span>
           </div>
-          <CardGrid option={option.id} />
+          <CardGrid step={step.id} />
         </section>
       ))}
     </div>
   )
 };
 
-// One option at a time, on an empty page — the stacked story puts a label above every grid, and a
+// One step at a time, on an empty page — the stacked story puts a label above every grid, and a
 // heading two lines up changes how separated a card looks.
-const only = (option: string): Story => ({
+const only = (step: string): Story => ({
   render: () => (
     <div className="flex h-screen flex-col overflow-y-auto overflow-x-clip bg-background p-6">
-      <CardGrid option={option} />
+      <CardGrid step={step} />
     </div>
   )
 });
 
-export const OptionACurrent: Story = only('a');
-export const OptionBCardGround: Story = only('b');
-export const OptionCDeeperWash: Story = only('c');
-export const OptionDCardGroundDeep: Story = only('d');
-export const OptionEDirectional: Story = only('e');
+export const StepAsShipped: Story = only('a');
+export const StepMoreAccent: Story = only('b');
+export const StepLowerGround: Story = only('c');
+export const StepBoth: Story = only('d');

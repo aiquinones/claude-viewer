@@ -1,89 +1,78 @@
-/* Five ways to paint the landing card, for picking between in Storybook. Story-local on purpose:
-   nothing here is imported by src/, so none of it reaches the extension bundle. Once one wins it
-   moves into src/webview/styles.css as the single `.surface-card` rule and this file is deleted.
+/* Option C — accent tint over the page background — and how heavy that tint should be in the light
+   palette. Dark is settled at 18%; light at the same number lands around 0.91 lightness against a
+   0.985 page, which is the "too light" half of the complaint.
 
-   Each option is a wrapper class, so `.card-opt-b .surface-card` (0,2,0) out-specifies the shipped
-   `.surface-card` (0,1,0) without the component knowing anything about it.
+   Story-local on purpose: nothing here is imported by src/, so none of it reaches the extension
+   bundle. `.card-lc-x .surface-card` (0,2,0) out-specifies the shipped `.surface-card` (0,1,0), so
+   the component knows nothing about any of it. Once one wins, the recipe below becomes the single
+   `.surface-card` rule in styles.css and the two overrides move into the light palette block —
+   where they're two declarations, not the three-selector repeats they are here. Then this goes. */
 
-   Every option keeps the same recipe the current card uses — an accent tint over a ground, an
-   accent border at partial strength, and a hover that deepens the tint. What changes between them
-   is which ground and how much tint. The glow is untouched by all five. */
-
-/* ---- A · Current -------------------------------------------------------------------------
-   What ships today, here so the others have something to sit next to. 8% of the accent into the
-   page's own background, which is why the card reads as the page rather than as a thing on it. */
-.card-opt-a .surface-card {
-  border-color: color-mix(in srgb, var(--surface-accent) 35%, transparent);
-  background: color-mix(in srgb, var(--surface-accent) 8%, var(--background));
-}
-
-.card-opt-a .surface-card:hover {
-  background: color-mix(in srgb, var(--surface-accent) 16%, var(--background));
-}
-
-/* ---- B · Card ground ---------------------------------------------------------------------
-   The same 8-ish tint, over --card instead of --background. That token is already the panel's
-   "raised" ground and it moves the right way in both palettes on its own: a step lighter than the
-   page in dark, a step darker in light. So the card lifts without the accent having to do it.
-
-   oklab rather than srgb for the mix — an sRGB mix toward a near-black loses the hue and the tint
-   goes grey before it goes light. */
-.card-opt-b .surface-card {
-  border-color: color-mix(in srgb, var(--surface-accent) 35%, transparent);
-  background: color-mix(in oklab, var(--surface-accent) 10%, var(--card));
-}
-
-.card-opt-b .surface-card:hover {
-  background: color-mix(in oklab, var(--surface-accent) 18%, var(--card));
-}
-
-/* ---- C · Deeper wash ---------------------------------------------------------------------
-   Today's ground, more of the accent. Doing the whole job with the tint means the card carries its
-   surface's colour rather than sitting a step above the page — and it corrects in both directions
-   at once, since more accent is lighter against the dark palette and darker against the light one.
-   The border comes up with it so the edge doesn't get overtaken by the fill. */
-.card-opt-c .surface-card {
+/* The recipe, identical for every step below: accent over a ground, an accent border at partial
+   strength, a hover that deepens the tint. The two things a step changes are how much accent
+   (--card-tint) and what it sits on (--card-ground), so they're tokens with C's numbers as the
+   defaults — which is exactly the shape the real rule wants. oklab rather than srgb: an sRGB mix
+   toward the near-white page washes the hue out before it darkens. */
+.card-lc-a .surface-card,
+.card-lc-b .surface-card,
+.card-lc-c .surface-card,
+.card-lc-d .surface-card {
   border-color: color-mix(in srgb, var(--surface-accent) 50%, transparent);
-  background: color-mix(in oklab, var(--surface-accent) 18%, var(--background));
-}
-
-.card-opt-c .surface-card:hover {
-  background: color-mix(in oklab, var(--surface-accent) 28%, var(--background));
-}
-
-/* ---- D · Card ground, deeper wash --------------------------------------------------------
-   B and C together: the raised ground *and* the stronger tint. The most separated of the five, and
-   the one to look at if B still reads flat — five of these are on screen at once, so the question
-   is whether the grid gains colour or gains noise. */
-.card-opt-d .surface-card {
-  border-color: color-mix(in srgb, var(--surface-accent) 45%, transparent);
-  background: color-mix(in oklab, var(--surface-accent) 16%, var(--card));
-}
-
-.card-opt-d .surface-card:hover {
-  background: color-mix(in oklab, var(--surface-accent) 26%, var(--card));
-}
-
-/* ---- E · Directional ---------------------------------------------------------------------
-   B's ground with the tint raked across it, strongest at the top-left, so the card has a light
-   direction for the glow to travel against instead of a flat field.
-
-   One cost worth knowing before picking it: the card's `transition-colors` covers background-color
-   and a gradient is background-image, so this is the one option whose hover snaps instead of
-   easing. Fixing that means naming the property in styles.css. */
-.card-opt-e .surface-card {
-  border-color: color-mix(in srgb, var(--surface-accent) 40%, transparent);
-  background: linear-gradient(
-    145deg,
-    color-mix(in oklab, var(--surface-accent) 20%, var(--card)),
-    color-mix(in oklab, var(--surface-accent) 5%, var(--card))
+  background: color-mix(
+    in oklab,
+    var(--surface-accent) var(--card-tint, 18%),
+    var(--card-ground, var(--background))
   );
 }
 
-.card-opt-e .surface-card:hover {
-  background: linear-gradient(
-    145deg,
-    color-mix(in oklab, var(--surface-accent) 30%, var(--card)),
-    color-mix(in oklab, var(--surface-accent) 10%, var(--card))
+.card-lc-a .surface-card:hover,
+.card-lc-b .surface-card:hover,
+.card-lc-c .surface-card:hover,
+.card-lc-d .surface-card:hover {
+  background: color-mix(
+    in oklab,
+    var(--surface-accent) var(--card-tint-hover, 28%),
+    var(--card-ground, var(--background))
   );
+}
+
+/* Each step overrides the tokens under the light palette only, so the dark grids are identical
+   across all four — which is the point, and is what the story shows when you flip the toolbar.
+
+   Three selectors per step because that's how many ways the light palette is reached: set
+   explicitly, or `auto` landing on it from the editor's own class. In styles.css these are two
+   declarations inside a block that already has them.
+
+   ---- 1 · As shipped in the options -------------------------------------------------------
+   C unchanged, here as the thing "less light" is measured against. ~0.91 lightness. */
+
+/* ---- 2 · More accent ----------------------------------------------------------------------
+   Same ground, 26% instead of 18%. Darker and more saturated together, since against a near-white
+   page the accent is the only thing carrying either. ~0.87. */
+body[data-panel-theme='light'] .card-lc-b,
+body[data-panel-theme='auto'].vscode-light .card-lc-b,
+body[data-panel-theme='auto'].vscode-high-contrast-light .card-lc-b {
+  --card-tint: 26%;
+  --card-tint-hover: 36%;
+}
+
+/* ---- 3 · Lower ground --------------------------------------------------------------------
+   The same 18% of accent, over --card rather than the page. Drops the lightness without adding
+   colour, so it's the step to pick if C's *weight* was right and only its brightness wasn't. ~0.88,
+   near step 2 but at lower chroma — the two are the same darkness reached two different ways. */
+body[data-panel-theme='light'] .card-lc-c,
+body[data-panel-theme='auto'].vscode-light .card-lc-c,
+body[data-panel-theme='auto'].vscode-high-contrast-light .card-lc-c {
+  --card-ground: var(--card);
+}
+
+/* ---- 4 · Both ------------------------------------------------------------------------------
+   26% over --card. The far end of "a bit less light" — if this reads as too much, the answer is
+   between 2 and 3; if it doesn't, the number can keep going. ~0.86. */
+body[data-panel-theme='light'] .card-lc-d,
+body[data-panel-theme='auto'].vscode-light .card-lc-d,
+body[data-panel-theme='auto'].vscode-high-contrast-light .card-lc-d {
+  --card-ground: var(--card);
+  --card-tint: 26%;
+  --card-tint-hover: 36%;
 }
