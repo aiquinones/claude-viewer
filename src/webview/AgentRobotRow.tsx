@@ -10,6 +10,7 @@ import { RobotMood, robotMood } from './agent-robot/moods';
 import { AgentSquircles } from './agent-squircle/AgentSquircles';
 import { activityOf } from './agent-activity';
 import { agentLabel } from './agent-row-text';
+import { isLinkClick } from './link-click';
 
 // The same session as `AgentRow`, acted out instead of listed. The robot carries the state, so
 // everything the dense row spells out — the badge, the tool, the age, the folder, the branch —
@@ -36,7 +37,12 @@ export const AgentRobotRow = ({
 
   return (
     <div
-      onClick={() => onOpen(agent)}
+      // A squircle is a link, so the row has to let it through rather than the link stopping its
+      // own bubble — see `link-click.ts`.
+      onClick={(event) => {
+        if (isLinkClick(event)) return;
+        onOpen(agent);
+      }}
       onContextMenu={menu.open}
       style={row.style}
       className={cn(
@@ -79,8 +85,7 @@ export const AgentRobotRow = ({
         <AgentContext agent={agent} className="pointer-events-auto w-28" />
       </div>
 
-      {/* Outside the button: a `<button>` can hold neither an `<a>` nor another button. Its clicks
-          stop bubbling, so it doesn't focus the agent. */}
+      {/* Outside the button: a `<button>` can hold neither an `<a>` nor another button. */}
       <div className="absolute right-6 top-1/2 -translate-y-1/2">
         <AgentSquircles agent={agent} />
       </div>

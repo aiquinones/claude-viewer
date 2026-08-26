@@ -12,9 +12,12 @@ interface AgentSquircleProps {
 // circle so a row of them lines up as a column of equal blocks — `rounded-[30%]` on a square is
 // close enough to a superellipse at this size, and needs no clip path.
 //
-// An `<a>`, so the middle-click and the copy-link-address a link is expected to have both work. It
-// stops its own click bubbling: the row opens the transcript, and following a PR would otherwise
-// open a file behind the browser it just opened.
+// An `<a>` because it points somewhere, and it carries no click handler: the row keeps out of the
+// way with `isLinkClick` instead, since a `stopPropagation()` here would also stop the event
+// reaching the listener that opens the link — see `link-click.ts`.
+//
+// A left click is all it has. VS Code's webview preventDefaults middle-click on any link, and the
+// right-click belongs to the row's own menu — so the tile is not a link with a link's full menu.
 export const AgentSquircle = ({ icon: Icon, label, href, title }: AgentSquircleProps) => (
   <a
     href={href}
@@ -22,7 +25,6 @@ export const AgentSquircle = ({ icon: Icon, label, href, title }: AgentSquircleP
     title={title}
     target="_blank"
     rel="noreferrer"
-    onClick={(event) => event.stopPropagation()}
     className="flat-focus flex size-12 shrink-0 items-center justify-center rounded-[30%] border border-border bg-card text-muted-foreground transition-colors hover:border-link hover:text-link"
   >
     <Icon className="size-5" />

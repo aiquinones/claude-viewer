@@ -18,14 +18,14 @@ export const AgentRowFooter = ({ agent }: AgentRowFooterProps) => {
 
   return (
     <div className="flex flex-col gap-1 px-3 pb-2 pl-6">
+      {/* No click handler of its own: the row keeps out of the way with `isLinkClick` instead. A
+          `stopPropagation()` here would also stop the event reaching the listener that opens the
+          link — see `link-click.ts`. */}
       <a
         href={agent.pullRequest.url}
         title={agent.pullRequest.url}
         target="_blank"
         rel="noreferrer"
-        // The row's click is on the wrapper above this, so the PR has to stop the bubble or it
-        // opens the transcript behind the browser it just opened.
-        onClick={(event) => event.stopPropagation()}
         className="mono flex w-fit items-center gap-1.5 text-xs text-link hover:underline"
       >
         <GitPullRequest className="size-3.5 shrink-0" />
