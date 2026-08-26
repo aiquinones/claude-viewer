@@ -2,6 +2,7 @@
 // only ever reads them.
 
 import { TokenEstimator } from './estimate-tokens';
+import { PerfReport } from './perf/types';
 import { SettingsSection, ViewerSettings } from './settings/settings';
 import { ThemeMode } from './settings/theme';
 import {
@@ -243,6 +244,10 @@ export interface AgentSession {
   // How full the model's context is. Both CLIs, and absent until the session finishes one assistant
   // turn — or, for Copilot, when the usage database can't be read at all.
   context?: AgentContext;
+  // Every skill this session has loaded, oldest first, with a run of the same skill collapsed to
+  // one. The whole trail rather than the latest: which skills are *stages* is a setting, so the
+  // mapping happens in the webview, and a stage runs on through the unnamed skills after it.
+  skillTrail?: string[];
   // The sub-agents this session has out right now, in the order it started them. Copilot only: it
   // writes a `subagent.started` and a `subagent.completed` to its log, and Claude's transcript
   // records no equivalent. Absent rather than empty when there are none.
@@ -501,7 +506,10 @@ export type HostMessage =
   // every pass while a live agent is still writing to it. Read on demand rather than shipped with
   // the history: the fold behind that list exists so the corpus fits in memory, and every turn of
   // every session is the thing it drops.
-  | { type: 'sessionDetail'; detail: SessionDetail };
+  | { type: 'sessionDetail'; detail: SessionDetail }
+  // What the launch cost. Its own message for the reason the rest are, and one more: it's posted a
+  // second time when the usage scan lands, which is seconds after the page is already up.
+  | { type: 'perf'; report: PerfReport };
 
 // Webview → host. `notBuilt` carries only the name of the thing: the host owns the sentence, the
 // same way it owns which paths `openFile` will accept. `openSettings` is the same deal — the

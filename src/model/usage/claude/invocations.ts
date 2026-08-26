@@ -36,11 +36,11 @@ export const parseClaudeInvocations = (lines: string[]): SkillInvocation[] => {
     const at: number = Date.parse(parsed.timestamp ?? '');
     if (Number.isNaN(at)) continue;
 
-    for (const skill of skillsAskedFor(parsed)) {
+    for (const skill of skillToolLoads(parsed)) {
       found.push({ skill, at, via: 'tool' });
     }
 
-    for (const skill of commandsIn(parsed)) {
+    for (const skill of slashCommandNames(parsed)) {
       found.push({ skill, at, via: 'command' });
     }
   }
@@ -50,7 +50,10 @@ export const parseClaudeInvocations = (lines: string[]): SkillInvocation[] => {
 
 // The `Skill` tool_use blocks on one line. A block with no `skill` in its input names nothing and
 // isn't a load.
-const skillsAskedFor = (line: InvocationLine): string[] => {
+//
+// Exported because `sessions/claude/skills.ts` asks the same question of a live session's log, and
+// what counts as a load has one home.
+export const skillToolLoads = (line: InvocationLine): string[] => {
   const content = line.message?.content;
   if (!Array.isArray(content)) return [];
 
@@ -61,8 +64,9 @@ const skillsAskedFor = (line: InvocationLine): string[] => {
 };
 
 // The slash commands on one line. A user line's content is a plain string when it's a prompt and an
-// array of blocks when it's a tool result, and only the first kind carries these.
-const commandsIn = (line: InvocationLine): string[] => {
+// array of blocks when it's a tool result, and only the first kind carries these. Exported for the
+// same reason `skillToolLoads` is.
+export const slashCommandNames = (line: InvocationLine): string[] => {
   const content = line.message?.content;
   if (typeof content !== 'string') return [];
 

@@ -627,6 +627,51 @@ body:is(.vscode-light, .vscode-high-contrast-light):not([data-panel-theme='dark'
   animation: activity-pulse 1.8s ease-in-out infinite;
 }
 
+/* The stage a working agent is in: a band of light travelling across the letters. Not the label
+   pulsing — text that fades in and out is text you re-read — and not a glow around it, which would
+   be a second shape on a row that has no room for one.
+
+   Painted by clipping a moving gradient to the glyphs, which is why `color` has to be transparent,
+   and why the reduced-motion branch below hands it back rather than only stopping the animation.
+
+   The label rests at full strength and the band is the *dark* part — a shade crossing the word
+   rather than a spark lighting it. Which way round matters: a label that spends most of its cycle
+   dim is one you have to wait to read, and this one is a word you glance at.
+
+   The shade is mixed toward the panel ground rather than being `--muted-foreground` itself, so
+   there's a real ramp in every theme. Under `inherit` the editor's description and foreground
+   colours differ only in alpha, and a band between those two is a band you can't see. */
+.stage-shimmer {
+  --stage-shade: color-mix(in oklch, var(--muted-foreground) 84%, var(--background));
+  background-image: linear-gradient(
+    100deg,
+    var(--foreground) 0%,
+    var(--foreground) 34%,
+    var(--stage-shade) 50%,
+    var(--foreground) 66%,
+    var(--foreground) 100%
+  );
+  background-size: 180% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: stage-shimmer 2.6s linear infinite;
+}
+
+/* Left to right, with the label's reading direction. `background-position` rather than `translate`:
+   the element itself must not move.
+
+   Both numbers above are set against the width of a word. A percentage position moves the image by
+   `box - image`, so at 180% the band travels the box between 112% and -12%, and the run below is
+   that plus a hair — five sixths of the cycle is the band crossing and the rest is the gap before
+   it comes round again. The first cut was 250% over 120% → -20%, which sounds similar and isn't:
+   the band was a sixth of a short word, and it was off screen for half the time. One letter
+   blinking, rather than something passing through. */
+@keyframes stage-shimmer {
+  from { background-position: 125% 0; }
+  to   { background-position: -25% 0; }
+}
+
 /* Refresh button rotation. Triggered when the refresh icon is clicked, rotates the icon 360°. */
 .refresh-rotating {
   animation: refresh-spin 600ms linear;
@@ -640,6 +685,18 @@ body:is(.vscode-light, .vscode-high-contrast-light):not([data-panel-theme='dark'
 @keyframes refresh-spin {
   from   { rotate: 0deg; }
   to     { rotate: 360deg; }
+}
+
+/* The label stays; only the sweep goes. `color` and `background-image` both have to be undone —
+   the sweep paints through a transparent colour, so stopping the animation alone leaves an
+   invisible word. The colour handed back is the resting one, not the shade: a still frame here
+   should look like the four fifths of the cycle the band isn't over. */
+@media (prefers-reduced-motion: reduce) {
+  .stage-shimmer {
+    animation: none;
+    background-image: none;
+    color: var(--foreground);
+  }
 }
 
 /* One skill's share on the usage surface. Same deal as the loading bar below: the accent when a

@@ -6,6 +6,7 @@ import {
   OPEN_SURFACE_COMMANDS,
   openSurface
 } from './commands/open-surface/open-surface';
+import { perfMark } from './model/perf/recorder';
 import { initAgentColors } from './host/agent-colors-store';
 import { startWatchingAgents, stopWatchingAgents } from './host/agents-store';
 import { startWatching, stopWatching } from './host/config-store';
@@ -18,6 +19,8 @@ import { stopWatchingUsage } from './host/usage-store';
 // Wiring only. Every entry point's body lives under commands/ or host/, so what a user can invoke
 // is readable from this one screen.
 export const activate = (context: vscode.ExtensionContext): void => {
+  const started: number = performance.now();
+
   // The row colours live in this extension's own storage, so the store needs it before any panel
   // opens.
   initAgentColors(context.globalState);
@@ -40,6 +43,10 @@ export const activate = (context: vscode.ExtensionContext): void => {
   void startWatching();
   // One file per running agent, watched separately from the config it never touches.
   startWatchingAgents();
+
+  // Marked rather than wrapped: VS Code calls this synchronously, so there's no promise to time the
+  // reads inside. The watcher setup below it doesn't count toward the launch.
+  perfMark({ phase: 'activate', ms: performance.now() - started });
 };
 
 export const deactivate = (): void => {

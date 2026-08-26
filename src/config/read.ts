@@ -1,12 +1,17 @@
 import { Dirent, Stats, promises as fs } from 'node:fs';
 import { FileHandle } from 'node:fs/promises';
 import { join } from 'node:path';
+import { recordRead } from '../model/perf/recorder';
 import { Result, ConfigError, ok, err } from './result';
 
 // Reads a UTF-8 file. A missing file is a normal outcome here, not a failure to shout about.
 export const readTextFile = async (path: string): Promise<Result<string, ConfigError>> => {
+  const start: number = performance.now();
+  let bytes: number = 0;
   try {
-    return ok(await fs.readFile(path, 'utf8'));
+    const text: string = await fs.readFile(path, 'utf8');
+    bytes = Buffer.byteLength(text);
+    return ok(text);
   } catch (caught) {
     const code: string | undefined = (caught as NodeJS.ErrnoException).code;
     if (code === 'ENOENT') {
@@ -17,6 +22,8 @@ export const readTextFile = async (path: string): Promise<Result<string, ConfigE
       path,
       message: String((caught as Error).message ?? caught)
     });
+  } finally {
+    recordRead({ path, kind: 'file', bytes, ms: performance.now() - start });
   }
 };
 
@@ -40,6 +47,8 @@ export const readFileTail = async ({
   path,
   maxBytes
 }: ReadFileTailArgs): Promise<Result<FileTail, ConfigError>> => {
+  const began: number = performance.now();
+  let bytes: number = 0;
   let handle: FileHandle | undefined;
   try {
     handle = await fs.open(path, 'r');
@@ -47,6 +56,7 @@ export const readFileTail = async ({
     const start: number = Math.max(0, stats.size - maxBytes);
     const buffer: Buffer = Buffer.alloc(Math.min(stats.size, maxBytes));
     await handle.read(buffer, 0, buffer.length, start);
+    bytes = buffer.length;
 
     return ok({ text: buffer.toString('utf8'), mtimeMs: stats.mtimeMs, truncated: start > 0 });
   } catch (caught) {
@@ -57,6 +67,7 @@ export const readFileTail = async ({
     return err({ kind: 'unreadable', path, message: String((caught as Error).message ?? caught) });
   } finally {
     await handle?.close();
+    recordRead({ path, kind: 'file', bytes, ms: performance.now() - began });
   }
 };
 
@@ -86,6 +97,8 @@ export const readFileSince = async ({
   offset,
   maxBytes
 }: ReadFileSinceArgs): Promise<Result<FileSince, ConfigError>> => {
+  const began: number = performance.now();
+  let bytes: number = 0;
   let handle: FileHandle | undefined;
   try {
     handle = await fs.open(path, 'r');
@@ -101,6 +114,7 @@ export const readFileSince = async ({
 
     const buffer: Buffer = Buffer.alloc(length);
     await handle.read(buffer, 0, length, start);
+    bytes = length;
 
     return ok({
       text: buffer.toString('utf8'),
@@ -116,6 +130,7 @@ export const readFileSince = async ({
     return err({ kind: 'unreadable', path, message: String((caught as Error).message ?? caught) });
   } finally {
     await handle?.close();
+    recordRead({ path, kind: 'file', bytes, ms: performance.now() - began });
   }
 };
 
@@ -187,11 +202,14 @@ export const readFileHead = async ({
   path,
   maxBytes
 }: ReadFileHeadArgs): Promise<Result<FileHead, ConfigError>> => {
+  const began: number = performance.now();
+  let bytes: number = 0;
   let handle: FileHandle | undefined;
   try {
     handle = await fs.open(path, 'r');
     const buffer: Buffer = Buffer.alloc(maxBytes);
     const { bytesRead } = await handle.read(buffer, 0, maxBytes, 0);
+    bytes = bytesRead;
 
     return ok({ text: buffer.toString('utf8', 0, bytesRead), atEnd: bytesRead < maxBytes });
   } catch (caught) {
@@ -202,6 +220,7 @@ export const readFileHead = async ({
     return err({ kind: 'unreadable', path, message: String((caught as Error).message ?? caught) });
   } finally {
     await handle?.close();
+    recordRead({ path, kind: 'file', bytes, ms: performance.now() - began });
   }
 };
 
@@ -214,33 +233,42 @@ export interface FileStats {
 // which callers read as "skip this one" — a file that vanished between the listing and here is a
 // normal outcome when the thing writing it is a live agent.
 export const fileStats = async (path: string): Promise<FileStats | undefined> => {
+  const began: number = performance.now();
   try {
     const stats: Stats = await fs.stat(path);
     return { size: stats.size, mtimeMs: stats.mtimeMs };
   } catch {
     return undefined;
+  } finally {
+    recordRead({ path, kind: 'dir', bytes: 0, ms: performance.now() - began });
   }
 };
 
 // Names of the files directly in `dir`, no recursion. Missing reads as empty, like the directory
 // listing below it.
 export const listFiles = async (dir: string): Promise<string[]> => {
+  const began: number = performance.now();
   try {
     const entries = await fs.readdir(dir, { withFileTypes: true });
     return entries.filter((entry) => entry.isFile()).map((entry) => entry.name);
   } catch {
     return [];
+  } finally {
+    recordRead({ path: dir, kind: 'dir', bytes: 0, ms: performance.now() - began });
   }
 };
 
 // Names of the subdirectories of `dir`. A missing or unreadable directory reads as empty —
 // callers are scanning optional config locations, and "not there" is the common case.
 export const listDirectories = async (dir: string): Promise<string[]> => {
+  const began: number = performance.now();
   try {
     const entries = await fs.readdir(dir, { withFileTypes: true });
     return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
   } catch {
     return [];
+  } finally {
+    recordRead({ path: dir, kind: 'dir', bytes: 0, ms: performance.now() - began });
   }
 };
 
@@ -263,11 +291,14 @@ export const findFilesNamed = async ({
 }: FindFilesNamedArgs): Promise<string[]> => {
   if (maxDepth < 0) return [];
 
+  const began: number = performance.now();
   let entries: Dirent[];
   try {
     entries = await fs.readdir(dir, { withFileTypes: true });
   } catch {
     return [];
+  } finally {
+    recordRead({ path: dir, kind: 'dir', bytes: 0, ms: performance.now() - began });
   }
 
   const here: string[] = entries
@@ -287,15 +318,21 @@ export const findFilesNamed = async ({
 
 // Counts files under `dir`, recursively. Used for the bundled references/ and scripts/ badges.
 export const countFiles = async (dir: string): Promise<number> => {
+  const began: number = performance.now();
+  let entries: Dirent[];
+  // Split out of the walk below so the timing covers this level's listing rather than its whole
+  // subtree — the recursion records its own levels.
   try {
-    const entries = await fs.readdir(dir, { withFileTypes: true });
-    const counts: number[] = await Promise.all(
-      entries.map(async (entry) =>
-        entry.isDirectory() ? countFiles(`${dir}/${entry.name}`) : 1
-      )
-    );
-    return counts.reduce((total: number, count: number) => total + count, 0);
+    entries = await fs.readdir(dir, { withFileTypes: true });
   } catch {
     return 0;
+  } finally {
+    recordRead({ path: dir, kind: 'dir', bytes: 0, ms: performance.now() - began });
   }
+
+  const counts: number[] = await Promise.all(
+    entries.map(async (entry) => (entry.isDirectory() ? countFiles(`${dir}/${entry.name}`) : 1))
+  );
+
+  return counts.reduce((total: number, count: number) => total + count, 0);
 };

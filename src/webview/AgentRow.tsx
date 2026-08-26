@@ -9,6 +9,7 @@ import { useAgentMenu } from './agent-menu/useAgentMenu';
 import { AgentRowProps } from './agent-row-props';
 import { RowColor, useRowColor } from './agent-color/useRowColor';
 import { AgentRowFooter } from './AgentRowFooter';
+import { AgentStage } from './AgentStage';
 import { AgentToolIcon } from './agent-icon/AgentToolIcon';
 import { activityOf } from './agent-activity';
 import { agentLabel } from './agent-row-text';
@@ -16,9 +17,12 @@ import { displayFolder } from './display-path';
 import { formatAge } from './format-age';
 import { isLinkClick } from './link-click';
 
-// One live agent: what it's doing, what it's called, where it's working, and how long ago it last
-// wrote anything. Clicking goes to the agent itself — its Claude Code tab, or the terminal it runs
-// in.
+// One live agent: what it's doing, what it's called, where it's working, and which part of its work
+// is open. Clicking goes to the agent itself — its Claude Code tab, or the terminal it runs in.
+//
+// No age on most rows. A counter ticking on every row of a list you leave open is motion that never
+// resolves into anything you'd act on, and the two states worth reading — Working and Idle — say
+// what they are outright. Waiting is the exception, and it keeps its age beside the badge.
 //
 // Everything else is behind a right-click: the transcript, the session id, killing the process, and
 // the row's colour. Those used to be two buttons that faded in at the corner, which is a lot of
@@ -64,10 +68,23 @@ export const AgentRow = ({
       >
         <span className="flex w-full min-w-0 items-center gap-2">
           <ActivityBadge activity={activity} tail={agent.tail} />
-          {/* Anything wrong with the row, as icons. On this side rather than by the age: the age
-              is a word whose width changes as it counts up, so an icon anchored to it slides
-              around while you're reading. They sit inside the button, unlike the PR link — a
-              tooltip is spans, and a `<button>` can hold those. */}
+          {/* The age, and only on this state. Waiting is the one badge that *is* an age — how long
+              a tool call has been out is the difference between a slow build and a prompt nobody
+              answered — so it qualifies the word it sits beside. Muted rather than the badge's
+              colour, since a Copilot row reads `blocked` off a permission event and the clock had
+              no part in it.
+
+              Given a floor width, because it's the one thing here that changes size on its own:
+              every form `formatAge` prints is three characters or fewer, so a fixed 2rem holds all
+              of them and nothing to the right of it slides while you're reading. */}
+          {activity === 'blocked' && (
+            <span className="mono min-w-8 shrink-0 text-xs text-muted-foreground">
+              {formatAge(now - agent.lastActivityAt)}
+            </span>
+          )}
+          {/* Anything wrong with the row, as icons — this end rather than out by the stage, since
+              they're about the row rather than about its work. They sit inside the button, unlike
+              the PR link: a tooltip is spans, and a `<button>` can hold those. */}
           <AgentFlags agent={agent} />
           <span
             className={cn(
@@ -77,9 +94,12 @@ export const AgentRow = ({
           >
             {agentLabel(agent)}
           </span>
-          {/* The age earns its place next to the badge: most states here are inferred from it. */}
-          <span className="mono ml-auto shrink-0 text-xs text-muted-foreground">
-            {formatAge(now - agent.lastActivityAt)}
+          {/* Which part of its work the agent is in, at the far end of the line. The wrapper is
+              what carries the `ml-auto`, not `AgentStage` — a margin passed into a component that
+              sets its own layout classes is the coin flip the position gotchas are about, and the
+              stage's own root is a tooltip's `relative inline-flex`. */}
+          <span className="ml-auto flex min-w-0 shrink-0 items-center">
+            <AgentStage agent={agent} activity={activity} />
           </span>
         </span>
 

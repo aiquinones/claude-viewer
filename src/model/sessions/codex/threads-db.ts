@@ -9,6 +9,7 @@
 // or with a schema that has drifted returns no threads at all, which lands on no Codex rows.
 
 import { codexStatePath } from '../../../config/paths';
+import { recordRead } from '../../perf/recorder';
 import { SqliteDatabase, closeDatabase, openDatabase } from '../sqlite';
 
 // One row per thread asked about. `rollout_path` is stored absolute, so the log is reached without
@@ -56,6 +57,7 @@ export const readCodexThreads = async (
   const path: string | undefined = await codexStatePath();
   if (!path) return threads;
 
+  const began: number = performance.now();
   const database: SqliteDatabase | undefined = await openDatabase(path);
   if (!database) return threads;
 
@@ -70,6 +72,9 @@ export const readCodexThreads = async (
     // A drifted schema — a renamed table or column — reads as no threads rather than as an error.
   } finally {
     closeDatabase(database);
+    // The other read that isn't a file — see the same note in `copilot/usage-db.ts`. Without this
+    // the one query behind every Codex row is missing from the launch cost.
+    recordRead({ path, kind: 'db', bytes: 0, ms: performance.now() - began });
   }
 
   return threads;

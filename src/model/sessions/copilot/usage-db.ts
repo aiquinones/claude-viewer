@@ -9,6 +9,7 @@
 // this surface had before it could read any: a row with no bar.
 
 import { copilotSessionStorePath } from '../../../config/paths';
+import { recordRead } from '../../perf/recorder';
 import { AgentContext } from '../../types';
 import { ContextPoint } from '../../usage/types';
 import { SqliteDatabase, closeDatabase, openDatabase } from '../sqlite';
@@ -60,6 +61,7 @@ const seriesSql: string = `
 // Empty for a session with no usable row, and for a machine with no database or no `node:sqlite`.
 // The chart then has nothing to draw, which is the same answer a row with no bar gives.
 export const readCopilotContextSeries = async (sessionId: string): Promise<ContextPoint[]> => {
+  const began: number = performance.now();
   const database: SqliteDatabase | undefined = await openDatabase(copilotSessionStorePath());
   if (!database) return [];
 
@@ -74,6 +76,7 @@ export const readCopilotContextSeries = async (sessionId: string): Promise<Conte
     return [];
   } finally {
     closeDatabase(database);
+    recordQuery(began);
   }
 };
 
@@ -83,6 +86,7 @@ export const readCopilotContextSeries = async (sessionId: string): Promise<Conte
 export const readCopilotContexts = async (
   sessionIds: string[]
 ): Promise<Map<string, CopilotContexts>> => {
+  const began: number = performance.now();
   const contexts: Map<string, CopilotContexts> = new Map();
   if (sessionIds.length === 0) return contexts;
 
@@ -106,10 +110,22 @@ export const readCopilotContexts = async (
     // same degrade-don't-crash rule the config loaders follow.
   } finally {
     closeDatabase(database);
+    recordQuery(began);
   }
 
   return contexts;
 };
+
+// One of the two reads in the extension that aren't files, so it doesn't come through
+// `config/read.ts` and has to say so itself — otherwise a slow launch on a machine full of Copilot
+// sessions has a gap where its biggest read should be. Codex's thread index is the other.
+const recordQuery = (began: number): void =>
+  recordRead({
+    path: copilotSessionStorePath(),
+    kind: 'db',
+    bytes: 0,
+    ms: performance.now() - began
+  });
 
 // What one session's rows in that table say. The two are read the same way and mean different
 // conversations, which is why they aren't one number.

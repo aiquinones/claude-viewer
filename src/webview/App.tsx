@@ -7,6 +7,8 @@ import { AgentColorProvider } from './agent-color/AgentColorContext';
 import { EstimatorDialog } from './EstimatorDialog';
 import { useEstimatorDialog } from './useEstimatorDialog';
 import { Loading } from './loading/Loading';
+import { PerfOverlay } from './perf/PerfOverlay';
+import { useFirstPaint } from './perf/useFirstPaint';
 import { SettingsProvider } from './settings/SettingsContext';
 import { useThemeMode } from './settings/useThemeMode';
 import { SessionRequest, SessionTarget } from './session-analysis/session-target';
@@ -33,6 +35,8 @@ export const App = () => {
   const {
     snapshot,
     agents,
+    perf,
+    readyAt,
     usage,
     usageHistory,
     sessionDetail,
@@ -69,6 +73,12 @@ export const App = () => {
   // reached from a row.
   const [sessionRequest, setSessionRequest] = useState<SessionRequest | undefined>(undefined);
   const { spotlightOpenedAt, openSpotlight, dismissSpotlight } = useSpotlight();
+  // The other half of the launch timeline. Above the loading return below, so it's marked by the
+  // render that first had a snapshot rather than by the one that mounted the landing page.
+  const paintedAt = useFirstPaint(snapshot !== undefined);
+  // Dismissed for as long as this panel lives. It's a readout of one launch, so there's nothing to
+  // come back for and nothing worth persisting.
+  const [isPerfDismissed, setIsPerfDismissed] = useState<boolean>(false);
   // Opened from any number in the panel, so it lives here rather than on a surface.
   const { estimatorOpenedAt, openEstimator, dismissEstimator } = useEstimatorDialog();
 
@@ -222,6 +232,17 @@ export const App = () => {
             />
           }
         />
+
+        {/* The landing page only, and only while there's a whole timeline to draw. Outside the
+            slider, so it stays put while the panes move under it. */}
+        {!showDetail && perf && paintedAt !== undefined && !isPerfDismissed && (
+          <PerfOverlay
+            report={perf}
+            marks={{ readyAt, paintedAt }}
+            workspaceRoot={snapshot.workspaceRoot}
+            onDismiss={() => setIsPerfDismissed(true)}
+          />
+        )}
 
         {/* Keyed on the open, so hitting the chord again gives an empty box back. */}
         {spotlightOpenedAt !== undefined && (

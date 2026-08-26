@@ -69,6 +69,10 @@ export const workingAgent: AgentSession = makeAgent({
   tail: 'working',
   pendingTool: 'Bash',
   lastActivityAt: ago(3_000),
+  // The stage is `dev-feature`, not the skill loaded after it: `read-project-structure` has no name
+  // in `stageNames`, so the split steps over it and the row still says Build. The case the whole
+  // trail exists for — the latest skill alone would say nothing here.
+  skillTrail: ['dev-feature', 'read-project-structure'],
   // A tenth of a 1M window. The comfortable case, and the one that proves `within` is muted rather
   // than green.
   context: { tokens: 103_900, model: 'claude-opus-5' }
@@ -86,6 +90,8 @@ export const waitingAgent: AgentSession = makeAgent({
   lastActivityAt: ago(7 * 60_000),
   // A session that already opened a PR and kept working — the link stays on the row after.
   pullRequest: { number: 412, url: 'https://github.com/example/example-app/pull/412' },
+  // Two named skills, so the later one wins: the row says Ship rather than Build.
+  skillTrail: ['dev-feature', 'create-pr'],
   // Past the warn threshold and a fifth of the way along its window — the case the ticks exist for.
   context: { tokens: 214_000, model: 'claude-opus-5' }
 });
@@ -98,6 +104,9 @@ export const idleAgent: AgentSession = makeAgent({
   title: 'Review the migration before it ships',
   lastActivityAt: ago(11 * 60_000),
   pullRequest: { number: 408, url: 'https://github.com/example/example-app/pull/408' },
+  // An idle row keeps its stage and loses the shimmer — where a session ended is a fact rather
+  // than something in progress.
+  skillTrail: ['claude-api'],
   // A 200k model, so the same tokens fill far more of the bar than they would on Opus. Which is the
   // whole reason the window is per model rather than one number.
   context: { tokens: 48_200, model: 'claude-sonnet-4-6' }
@@ -175,6 +184,9 @@ export const longTitleAgent: AgentSession = makeAgent({
   tail: 'working',
   pendingTool: 'Grep',
   lastActivityAt: ago(9_000),
+  // Nothing named, so no stage — which is what most rows look like until someone has named a
+  // skill, and what proves a long title takes the room the stage isn't using.
+  skillTrail: ['perform-testing'],
   // The largest context measured on a real machine while designing this.
   context: { tokens: 410_600, model: 'claude-opus-5' }
 });
@@ -216,6 +228,8 @@ export const copilotWorkingAgent: AgentSession = makeCopilotAgent({
   tail: 'working',
   pendingTool: 'bash',
   lastActivityAt: ago(2_000),
+  // Both CLIs write their skill loads down, so a stage reads the same on either row.
+  skillTrail: ['dev-feature'],
   // A Copilot reading, out of the usage database rather than the event log. GPT-5.6 spells its id
   // with a dot, which the window table normalizes away.
   context: { tokens: 96_400, model: 'gpt-5.6-luna' }
