@@ -34,15 +34,7 @@ export const SessionRow = ({ session, agent, activityNow, now, onOpen }: Session
     onClick={() => onOpen(session)}
     className="flex w-full cursor-pointer flex-col gap-0.5 px-3 py-2 text-left hover:bg-accent"
   >
-    <span className="flex w-full min-w-0 items-center gap-2">
-      {agent && (
-        <ActivityBadge
-          activity={activityOf({ agent, now: activityNow })}
-          tail={agent.tail}
-        />
-      )}
-      <span className="block min-w-0 truncate text-xs text-foreground">{sessionName(session)}</span>
-    </span>
+    <span className="block w-full truncate text-xs text-foreground">{sessionName(session)}</span>
 
     <span className="flex w-full min-w-0 items-center gap-2 text-[11px] text-muted-foreground">
       {session.branch && (
@@ -56,6 +48,12 @@ export const SessionRow = ({ session, agent, activityNow, now, onOpen }: Session
           tag sets its own layout classes, and two of those competing is decided by the order
           Tailwind emitted them in. */}
       <span className="ml-auto flex shrink-0 items-center gap-2">
+        {agent && (
+          <ActivityBadge
+            activity={activityOf({ agent, now: activityNow })}
+            tail={agent.tail}
+          />
+        )}
         <AgentToolIcon tool={session.tool} />
         {/* Last activity, not duration. A session's age is how long since it did anything, which
             is what makes the list sorted by it read top-down as most recent first. */}
