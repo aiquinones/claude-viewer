@@ -14,6 +14,7 @@ import { activityOf } from './agent-activity';
 import { agentLabel } from './agent-row-text';
 import { displayFolder } from './display-path';
 import { formatAge } from './format-age';
+import { isLinkClick } from './link-click';
 
 // One live agent: what it's doing, what it's called, where it's working, and how long ago it last
 // wrote anything. Clicking goes to the agent itself — its Claude Code tab, or the terminal it runs
@@ -27,6 +28,9 @@ import { formatAge } from './format-age';
 // The PR link and the issues still sit outside the row's button — a <button> can hold neither an
 // <a> nor a <ul>. So the whole row is the hover and click surface and the button carries no handler
 // of its own: a click on it bubbles up to the wrapper, which is also what a keyboard Enter does.
+//
+// Which means the wrapper has to let a link through — `isLinkClick` — rather than the link stopping
+// its own bubble, or the PR opens the transcript instead of the browser.
 export const AgentRow = ({
   agent,
   now,
@@ -43,7 +47,10 @@ export const AgentRow = ({
 
   return (
     <div
-      onClick={() => onOpen(agent)}
+      onClick={(event) => {
+        if (isLinkClick(event)) return;
+        onOpen(agent);
+      }}
       onContextMenu={menu.open}
       style={row.style}
       className={cn(
