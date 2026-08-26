@@ -232,6 +232,10 @@ export interface AgentSession {
   // How full the model's context is. Both CLIs, and absent until the session finishes one assistant
   // turn — or, for Copilot, when the usage database can't be read at all.
   context?: AgentContext;
+  // Every skill this session has loaded, oldest first, with a run of the same skill collapsed to
+  // one. The whole trail rather than the latest: which skills are *stages* is a setting, so the
+  // mapping happens in the webview, and a stage runs on through the unnamed skills after it.
+  skillTrail?: string[];
   // The sub-agents this session has out right now, in the order it started them. Copilot only: it
   // writes a `subagent.started` and a `subagent.completed` to its log, and Claude's transcript
   // records no equivalent. Absent rather than empty when there are none.

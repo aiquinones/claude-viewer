@@ -3,6 +3,7 @@ import { copilotSessionStateDir, sessionsDir } from '../config/paths';
 import { perfPhase } from '../model/perf/recorder';
 import { CopilotPrCache, newCopilotPrCache } from '../model/sessions/copilot/pull-request';
 import { loadAgentSessions } from '../model/sessions/load';
+import { SkillTrailCache, newSkillTrailCache } from '../model/sessions/skill-trail';
 import { AgentSession } from '../model/types';
 
 // Live agents are read on their own channel rather than as a field on the snapshot, for the reason
@@ -45,6 +46,10 @@ let pollTimer: NodeJS.Timeout | undefined;
 // `model/` keeps state, so a cache belongs to whoever decided to poll.
 const copilotPullRequests: CopilotPrCache = newCopilotPrCache();
 
+// Held across passes for the same reason: a session's skill loads are spread through its whole log,
+// so the first pass walks the file and every pass after reads only what was appended.
+const skillTrails: SkillTrailCache = newSkillTrailCache();
+
 const changeEmitter: vscode.EventEmitter<AgentSession[]> = new vscode.EventEmitter();
 
 export const onDidChangeAgents: vscode.Event<AgentSession[]> = changeEmitter.event;
@@ -56,7 +61,7 @@ export const cachedAgents = (): AgentSession[] => agents ?? [];
 
 export const refreshAgents = async (): Promise<AgentSession[]> => {
   const next: AgentSession[] = await perfPhase('agents', () =>
-    loadAgentSessions(copilotPullRequests)
+    loadAgentSessions({ copilotPullRequests, skillTrails })
   );
   const changed: boolean = signature(next) !== signature(agents);
   agents = next;
