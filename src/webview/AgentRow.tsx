@@ -9,6 +9,7 @@ import { useAgentMenu } from './agent-menu/useAgentMenu';
 import { AgentRowProps } from './agent-row-props';
 import { RowColor, useRowColor } from './agent-color/useRowColor';
 import { AgentRowFooter } from './AgentRowFooter';
+import { AgentStage } from './AgentStage';
 import { AgentToolIcon } from './agent-icon/AgentToolIcon';
 import { activityOf } from './agent-activity';
 import { agentLabel } from './agent-row-text';
@@ -77,9 +78,16 @@ export const AgentRow = ({
           >
             {agentLabel(agent)}
           </span>
-          {/* The age earns its place next to the badge: most states here are inferred from it. */}
-          <span className="mono ml-auto shrink-0 text-xs text-muted-foreground">
-            {formatAge(now - agent.lastActivityAt)}
+          {/* The right-hand cluster: which part of its work the agent is in, then how long since
+              it wrote anything. One wrapper carries the `ml-auto` rather than each of them — two
+              auto margins on a line share the free space between them instead of both going
+              right, which is the trap the flags above already document from the other side. */}
+          <span className="ml-auto flex shrink-0 items-center gap-2">
+            <AgentStage agent={agent} activity={activity} />
+            {/* The age earns its place next to the badge: most states here are inferred from it. */}
+            <span className="mono shrink-0 text-xs text-muted-foreground">
+              {formatAge(now - agent.lastActivityAt)}
+            </span>
           </span>
         </span>
 

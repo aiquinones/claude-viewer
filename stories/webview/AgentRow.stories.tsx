@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { DEFAULT_SETTINGS } from '@src/model/settings/settings';
 import { AgentRow } from '@src/webview/AgentRow';
+import { SettingsProvider } from '@src/webview/settings/SettingsContext';
 import {
   askingAgent,
   copilotBlockedAgent,
@@ -15,6 +17,7 @@ import {
   workingAgent
 } from '../agent-fixtures';
 import { WORKSPACE } from '../fixtures';
+import { stageNames } from '../session-detail-fixtures';
 
 // One row per state. `now` is a prop rather than a clock in here, so a story can pin the age it
 // wants to show — the view is what ticks.
@@ -31,6 +34,14 @@ const meta: Meta<typeof AgentRow> = {
     onKill: () => undefined
   },
   decorators: [
+    // The stage a row prints comes from the stored names, so every story here needs them — a row
+    // whose current skill isn't in the map shows no stage, which is the default state and is a
+    // story of its own rather than the whole file.
+    (Story) => (
+      <SettingsProvider settings={{ ...DEFAULT_SETTINGS, stages: { names: stageNames } }}>
+        <Story />
+      </SettingsProvider>
+    ),
     (Story) => (
       <div className="w-full max-w-2xl p-2">
         <Story />
@@ -43,7 +54,9 @@ export default meta;
 
 type Story = StoryObj<typeof AgentRow>;
 
-// Mid-turn, written seconds ago, and no PR — that footer is absent rather than empty.
+// Mid-turn, written seconds ago, and no PR — that footer is absent rather than empty. The stage
+// beside the age shimmers while the agent is going, and says Build rather than the unnamed skill
+// loaded after it.
 export const Working: Story = { args: { agent: workingAgent } };
 
 // The same tail shape, seven minutes cold. Nothing on disk says whether it's a permission prompt or
@@ -51,10 +64,13 @@ export const Working: Story = { args: { agent: workingAgent } };
 // that opened one keeps the link on its row, under the button because an <a> can't sit inside one.
 export const Waiting: Story = { args: { agent: waitingAgent } };
 
-// The last turn ended in text. Dimmed, because this one is waiting on you.
+// The last turn ended in text. Dimmed, because this one is waiting on you — and the stage keeps
+// its label and loses the shimmer, since where a session stopped isn't in progress.
 export const Idle: Story = { args: { agent: idleAgent } };
 
 // Truncates rather than wrapping: a row that grows a second line breaks the rhythm of the list.
+// This one's skill has no name, so there is no stage — which is what every row looks like until
+// someone has named one, and is what leaves the title the full width.
 export const LongTitle: Story = { args: { agent: longTitleAgent } };
 
 // A live process with nothing written yet — the warning is the icon beside the badge, and the label

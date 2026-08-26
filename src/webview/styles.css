@@ -625,6 +625,34 @@ body:is(.vscode-light, .vscode-high-contrast-light):not([data-panel-theme='dark'
   animation: activity-pulse 1.8s ease-in-out infinite;
 }
 
+/* The stage a working agent is in. A highlight sweeps along the letters rather than the whole label
+   pulsing: the label is text you read, and text that fades in and out is text you re-read.
+
+   Painted by clipping a moving gradient to the glyphs, which is why `color` has to be transparent —
+   and why the reduced-motion branch below has to hand it back rather than only stopping the
+   animation. The two ends are `--muted-foreground` so a still frame is exactly the idle row's
+   colour; only the band crossing it is brighter. */
+.stage-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    var(--muted-foreground) 40%,
+    var(--foreground) 50%,
+    var(--muted-foreground) 60%
+  );
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: stage-shimmer 3.2s linear infinite;
+}
+
+/* Right to left, one gradient-width of travel, so the band enters off one edge and leaves by the
+   other. `background-position` rather than `translate`: the element itself must not move. */
+@keyframes stage-shimmer {
+  from { background-position: 150% 0; }
+  to   { background-position: -150% 0; }
+}
+
 /* Refresh button rotation. Triggered when the refresh icon is clicked, rotates the icon 360°. */
 .refresh-rotating {
   animation: refresh-spin 600ms linear;
@@ -638,6 +666,17 @@ body:is(.vscode-light, .vscode-high-contrast-light):not([data-panel-theme='dark'
 @keyframes refresh-spin {
   from   { rotate: 0deg; }
   to     { rotate: 360deg; }
+}
+
+/* The label stays; only the sweep goes. `color` and `background-image` both have to be undone —
+   the shimmer paints through a transparent colour, so stopping the animation alone leaves an
+   invisible word. */
+@media (prefers-reduced-motion: reduce) {
+  .stage-shimmer {
+    animation: none;
+    background-image: none;
+    color: var(--muted-foreground);
+  }
 }
 
 /* One skill's share on the usage surface. Same deal as the loading bar below: the accent when a

@@ -22,6 +22,9 @@ const eventSchema = z
         requestId: z.string().optional(),
         // user.message
         content: z.string().optional(),
+        // skill.invoked. The skill's own name — the body it loaded is on the same event and is
+        // deliberately not read here, since it runs to kilobytes and a row needs the name only.
+        name: z.string().optional(),
         // session.start
         copilotVersion: z.string().optional(),
         // subagent.started / subagent.completed. `toolCallId` above pairs the two, and is also what
