@@ -28,6 +28,15 @@ body {
   --background: var(--vscode-editor-background);
   --foreground: var(--vscode-foreground);
 
+  /* How heavily a landing card is tinted with its surface's accent, and what that tint sits on.
+     Tokens rather than numbers in the rule because the right amount is a question about polarity:
+     against a near-black page the accent is the thing lifting the card off it, and against a
+     near-white one the same figure barely darkens it. These are the dark values — the block after
+     the palettes carries the light ones. */
+  --surface-ground: var(--background);
+  --surface-tint: 18%;
+  --surface-tint-hover: 28%;
+
   --card: var(--vscode-editorWidget-background, color-mix(in srgb, var(--vscode-foreground) 4%, transparent));
   --card-foreground: var(--vscode-foreground);
 
@@ -211,6 +220,21 @@ body[data-panel-theme='auto'].vscode-high-contrast-light {
   --chart-red: oklch(0.55 0.19 25); /* #c92f33 */
 }
 
+/* The landing cards on a light ground. 18% of an accent over a near-white page lands around 0.91
+   lightness, which is a card you can barely tell from the page it's on — so the tint comes up and
+   moves onto --card, the step the palettes already put under the page.
+
+   This is the one block that keys off the editor's *polarity* rather than off which palette is set,
+   and `inherit` is why: it takes its colors from a light editor theme without matching either
+   palette rule above, so it has the same near-white page and the same problem. `:not(…='dark')` is
+   what keeps the dark palette dark on a Light+ editor, which is a state you can really be in. */
+body[data-panel-theme='light'],
+body:is(.vscode-light, .vscode-high-contrast-light):not([data-panel-theme='dark']) {
+  --surface-ground: var(--card);
+  --surface-tint: 26%;
+  --surface-tint-hover: 36%;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -321,14 +345,22 @@ body[data-panel-theme='auto'].vscode-high-contrast-light {
 }
 
 /* Landing-page surface cards. Each card sets --surface-accent inline, so the color lives with the
-   surface and only the mixing lives here. */
+   surface and only the mixing lives here — the accent is the tint, the border and the glow.
+
+   oklab rather than srgb: an sRGB mix toward either end of the ramp loses the hue before it moves
+   the lightness, so the tint goes grey on the way to dark and washes out on the way to white. How
+   much of it, and what it sits on, are the two tokens up in the palette blocks. */
 .surface-card {
-  border-color: color-mix(in srgb, var(--surface-accent) 35%, transparent);
-  background: color-mix(in srgb, var(--surface-accent) 8%, var(--background));
+  border-color: color-mix(in srgb, var(--surface-accent) 50%, transparent);
+  background: color-mix(in oklab, var(--surface-accent) var(--surface-tint), var(--surface-ground));
 }
 
 .surface-card:hover {
-  background: color-mix(in srgb, var(--surface-accent) 16%, var(--background));
+  background: color-mix(
+    in oklab,
+    var(--surface-accent) var(--surface-tint-hover),
+    var(--surface-ground)
+  );
 }
 
 /* useCursorGlow writes `translate` every frame, so only `scale` may carry a transition here — the
