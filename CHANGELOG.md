@@ -2,6 +2,31 @@
 
 Notable changes to Claude Viewer, newest first.
 
+## 0.26.0 - 2026-08-26
+
+### Added
+
+- **Active Agents now includes Codex sessions.** Codex rows use Codex's own mark and expose the
+  activity state available from its session data.
+- **Agent rows show more context.** Rows can show the active stage, the pull request opened by a
+  Copilot agent, and any sub-agents launched by the session.
+- **Usage session pages link back to Active Agents.** The session activity badge opens the matching
+  agent row, and the landing page shows the cost of the launch.
+- **Usage filters show activity.** Session filters now keep the current activity state visible.
+
+### Changed
+
+- **Performance cards have a more polished interaction.** The cards, stage indicators, and landing
+  surface now have clearer emphasis and lighter visual treatment.
+- **Session headers hide the current workspace.** The header no longer repeats the workspace that is
+  already selected.
+- **Skill scope markers are clearer.** Scope origin is softer and appears below the skill title.
+
+### Fixed
+
+- **Copilot session context bars measure the full session**, rather than a sub-agent's context.
+- **PR links from agent rows open the browser without also navigating the panel.**
+
 ## 0.24.0 - 2026-08-25
 
 ### Added
