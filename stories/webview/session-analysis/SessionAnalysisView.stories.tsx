@@ -46,6 +46,7 @@ const meta: Meta<typeof SessionAnalysisView> = {
   component: SessionAnalysisView,
   args: {
     session: claudeSession,
+    workspaceRoot: claudeSession.cwd,
     detail: claudeDetail,
     onWatch: () => undefined,
     skills: usageSkills,

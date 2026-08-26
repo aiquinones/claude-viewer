@@ -17,6 +17,8 @@ const COPIED_MS: number = 1600;
 
 interface SessionBreadcrumbProps {
   session: SessionUsage;
+  // Only another folder helps identify the session — the open folder is already named by VS Code.
+  workspaceRoot: string | undefined;
   // The live agent writing to this session, if one still is. Absent on a session that's over, which
   // is most of the list — nothing is drawn for those, since "not running" is what a page with no
   // badge already says.
@@ -44,6 +46,7 @@ interface SessionBreadcrumbProps {
 // to keep naming where the page actually lives.
 export const SessionBreadcrumb = ({
   session,
+  workspaceRoot,
   agent,
   onBack,
   origin,
@@ -82,16 +85,16 @@ export const SessionBreadcrumb = ({
       </span>
       <span className="flex min-w-0 items-center gap-2">
         <SessionId sessionId={session.sessionId} onCopy={onCopyId} />
-        {/* Where it ran. This came off the rows in the list, which spans every folder on the
-            machine and repeated a path down the whole column — here there is one session, so the
-            question is worth answering. The absolute path rather than a workspace-relative one:
-            on this page, which worktree is the thing you came to check. */}
-        <span
-          title={session.cwd}
-          className="mono min-w-0 truncate text-[11px] text-muted-foreground"
-        >
-          {displayFolder({ path: session.cwd, workspaceRoot: undefined })}
-        </span>
+        {/* The open folder is already named by VS Code. A different cwd, including a worktree,
+            is the missing context this header needs to add. */}
+        {session.cwd !== workspaceRoot && (
+          <span
+            title={session.cwd}
+            className="mono min-w-0 truncate text-[11px] text-muted-foreground"
+          >
+            {displayFolder({ path: session.cwd, workspaceRoot })}
+          </span>
+        )}
       </span>
     </div>
 

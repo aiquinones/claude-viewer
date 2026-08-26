@@ -33,6 +33,8 @@ const DETAIL_EXPECTED_MS: number = 250;
 
 interface SessionAnalysisViewProps {
   session: SessionUsage;
+  // The folder open in VS Code. The breadcrumb omits it when this session ran there too.
+  workspaceRoot: string | undefined;
   // The last reply from the host, whichever session it was about. The hook drops one that isn't
   // this session's.
   detail: SessionDetail | undefined;
@@ -59,6 +61,7 @@ interface SessionAnalysisViewProps {
 // breadcrumb says, and it's why the Sessions tab still has its filter text when you go back.
 export const SessionAnalysisView = ({
   session,
+  workspaceRoot,
   detail,
   onWatch,
   agent,
@@ -77,6 +80,7 @@ export const SessionAnalysisView = ({
     <div className="flex h-full flex-col">
       <SessionBreadcrumb
         session={session}
+        workspaceRoot={workspaceRoot}
         agent={agent}
         onBack={onBack}
         origin={origin}

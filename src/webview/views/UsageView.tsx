@@ -148,6 +148,7 @@ export const UsageView = ({
       >
         <SessionAnalysisView
           session={session}
+          workspaceRoot={workspaceRoot}
           detail={sessionDetail}
           onWatch={onWatchSession}
           agent={findAgent({ agents, sessionId: session.sessionId, tool: session.tool })}

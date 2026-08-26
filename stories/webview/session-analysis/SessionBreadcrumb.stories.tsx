@@ -7,6 +7,7 @@ const meta: Meta<typeof SessionBreadcrumb> = {
   component: SessionBreadcrumb,
   args: {
     session: claudeSession,
+    workspaceRoot: claudeSession.cwd,
     onBack: () => undefined,
     onOpenAgents: () => undefined,
     onCopyId: () => undefined,
@@ -31,6 +32,11 @@ type Story = StoryObj<typeof SessionBreadcrumb>;
 export const Claude: Story = {};
 
 export const Copilot: Story = { args: { session: copilotSession } };
+
+// A session from another folder names that folder; the open folder is already visible in VS Code.
+export const Elsewhere: Story = {
+  args: { session: { ...claudeSession, cwd: '/Users/dev/repos/other-app' } }
+};
 
 // A session too short to have been given a title falls back to the folder it ran in — 4 of the 89
 // sessions measured on one machine.
