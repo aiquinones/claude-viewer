@@ -115,7 +115,7 @@ export const AgentRow = ({
       {/* Outside the button, like everything else that isn't plain text: its card holds a CTA, and
           a `<button>` can't hold a `<button>`. Indented to the footer's left edge so the row has one
           text column rather than two. */}
-      <AgentContext agent={agent} className="px-3 pb-2 pl-6" />
+      <AgentContext context={agent.context} className="px-3 pb-2 pl-6" />
 
       <AgentRowFooter agent={agent} />
 

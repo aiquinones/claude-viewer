@@ -4,6 +4,7 @@ import {
   askingAgent,
   copilotBlockedAgent,
   copilotMcpAgent,
+  copilotSubagentAgent,
   copilotWorkingAgent,
   elsewhereAgent,
   idleAgent,
@@ -84,6 +85,12 @@ export const CopilotBlocked: Story = { args: { agent: copilotBlockedAgent } };
 // An MCP tool prints server-qualified, so a remote call doesn't read like a local one. Also the
 // no-branch case, which is what a session outside a git repo looks like.
 export const CopilotMcpTool: Story = { args: { agent: copilotMcpAgent } };
+
+// Work delegated out. The chevron under the row opens the sub-agents, each with its own purpose,
+// its own model and its own bar — and the row's own bar goes on measuring the session, which is the
+// bug this shipped with: a sub-agent's requests are filed under the same session id, so the bar used
+// to dip to the sub-agent's size and back while one was out.
+export const CopilotSubagents: Story = { args: { agent: copilotSubagentAgent } };
 
 // The context bar across its three levels, stacked so the colours can be compared. The Copilot row
 // at the bottom is in it deliberately: its number comes from a different file and different

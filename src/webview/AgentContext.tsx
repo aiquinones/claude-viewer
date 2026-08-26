@@ -17,12 +17,14 @@ import { useOpenSettings, useSettings } from './settings/SettingsContext';
 import { Z } from './z-layers';
 
 interface AgentContextProps {
-  agent: AgentSession;
+  // The reading itself rather than the session holding it: a sub-agent's context is the same claim
+  // about the same kind of number, and it should read identically.
+  context: AgentSession['context'];
   className?: string;
 }
 
-// How full this agent's context is, and what the two numbers behind that mean. Both row modes
-// render this and nothing else of the feature.
+// How full a context is, and what the two numbers behind that mean. Both row modes render this and
+// nothing else of the feature, and so does every sub-agent listed under a row.
 //
 // Absent rather than empty when there's nothing to measure: a session of either CLI that hasn't
 // finished an assistant turn, and a Copilot one whose usage database couldn't be read. An empty
@@ -31,11 +33,11 @@ interface AgentContextProps {
 // The bar is the trigger — there's no (i) beside it. An info icon would be a second thing to aim at
 // for one thing to read, and the bar is already the only part of a row whose meaning isn't spelled
 // out in words.
-export const AgentContext = ({ agent, className = '' }: AgentContextProps) => {
+export const AgentContext = ({ context, className = '' }: AgentContextProps) => {
   const { context: settings } = useSettings();
-  if (!agent.context) return null;
+  if (!context) return null;
 
-  const reading: ContextReading = readContext({ context: agent.context, settings });
+  const reading: ContextReading = readContext({ context, settings });
 
   return (
     <span className={`group/context context-hover relative block ${className}`}>
