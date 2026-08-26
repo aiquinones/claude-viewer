@@ -39,6 +39,27 @@ const makeCopilotAgent = (
     ...overrides
   });
 
+// The Codex defaults. Two things separate it from the other two: its log is a dated `rollout-*`
+// file rather than anything named for the session, and it carries **no pid** — Codex records its
+// process nowhere, so a row of it is what proves the menu drops Kill rather than printing
+// `undefined`.
+const makeCodexAgent = (
+  overrides: Partial<AgentSession> & Pick<AgentSession, 'sessionId' | 'cwd'>
+): AgentSession => {
+  const agent: AgentSession = makeAgent({
+    tool: 'codex',
+    transcriptPath: `/Users/dev/.codex/sessions/2026/08/26/rollout-2026-08-26T01-01-24-${overrides.sessionId}.jsonl`,
+    version: '',
+    entrypoint: '',
+    repository: 'example/example-app',
+    branch: 'main',
+    ...overrides
+  });
+
+  delete agent.pid;
+  return agent;
+};
+
 // Mid-turn and writing — the pulsing dot.
 export const workingAgent: AgentSession = makeAgent({
   sessionId: '7d94fa75-c078-4b85-ae4e-031d5af6d96b',
@@ -283,11 +304,41 @@ export const copilotSubagentAgent: AgentSession = makeCopilotAgent({
   pullRequest: { number: 419, url: 'https://github.com/example/example-app/pull/419' }
 });
 
-// Most recently active first, the way the loader sorts them — across both CLIs, so the list reads
-// as one thing rather than two lists stacked.
+// A Codex session mid-turn. `exec` is what its tool calls are named — one tool that runs a script,
+// where Claude has Bash and Edit and Read.
+export const codexWorkingAgent: AgentSession = makeCodexAgent({
+  sessionId: '01a03d16-918d-7b93-88b5-ac866afdf539',
+  cwd: WORKSPACE,
+  title: 'Give the scope badges a quieter treatment',
+  lastPrompt: 'the scope pill in the row is really ugly, come up with another option',
+  tail: 'working',
+  pendingTool: 'exec',
+  lastActivityAt: ago(5_000),
+  // The one CLI that states its own window, so this reading carries it and the card says `stated`
+  // rather than naming the built-in table.
+  context: { tokens: 87_300, model: 'gpt-5.6-terra', window: 258_400 }
+});
+
+// Idle, and in a worktree — the second half is what makes the cwd print, since the row only says
+// where it is when that isn't the workspace root.
+export const codexIdleAgent: AgentSession = makeCodexAgent({
+  sessionId: '01a03d1d-5414-7ee2-8e4c-8f420d1d2eaa',
+  cwd: `${WORKSPACE}/.claude/worktrees/feat+scope-markers`,
+  title: 'Move the skill scope under the title',
+  tail: 'settled',
+  lastActivityAt: ago(18 * 60_000),
+  branch: 'feat/scope-markers',
+  context: { tokens: 31_200, model: 'gpt-5.6-terra', window: 258_400 }
+});
+
+export const codexAgents: AgentSession[] = [codexWorkingAgent, codexIdleAgent];
+
+// Most recently active first, the way the loader sorts them — across every CLI, so the list reads
+// as one thing rather than three lists stacked.
 export const allAgents: AgentSession[] = [
   copilotSubagentAgent,
   copilotWorkingAgent,
+  codexWorkingAgent,
   workingAgent,
   copilotBlockedAgent,
   longTitleAgent,
@@ -297,6 +348,7 @@ export const allAgents: AgentSession[] = [
   elsewhereAgent,
   askingAgent,
   waitingAgent,
+  codexIdleAgent,
   idleAgent
 ];
 

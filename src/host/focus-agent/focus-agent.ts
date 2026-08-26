@@ -10,8 +10,11 @@ const CLAUDE_REVEAL_COMMAND: string = 'claude-vscode.primaryEditor.open';
 
 // Bring the agent itself to the front: the Claude Code tab it lives in, or the terminal it was
 // started from. False when it's out of this window's reach — a session in another window, a
-// terminal in iTerm, Windows — and the caller opens the log instead.
+// terminal in iTerm, Windows, or one whose CLI names no pid to walk up from — and the caller opens
+// the log instead.
 export const focusAgent = async (agent: AgentSession): Promise<boolean> => {
+  if (!agent.pid) return false;
+
   const chain: number[] = processChain({ tree: await readProcessTree(), pid: agent.pid });
 
   if (await _revealClaudePanel({ agent, chain })) return true;

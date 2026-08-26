@@ -1,7 +1,7 @@
 import { homedir } from 'node:os';
 import { join, relative } from 'node:path';
 import { PromptRoot, SkillRoot } from '../model/types';
-import { findFilesNamed, listDirectories } from './read';
+import { findFilesNamed, listDirectories, listFiles } from './read';
 
 export const SKILL_FILE = 'SKILL.md';
 
@@ -158,4 +158,48 @@ const pluginSkillRoots = async (): Promise<SkillRoot[]> => {
   );
 
   return perMarketplace.flat();
+};
+
+const codexDir = (): string => join(homedir(), '.codex');
+
+// Every thread a process is currently writing to. The file is named for the *thread*, not the pid,
+// is zero bytes, and is held as an advisory lock — so unlike Copilot's there is no pid to read out
+// of it, and its presence is the whole signal. Codex removes it on a clean exit.
+export const codexLockDir = (): string => join(codexDir(), 'thread-writer-locks');
+
+// The lock the CLI takes to serialize its own bookkeeping. It sits in the same directory and names
+// no thread, so anything walking that directory has to skip it.
+const COORDINATION_LOCK = '.coordination.lock';
+
+const THREAD_LOCK = /^([0-9a-f-]+)\.lock$/;
+
+export const lockedThreadId = (fileName: string): string | undefined => {
+  if (fileName === COORDINATION_LOCK) return undefined;
+  const match: RegExpExecArray | null = THREAD_LOCK.exec(fileName);
+  return match ? match[1] : undefined;
+};
+
+// One SQLite file for the whole machine, holding a row per thread: where it ran, what it was
+// asked, which model answered and which branch it was on. The number in the name is a migration
+// version rather than anything about the data, so the newest one is the one to read — see
+// `codexStatePath`, which is why this is a pattern and not a path.
+const STATE_DB = /^state_(\d+)\.sqlite$/;
+
+export const codexStateVersion = (fileName: string): number | undefined => {
+  const match: RegExpExecArray | null = STATE_DB.exec(fileName);
+  return match ? Number(match[1]) : undefined;
+};
+
+// The newest state database, or undefined when Codex has never run here. Reading the highest
+// version rather than a hardcoded `state_5.sqlite` — the number moves on a Codex release, and an
+// old file is left behind beside the new one.
+export const codexStatePath = async (): Promise<string | undefined> => {
+  const dir: string = codexDir();
+  const names: string[] = await listFiles(dir);
+
+  const newest: string | undefined = names
+    .filter((name) => codexStateVersion(name) !== undefined)
+    .sort((left, right) => (codexStateVersion(right) ?? 0) - (codexStateVersion(left) ?? 0))[0];
+
+  return newest ? join(dir, newest) : undefined;
 };

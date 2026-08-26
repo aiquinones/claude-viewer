@@ -11,9 +11,13 @@ import { tableWindowFor } from './context-window';
 // the card prints whichever won — the same stance the budgets card takes, because a number you can't
 // argue with is a number you ignore, and this one is a table entry that can go stale.
 //
+// `stated` is the CLI's own figure, off the log. It sits under `override` because an explicit
+// setting is still you overruling what was read, and over `table` because a number the CLI wrote
+// beats one this repo maintains by hand.
+//
 // Deliberately not annotated: a type here would erase the literals `ContextWindowSource` derives
 // from.
-export const CONTEXT_WINDOW_SOURCES = ['override', 'table', 'fallback'] as const;
+export const CONTEXT_WINDOW_SOURCES = ['override', 'stated', 'table', 'fallback'] as const;
 
 export type ContextWindowSource = (typeof CONTEXT_WINDOW_SOURCES)[number];
 
@@ -49,7 +53,11 @@ interface ReadContextArgs {
 }
 
 export const readContext = ({ context, settings }: ReadContextArgs): ContextReading => {
-  const window: ContextWindow = resolveWindow({ model: context.model, settings });
+  const window: ContextWindow = resolveWindow({
+    model: context.model,
+    stated: context.window,
+    settings
+  });
 
   return {
     tokens: context.tokens,
@@ -69,14 +77,18 @@ export const readContext = ({ context, settings }: ReadContextArgs): ContextRead
 
 interface ResolveWindowArgs {
   model: string;
+  // What the log said the window was, when the CLI records one.
+  stated: number | undefined;
   settings: ContextSettings;
 }
 
-// Your setting for this model → the built-in table → your fallback. The fallback is last because
-// it's the only one of the three that knows nothing about which model ran.
-const resolveWindow = ({ model, settings }: ResolveWindowArgs): ContextWindow => {
+// Your setting for this model → what the CLI stated → the built-in table → your fallback. The
+// fallback is last because it's the only one of the four that knows nothing about which model ran.
+const resolveWindow = ({ model, stated, settings }: ResolveWindowArgs): ContextWindow => {
   const override: number | undefined = settings.windows[model];
   if (override !== undefined) return { tokens: override, source: 'override' };
+
+  if (stated !== undefined && stated > 0) return { tokens: stated, source: 'stated' };
 
   const table: number | undefined = tableWindowFor(model);
   if (table !== undefined) return { tokens: table, source: 'table' };

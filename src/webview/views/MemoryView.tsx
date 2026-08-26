@@ -10,6 +10,7 @@ import {
 } from '../../model/types';
 import { Button } from '@/components/ui/button';
 import { ClaudeMemoryPane } from '../ClaudeMemoryPane';
+import { CodexMemoryCard } from '../CodexMemoryCard';
 import { CopilotMemoryCard } from '../CopilotMemoryCard';
 import { MemoryTabs } from '../MemoryTabs';
 import { PanelActions } from '../PanelActions';
@@ -124,9 +125,9 @@ export const MemoryView = ({
         <MemoryTabs tool={tool} onChange={setTool} />
       </div>
 
-      {tool === 'copilot' ? (
+      {tool !== 'claude' ? (
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-clip px-2 pt-3">
-          <CopilotMemoryCard />
+          {tool === 'copilot' ? <CopilotMemoryCard /> : <CodexMemoryCard />}
         </div>
       ) : !memory ? (
         <NoWorkspace />
@@ -158,10 +159,11 @@ interface SubtitleArgs {
   estimate: (chars: number) => number;
 }
 
-// The two token figures are a claim about Claude's files, so they don't follow the Copilot tab —
-// there is nothing on this machine for them to count.
+// The two token figures are a claim about Claude's files, so they don't follow the other tabs —
+// there is nothing on either of them for this surface to count.
 const subtitle = ({ tool, memory, estimate }: SubtitleArgs): string => {
   if (tool === 'copilot') return 'kept on GitHub, fetched per session — nothing is stored here';
+  if (tool === 'codex') return 'stored on this machine — this panel doesn\'t read them yet';
   if (!memory) return 'no folder open — memory is keyed on the working directory';
 
   return `${plural(memory.memories.length, 'memory', 'memories')} · ~${formatTokens(

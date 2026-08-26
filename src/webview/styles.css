@@ -88,10 +88,11 @@ body {
   --activity-blocked: var(--warn);
   --activity-idle: var(--vscode-descriptionForeground, #8b929c);
 
-  /* Which CLI a session belongs to. Both are deliberately quiet — the tag identifies a row, it
+  /* Which CLI a session belongs to. All three are deliberately quiet — the mark identifies a row, it
      doesn't rank it — so they sit near the muted foreground rather than at full chart saturation. */
   --agent-claude: color-mix(in srgb, var(--chart-orange) 70%, var(--muted-foreground));
   --agent-copilot: color-mix(in srgb, var(--chart-purple) 70%, var(--muted-foreground));
+  --agent-codex: color-mix(in srgb, var(--chart-blue) 70%, var(--muted-foreground));
 
   /* Spotlight: the characters a query matched, and the scrim behind the box. Mixing the scrim out
      of the editor background darkens a dark theme and lightens a light one on its own. */
@@ -264,6 +265,7 @@ body:is(.vscode-light, .vscode-high-contrast-light):not([data-panel-theme='dark'
   --color-activity-idle: var(--activity-idle);
   --color-agent-claude: var(--agent-claude);
   --color-agent-copilot: var(--agent-copilot);
+  --color-agent-codex: var(--agent-codex);
   --color-match: var(--match);
   --color-scrim: var(--scrim);
   --color-chart-blue: var(--chart-blue);

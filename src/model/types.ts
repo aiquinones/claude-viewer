@@ -118,9 +118,9 @@ export const AGENT_ACTIVITIES = ['running', 'blocked', 'idle'] as const;
 
 export type AgentActivity = (typeof AGENT_ACTIVITIES)[number];
 
-// Which CLI a session belongs to. Both write a directory of live processes and an append-only log of
-// the conversation, which is enough shared shape for one row type and one list.
-export const AGENT_TOOLS = ['claude', 'copilot'] as const;
+// Which CLI a session belongs to. Each writes some record of which sessions are live and an
+// append-only log of the conversation, which is enough shared shape for one row type and one list.
+export const AGENT_TOOLS = ['claude', 'copilot', 'codex'] as const;
 
 export type AgentTool = (typeof AGENT_TOOLS)[number];
 
@@ -128,7 +128,8 @@ export type AgentTool = (typeof AGENT_TOOLS)[number];
 // question about all of them at once.
 export const AGENT_TOOL_LABEL: Record<AgentTool, string> = {
   claude: 'Claude Code',
-  copilot: 'Copilot CLI'
+  copilot: 'Copilot CLI',
+  codex: 'Codex CLI'
 };
 
 // The colours a row can be given by hand, so two agents in one repo can be told apart at a glance.
@@ -150,10 +151,10 @@ export type AgentColors = Record<string, AgentColor>;
 // model travels with the number because the window it's read against depends on it, and only the
 // log line knows which one ran.
 //
-// Both CLIs, read out of two different files. Claude's is on the last assistant line of the
+// All three CLIs, read out of three different files. Claude's is on the last assistant line of the
 // transcript. Copilot's is not in its event log at all — the event carrying it is marked ephemeral
 // and never written there — but the CLI routes that one event to `~/.copilot/session-store.db`
-// instead, which is what `copilot/usage-db.ts` reads.
+// instead, which is what `copilot/usage-db.ts` reads. Codex writes both halves into its rollout.
 export interface AgentContext {
   // The whole prompt the next request carries. Both CLIs record it, in their own arithmetic: for
   // Claude it's input + cache_read + cache_creation on the last non-synthetic assistant line, for
@@ -163,6 +164,10 @@ export interface AgentContext {
   // Empty when the row carried usage but no model, which shouldn't happen and isn't worth failing
   // over.
   model: string;
+  // How big the window is, when the CLI says so itself. Codex alone does — it stamps
+  // `model_context_window` on every turn — which is why `context-window.ts` is a table for the other
+  // two and why a number read here outranks it. Absent means fall back to that table.
+  window?: number;
 }
 
 // A sub-agent the session has running right now. It's a conversation of its own, with its own
@@ -194,14 +199,17 @@ export interface AgentPullRequest {
 // here this describes something live, so the time fields are absolute — the view ages them against
 // its own clock rather than trusting when the snapshot was built.
 //
-// Both CLIs land in this one shape. A field only one of them writes is optional, which is what the
+// Every CLI lands in this one shape. A field only some of them write is optional, which is what the
 // optional fields already were: Claude may not have written a title or opened a PR yet either.
 export interface AgentSession {
-  // Unique per session. Doubles as the row key — a Claude session id and a Copilot one are both
-  // UUIDs and can't collide.
+  // Unique per session. Doubles as the row key — every CLI here mints a UUID, so they can't collide.
   sessionId: string;
   tool: AgentTool;
-  pid: number;
+  // The process running this session, when the CLI says which one it is. Claude names it in the
+  // session file and Copilot in the lock's filename; Codex names it nowhere — its lock is named for
+  // the thread and held as an advisory lock, so only `lsof` could answer and nothing here spawns
+  // one. Absent means the row can't be killed or focused, not that nothing is running.
+  pid?: number;
   // Other live processes holding this same session. Resuming starts a second process and the first
   // stays alive attached to the same conversation, so the surface picks one to draw and keeps the
   // rest here — every field a row shows comes off the shared transcript, so listing them twice
@@ -210,16 +218,20 @@ export interface AgentSession {
   // Where the agent is working. A session inside a worktree reports the worktree, not the repo.
   cwd: string;
   // The log this session is appending to: a `.jsonl` transcript for Claude, `events.jsonl` for
-  // Copilot. Clicking the row opens it.
+  // Copilot, a dated `rollout-*.jsonl` for Codex. Clicking the row opens it.
   transcriptPath: string;
-  // The session's own generated title. Claude rewrites it as the session goes on, so this is the
-  // *first* one it wrote — the later ones chase the newest turn. Copilot keeps the current one in
-  // `workspace.yaml`, so there's nothing to choose. Absent until one has been written.
+  // What the row calls the session. Claude rewrites its generated title as the session goes on, so
+  // this is the *first* one it wrote — the later ones chase the newest turn. Copilot keeps the
+  // current one in `workspace.yaml`, so there's nothing to choose. Codex generates none at all: its
+  // `title` column is the opening prompt verbatim, so this is that prompt's first line. Absent until
+  // one has been written.
   title?: string;
-  // `owner/repo`, and the branch the agent is on. Copilot records both; Claude records neither.
+  // `owner/repo`, and the branch the agent is on. Copilot and Codex record both; Claude records
+  // neither on the line this surface reads.
   repository?: string;
   branch?: string;
-  // The PR this session opened, if it opened one. Claude only — Copilot logs no equivalent.
+  // The PR this session opened, if it opened one. Claude only — neither other CLI logs an
+  // equivalent this surface reads.
   pullRequest?: AgentPullRequest;
   // The last prompt, already truncated by the CLI that wrote it.
   lastPrompt?: string;

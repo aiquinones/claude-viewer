@@ -17,15 +17,17 @@ const CELL_PX: number = 10;
 interface DayArgs {
   claude: number;
   copilot: number;
+  // Defaulted, so the stories that predate Codex read unchanged.
+  codex?: number;
   at: number;
 }
 
-const day = ({ claude, copilot, at }: DayArgs): GridDay => ({
+const day = ({ claude, copilot, codex = 0, at }: DayArgs): GridDay => ({
   day: new Date(at).toISOString().slice(0, 10),
   at,
-  sessions: claude + copilot,
-  byTool: { claude, copilot },
-  level: Math.min(claude + copilot, 4),
+  sessions: claude + copilot + codex,
+  byTool: { claude, copilot, codex },
+  level: Math.min(claude + copilot + codex, 4),
   future: false
 });
 

@@ -2,7 +2,7 @@
 // toggle re-aggregates in the panel rather than costing a host round trip, the same way
 // `sessions/activity.ts` lets a row re-age without a disk read.
 
-import { AgentTool } from '../types';
+import { AGENT_TOOLS, AgentTool } from '../types';
 import { cutoff } from './window';
 import { EMPTY_USD_PARTS, ratesFor, sumUsdParts, usdPartsFor, UsdParts } from './pricing';
 import {
@@ -85,10 +85,11 @@ export const summarizeTurns = ({ turns: inWindow }: SummarizeTurnsArgs): UsageSu
     sessions,
     slices,
     total,
-    byTool: {
-      claude: sum(inWindow.filter((turn) => turn.tool === 'claude')),
-      copilot: sum(inWindow.filter((turn) => turn.tool === 'copilot'))
-    },
+    // Every tool, off `AGENT_TOOLS` rather than written out — a CLI whose usage isn't scanned yet
+    // folds to a zero total, which `toolsIn` then leaves out of the view.
+    byTool: Object.fromEntries(
+      AGENT_TOOLS.map((tool) => [tool, sum(inWindow.filter((turn) => turn.tool === tool))])
+    ) as Record<AgentTool, UsageTotals>,
     unpricedModels: unpricedIn(inWindow),
     costParts: costPartsOf(inWindow),
     models: modelsIn(inWindow)
@@ -198,7 +199,7 @@ const inScope = ({ turn, scope, workspaceRoot }: InScopeArgs): boolean => {
 };
 
 // Which CLIs actually contributed. Cost mode shows one total per tool and no combined figure, so
-// the view needs to know which of the two to draw. Takes the summary rather than the breakdown —
-// a single session is summarized without ever being a window.
+// the view needs to know which to draw. Takes the summary rather than the breakdown — a single
+// session is summarized without ever being a window.
 export const toolsIn = (summary: UsageSummaryData): AgentTool[] =>
-  (['claude', 'copilot'] as const).filter((tool) => summary.byTool[tool].turns > 0);
+  AGENT_TOOLS.filter((tool) => summary.byTool[tool].turns > 0);
