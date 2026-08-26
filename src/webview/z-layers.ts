@@ -28,8 +28,11 @@ const LAYER_ORDER = [
   ['card', 40],
   // The skills list sliding in over the detail pane.
   ['nav', 50],
+  // Pinned to the panel rather than to anything on the page — the perf overlay. Over every surface,
+  // under anything the reader opened on purpose.
+  ['floating', 60],
   // The spotlight and the dialogs, over all of it.
-  ['overlay', 60]
+  ['overlay', 70]
 ] as const;
 
 export type ZLayer = (typeof LAYER_ORDER)[number][0];

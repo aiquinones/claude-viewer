@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { TokenEstimator } from '../model/estimate-tokens';
+import { PerfReport } from '../model/perf/types';
 import { DEFAULT_SETTINGS, SettingsSection, ViewerSettings } from '../model/settings/settings';
 import { ThemeMode } from '../model/settings/theme';
 import {
@@ -42,6 +43,12 @@ export const useSnapshot = () => {
   // One session read whole, answering the last `watchSession`. Undefined until one is asked for —
   // nothing shows this until a session row is clicked.
   const [sessionDetail, setSessionDetail] = useState<SessionDetail | undefined>(undefined);
+  // What the launch cost. Posted twice — once when the page can be drawn, once when the usage scan
+  // behind it lands.
+  const [perf, setPerf] = useState<PerfReport | undefined>(undefined);
+  // When this webview told the host it was listening, which is the end of its own boot. Nothing
+  // renders it, so it's a ref: re-rendering on a number that never changes again would be noise.
+  const readyAt = useRef<number>(Date.now());
 
   useEffect(() => {
     const onMessage = (event: MessageEvent): void => {
@@ -55,6 +62,7 @@ export const useSnapshot = () => {
       if (message?.type === 'usage') setUsage(message.report as UsageReport);
       if (message?.type === 'usageHistory') setUsageHistory(message.history as UsageHistory);
       if (message?.type === 'sessionDetail') setSessionDetail(message.detail as SessionDetail);
+      if (message?.type === 'perf') setPerf(message.report as PerfReport);
       // A fresh object every time, so an effect keyed on it re-runs when the same thing is named
       // twice — which is what the nonce riding along is for.
       if (message?.type === 'navigate') {
@@ -62,6 +70,7 @@ export const useSnapshot = () => {
       }
     };
     window.addEventListener('message', onMessage);
+    readyAt.current = Date.now();
     vscode.postMessage({ type: 'ready' });
     return () => window.removeEventListener('message', onMessage);
   }, []);
@@ -129,6 +138,8 @@ export const useSnapshot = () => {
   return {
     snapshot,
     agents,
+    perf,
+    readyAt: readyAt.current,
     usage,
     usageHistory,
     sessionDetail,

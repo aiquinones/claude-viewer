@@ -2,6 +2,7 @@
 // only ever reads them.
 
 import { TokenEstimator } from './estimate-tokens';
+import { PerfReport } from './perf/types';
 import { SettingsSection, ViewerSettings } from './settings/settings';
 import { ThemeMode } from './settings/theme';
 import {
@@ -489,7 +490,10 @@ export type HostMessage =
   // every pass while a live agent is still writing to it. Read on demand rather than shipped with
   // the history: the fold behind that list exists so the corpus fits in memory, and every turn of
   // every session is the thing it drops.
-  | { type: 'sessionDetail'; detail: SessionDetail };
+  | { type: 'sessionDetail'; detail: SessionDetail }
+  // What the launch cost. Its own message for the reason the rest are, and one more: it's posted a
+  // second time when the usage scan lands, which is seconds after the page is already up.
+  | { type: 'perf'; report: PerfReport };
 
 // Webview → host. `notBuilt` carries only the name of the thing: the host owns the sentence, the
 // same way it owns which paths `openFile` will accept. `openSettings` is the same deal — the

@@ -6,6 +6,7 @@ import {
   skillRoots,
   userClaudeDir
 } from '../config/paths';
+import { perfPhase } from '../model/perf/recorder';
 import { buildSnapshot } from '../model/snapshot';
 import { ConfigSnapshot, SkillRoot } from '../model/types';
 import { workspaceRoot } from './workspace';
@@ -29,7 +30,7 @@ export const currentSnapshot = async (): Promise<ConfigSnapshot> => snapshot ?? 
 export const cachedSnapshot = (): ConfigSnapshot | undefined => snapshot;
 
 export const refreshSnapshot = async (): Promise<ConfigSnapshot> => {
-  const next: ConfigSnapshot = await buildSnapshot(workspaceRoot());
+  const next: ConfigSnapshot = await perfPhase('snapshot', () => buildSnapshot(workspaceRoot()));
   snapshot = next;
   changeEmitter.fire(next);
   return next;
