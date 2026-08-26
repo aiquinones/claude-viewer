@@ -21,19 +21,21 @@ export default meta;
 type Story = StoryObj<typeof SubagentList>;
 
 // Three at once, which is what a session that fans work out looks like. The second has finished no
-// request yet and draws no bar; the third has no purpose, the state of one whose `task` call fell
-// outside the window read.
+// request yet, so it says so where its bar would be; the third has no purpose, the state of one
+// whose `task` call fell outside the window read.
 export const Several: Story = { args: { subagents } };
 
 // The common case — one sub-agent out, labelled, measured.
 export const One: Story = { args: { subagents: subagents.slice(0, 1) } };
 
-// A sub-agent seconds old. It exists and has measured nothing, so the row is its name and its
-// model: an empty track would claim its context was empty.
+// A sub-agent seconds old. It has measured nothing, and says so where the bar would be — an empty
+// track would claim its context was empty, and a hole would leave the entry with no bottom edge to
+// tell it from the next one.
 export const NothingMeasuredYet: Story = { args: { subagents: subagents.slice(1, 2) } };
 
-// A purpose longer than the panel is wide. It truncates rather than wrapping — the model stays
-// pinned to the right edge, which is the column the eye reads down.
+// A purpose longer than the panel is wide. It wraps to a second line and stops there: this is the
+// half of the entry worth reading, and it has its own line to read it on — but a paragraph would
+// push the bar below it out of sight.
 export const LongPurpose: Story = {
   args: {
     subagents: [

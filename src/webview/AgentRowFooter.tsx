@@ -27,7 +27,7 @@ export const AgentRowFooter = ({ agent }: AgentRowFooterProps) => {
   if (subagents.length === 0 && !agent.pullRequest) return null;
 
   return (
-    <div className="flex min-w-0 flex-col gap-1.5 px-3 pb-2 pl-6">
+    <div className="flex min-w-0 flex-col gap-2 px-3 pb-2 pl-6">
       <div className="flex w-full min-w-0 items-center gap-3">
         {subagents.length > 0 && (
           <SubagentToggle
