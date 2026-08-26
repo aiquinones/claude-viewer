@@ -1,19 +1,23 @@
 import { copilotEventsPath } from '../../../config/paths';
 import { AgentSession, Subagent } from '../../types';
+import { SkillTrailCache, readSkillTrail } from '../skill-trail';
 import { CopilotEventSummary, readEvents } from './events';
 import { LiveCopilotSession, liveCopilotSessions } from './live';
 import { CopilotPrCache, pruneCopilotPrCache, readCopilotPullRequest } from './pull-request';
+import { copilotSkillsIn } from './skills';
 import { CopilotContexts, readCopilotContexts } from './usage-db';
 
 // Locate → parse → validate → typed entries, the same shape every other loader uses. Four sources
 // joined now, and a process that no longer exists is simply not in the list.
 //
 // The contexts are read in one query for every session rather than per row: they all live in one
-// database for the whole machine, unlike the per-session event logs beside them. The PR scan is the
-// opposite — one file each, and the cache is what keeps it to one full read per session.
-export const loadCopilotSessions = async (
-  pullRequests: CopilotPrCache
-): Promise<AgentSession[]> => {
+// database for the whole machine, unlike the per-session event logs beside them. The PR scan and
+// the skill trail are the opposite — one file each, walked whole, and their caches are what keep
+// that to one full read per session.
+export const loadCopilotSessions = async ({
+  pullRequests,
+  skillTrails
+}: LoadCopilotSessionsArgs): Promise<AgentSession[]> => {
   const sessions: LiveCopilotSession[] = await liveCopilotSessions();
 
   const contexts: Map<string, CopilotContexts> = await readCopilotContexts(
@@ -21,7 +25,7 @@ export const loadCopilotSessions = async (
   );
 
   const entries: AgentSession[] = await Promise.all(
-    sessions.map((session) => toEntry({ session, contexts, pullRequests }))
+    sessions.map((session) => toEntry({ session, contexts, pullRequests, skillTrails }))
   );
 
   pruneCopilotPrCache(
@@ -32,15 +36,31 @@ export const loadCopilotSessions = async (
   return entries;
 };
 
-interface ToEntryArgs {
-  session: LiveCopilotSession;
-  contexts: Map<string, CopilotContexts>;
+interface LoadCopilotSessionsArgs {
   pullRequests: CopilotPrCache;
+  // Shared with the Claude loader and pruned in `sessions/load.ts`, since neither loader can see
+  // the other's paths.
+  skillTrails: SkillTrailCache;
 }
 
-const toEntry = async ({ session, contexts, pullRequests }: ToEntryArgs): Promise<AgentSession> => {
+interface ToEntryArgs extends LoadCopilotSessionsArgs {
+  session: LiveCopilotSession;
+  contexts: Map<string, CopilotContexts>;
+}
+
+const toEntry = async ({
+  session,
+  contexts,
+  pullRequests,
+  skillTrails
+}: ToEntryArgs): Promise<AgentSession> => {
   const path: string = copilotEventsPath(session.dir);
   const summary: CopilotEventSummary = await readEvents(path);
+  const skillTrail: string[] = await readSkillTrail({
+    path,
+    cache: skillTrails,
+    parse: copilotSkillsIn
+  });
   const startedAt: number = timestamp(session.workspace.created_at);
   const read: CopilotContexts | undefined = contexts.get(session.sessionId);
 
@@ -59,6 +79,8 @@ const toEntry = async ({ session, contexts, pullRequests }: ToEntryArgs): Promis
     tail: summary.tail,
     pendingTool: summary.pendingTool,
     context: read?.session,
+    // Absent rather than empty, the way every other field a session may not have is.
+    skillTrail: skillTrail.length > 0 ? skillTrail : undefined,
     // Absent rather than empty, the way every other field only one CLI writes is.
     subagents: withContexts({ subagents: summary.subagents, read }),
     // A session that has written no events yet is as old as its workspace file says.

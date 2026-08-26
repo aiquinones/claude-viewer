@@ -9,6 +9,7 @@ import {
   UsageMetric,
   UsageTurn
 } from '../../model/usage/types';
+import { stageLabel } from '../stage-name';
 import { turnValue } from './charts/series';
 
 // One skill's stages, folded together. A skill that opens a stage twice is one entry rather than
@@ -73,9 +74,8 @@ export const toStages = ({
 
     const stage: SessionStage = {
       skill: bounds[i].skill,
-      // Trimmed for the same reason a blank name isn't a stage: what's stored is what someone
-      // typed, and the padding isn't part of the label.
-      label: names[bounds[i].skill].trim(),
+      // Non-empty by construction — `boundaries` already dropped the skills with no name.
+      label: stageLabel({ skill: bounds[i].skill, names }) ?? bounds[i].skill,
       value: inside.reduce((sum, turn) => sum + turnValue({ turn, metric }), 0),
       growth: growthOver({ contexts: sortedContexts, start, end }),
       stages: 1,
@@ -104,7 +104,7 @@ interface BoundariesArgs {
 // already has, and a stage between those two would be five seconds wide.
 const boundaries = ({ invocations, names }: BoundariesArgs): Boundary[] => {
   const sorted: SkillInvocation[] = [...invocations]
-    .filter((load) => isNamed({ skill: load.skill, names }))
+    .filter((load) => stageLabel({ skill: load.skill, names }) !== undefined)
     .sort((left, right) => left.at - right.at);
 
   const bounds: Boundary[] = [];
@@ -114,15 +114,6 @@ const boundaries = ({ invocations, names }: BoundariesArgs): Boundary[] => {
   }
   return bounds;
 };
-
-interface IsNamedArgs {
-  skill: string;
-  names: Record<string, string>;
-}
-
-// Whether a skill is a stage. A blank name is how the dialog says "not a stage", so it counts as
-// absent rather than as a stage with nothing on its spoke.
-const isNamed = ({ skill, names }: IsNamedArgs): boolean => (names[skill] ?? '').trim().length > 0;
 
 interface GrowthArgs {
   // Oldest first.
