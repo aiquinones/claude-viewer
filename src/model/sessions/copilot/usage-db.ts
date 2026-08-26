@@ -11,6 +11,7 @@
 import { copilotSessionStorePath } from '../../../config/paths';
 import { AgentContext } from '../../types';
 import { ContextPoint } from '../../usage/types';
+import { SqliteDatabase, closeDatabase, openDatabase } from '../sqlite';
 
 // The last usage row for each conversation in each of the sessions asked about. `input_tokens` is
 // the whole prompt — `token_details_json` on the same row breaks it into input + cache_read +
@@ -59,7 +60,7 @@ const seriesSql: string = `
 // Empty for a session with no usable row, and for a machine with no database or no `node:sqlite`.
 // The chart then has nothing to draw, which is the same answer a row with no bar gives.
 export const readCopilotContextSeries = async (sessionId: string): Promise<ContextPoint[]> => {
-  const database: SqliteDatabase | undefined = await open();
+  const database: SqliteDatabase | undefined = await openDatabase(copilotSessionStorePath());
   if (!database) return [];
 
   try {
@@ -72,7 +73,7 @@ export const readCopilotContextSeries = async (sessionId: string): Promise<Conte
     // A drifted schema reads as no series rather than as an error, the same as above.
     return [];
   } finally {
-    close(database);
+    closeDatabase(database);
   }
 };
 
@@ -85,7 +86,7 @@ export const readCopilotContexts = async (
   const contexts: Map<string, CopilotContexts> = new Map();
   if (sessionIds.length === 0) return contexts;
 
-  const database: SqliteDatabase | undefined = await open();
+  const database: SqliteDatabase | undefined = await openDatabase(copilotSessionStorePath());
   if (!database) return contexts;
 
   try {
@@ -104,49 +105,11 @@ export const readCopilotContexts = async (
     // A drifted schema — a renamed table or column — reads as no data rather than as an error. The
     // same degrade-don't-crash rule the config loaders follow.
   } finally {
-    close(database);
+    closeDatabase(database);
   }
 
   return contexts;
 };
-
-// Read-only, and it must stay that way: the file belongs to the CLI, which holds it open with a WAL
-// while a session is running. `readOnly` also means a missing file throws here rather than being
-// created, which is the outcome wanted.
-const open = async (): Promise<SqliteDatabase | undefined> => {
-  const sqlite: SqliteModule | undefined = await loadSqlite();
-  if (!sqlite) return undefined;
-
-  try {
-    return new sqlite.DatabaseSync(copilotSessionStorePath(), { readOnly: true });
-  } catch {
-    return undefined;
-  }
-};
-
-const close = (database: SqliteDatabase): void => {
-  try {
-    database.close();
-  } catch {
-    // Nothing to do about a database that won't close, and nothing worth saying about it.
-  }
-};
-
-// `node:sqlite` is a built-in, but an experimental one — it landed in Node 22.5, and a host that
-// predates it, or one built without it, has no module to give. Imported here rather than at the top
-// of the file so that host is a row without a bar instead of an extension that fails to activate.
-// Its types are declared in `node-sqlite.d.ts`, since `@types/node` is on v20.
-const loadSqlite = async (): Promise<SqliteModule | undefined> => {
-  try {
-    return await import('node:sqlite');
-  } catch {
-    return undefined;
-  }
-};
-
-type SqliteModule = typeof import('node:sqlite');
-
-type SqliteDatabase = InstanceType<SqliteModule['DatabaseSync']>;
 
 // What one session's rows in that table say. The two are read the same way and mean different
 // conversations, which is why they aren't one number.
