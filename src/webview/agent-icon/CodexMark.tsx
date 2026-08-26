@@ -1,18 +1,45 @@
+import { useId } from 'react';
+
 interface CodexMarkProps {
   className?: string;
 }
 
-// OpenAI's blossom — the same mark the Codex VS Code extension draws, copied from its
-// `resources/blossom-black.svg`. One change, the same one `ClaudeMark` needed: that file hardcodes
-// `fill="black"`, and this takes `currentColor` so `--agent-codex` is what decides.
+// Codex's own mark — the rounded square with a `>_` prompt knocked out of it, which is what the
+// Codex app and the CLI are badged with. Deliberately not OpenAI's blossom: the ChatGPT extension
+// ships that as its view-container icon, but it says "OpenAI" where the other two marks here say
+// Claude and Copilot.
+//
+// The one mark in this folder not copied off disk, because there is no vector of it to copy. The
+// extension carries it only as `webview/assets/codex-app-ga-logo-*.png` — 104px and gradient-filled
+// — and every SVG beside it is the blossom. So the geometry is drawn to match that raster, which a
+// flat single-colour mark has to be anyway.
+//
+// The square is inset to ~77% of the box rather than filling it, the same correction `CopilotMark`
+// makes with its padded viewBox and for the same reason: a solid shape reads heavier than Claude's
+// thin spokes at an equal box.
+const BLOB: string =
+  'M8.6 2.8H15.4C18.3 2.8 21.2 5.7 21.2 8.6V15.4C21.2 18.3 18.3 21.2 15.4 21.2H8.6C5.7 21.2 2.8 18.3 2.8 15.4V8.6C2.8 5.7 5.7 2.8 8.6 2.8Z';
+
+// Knocked out through a mask rather than an even-odd path: the prompt is two round-capped strokes,
+// and outlining those by hand is arithmetic with nothing to check it against. The id is per-instance
+// because a list draws many of these — `useId`'s colons come out, since they aren't worth relying on
+// inside a `url(#…)`.
 //
 // `aria-hidden` because the icon never names itself. `AgentToolIcon` wraps it in the element that
 // carries the label, so the name is said once.
-export const CodexMark = ({ className }: CodexMarkProps) => (
-  <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
-    <path
-      fill="currentColor"
-      d="M13.795 23.856q-1.188 0-2.256-.448a6.1 6.1 0 0 1-1.9-1.247 5.8 5.8 0 0 1-1.875.306 5.8 5.8 0 0 1-2.944-.777 6.1 6.1 0 0 1-2.184-2.12q-.807-1.34-.808-2.99 0-.682.19-1.482a6.3 6.3 0 0 1-1.472-2.002 5.76 5.76 0 0 1 .024-4.85q.546-1.177 1.52-2.024a5.5 5.5 0 0 1 2.303-1.2A5.55 5.55 0 0 1 5.485 2.62 6.06 6.06 0 0 1 7.575.925 5.85 5.85 0 0 1 10.21.313q1.187 0 2.255.447a6.1 6.1 0 0 1 1.9 1.248 5.8 5.8 0 0 1 1.875-.306q1.59 0 2.944.776a5.9 5.9 0 0 1 2.16 2.12q.832 1.34.832 2.99 0 .682-.19 1.483a6.2 6.2 0 0 1 1.472 2.024q.522 1.13.522 2.378 0 1.272-.546 2.449a6.1 6.1 0 0 1-1.543 2.048 5.45 5.45 0 0 1-2.28 1.177 5.4 5.4 0 0 1-1.115 2.402 5.8 5.8 0 0 1-2.066 1.695 5.85 5.85 0 0 1-2.635.612M7.93 20.913q1.188 0 2.066-.495l4.463-2.542a.52.52 0 0 0 .238-.448v-2.024L8.95 18.676a.97.97 0 0 1-1.044 0L3.419 16.11a.7.7 0 0 1-.024.165v.282q0 1.201.57 2.213.594.99 1.639 1.554 1.044.59 2.326.589m.238-3.838q.143.07.26.07a.46.46 0 0 0 .238-.07l1.781-1.012-5.722-3.296q-.522-.306-.522-.918v-5.11a4.27 4.27 0 0 0-1.9 1.602 4.13 4.13 0 0 0-.712 2.354q0 1.155.594 2.213.593 1.06 1.543 1.601zm5.627 5.227q1.258 0 2.279-.565a4.25 4.25 0 0 0 1.614-1.554q.594-.99.594-2.213v-5.085q0-.283-.237-.424l-1.805-1.036v6.568q0 .613-.522.919l-4.487 2.566q1.163.825 2.564.824m.902-8.617v-3.202l-2.683-1.507-2.707 1.507v3.202l2.707 1.507zm-6.933-7.51q0-.612.522-.918l4.488-2.567a4.34 4.34 0 0 0-2.564-.824q-1.26 0-2.28.565a4.25 4.25 0 0 0-1.614 1.554q-.57.99-.57 2.213v5.062q0 .283.237.447l1.781 1.036zm12.061 11.253a4.13 4.13 0 0 0 1.876-1.6 4.2 4.2 0 0 0 .712-2.355q0-1.154-.593-2.213-.594-1.06-1.544-1.6l-4.44-2.543q-.142-.095-.26-.071a.46.46 0 0 0-.238.07l-1.78.99 5.745 3.319q.26.141.38.377a.9.9 0 0 1 .142.518zm-4.772-11.96q.522-.33 1.045 0l4.51 2.614v-.424q0-1.13-.57-2.142a4.1 4.1 0 0 0-1.59-1.648q-1.02-.613-2.374-.613-1.187 0-2.066.495L9.545 6.292a.52.52 0 0 0-.238.448v2.025z"
-    />
-  </svg>
-);
+export const CodexMark = ({ className }: CodexMarkProps) => {
+  const maskId: string = `codex-prompt-${useId().replace(/:/g, '')}`;
+
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <mask id={maskId}>
+        <rect width="24" height="24" fill="white" />
+        <g fill="none" stroke="black" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M8.6 9.1 11.5 12 8.6 14.9" />
+          <path d="M13.2 14.9h2.6" />
+        </g>
+      </mask>
+      <path fill="currentColor" mask={`url(#${maskId})`} d={BLOB} />
+    </svg>
+  );
+};
