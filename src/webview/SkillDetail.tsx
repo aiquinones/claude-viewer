@@ -35,6 +35,8 @@ export const SkillDetail = ({
           <SquareArrowOutUpRight className="size-3.5" />
           <span className="sr-only">Open SKILL.md</span>
         </Button>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
         <ScopeBadge scope={skill.scope} pluginName={skill.pluginName} />
         {skill.bundledFiles > 0 && (
           <Badge variant="muted">
