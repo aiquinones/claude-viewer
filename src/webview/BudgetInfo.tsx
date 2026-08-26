@@ -26,7 +26,7 @@ const SOURCE_LABELS: Record<BudgetSource, string> = {
 };
 
 // The (i) beside the Cost heading. Hover or focus opens a card naming both limits and their source,
-// with the way to change them. Same card shape as WinnerCrown, so there's still no popover library.
+// with the way to change them. It owns its own hover card, so there's still no popover library.
 export const BudgetInfo = ({ skill }: BudgetInfoProps) => {
   const { budgets } = useSettings();
   const openSettings = useOpenSettings();

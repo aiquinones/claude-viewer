@@ -1,4 +1,4 @@
-import { FileText, Paperclip } from 'lucide-react';
+import { Paperclip, SquareArrowOutUpRight } from 'lucide-react';
 import { SkillEntry } from '../model/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -6,14 +6,11 @@ import { IssueList } from './IssueList';
 import { ScopeBadge } from './ScopeBadge';
 import { ShadowNotice } from './ShadowNotice';
 import { SkillCost } from './SkillCost';
-import { WinnerCrown } from './WinnerCrown';
 
 interface SkillDetailProps {
   skill: SkillEntry;
   // The same-named skill that wins, when this one is shadowed.
   winner: SkillEntry | undefined;
-  // The same-named skills this one wins over.
-  shadowed: SkillEntry[];
   onOpenFile: (path: string) => void;
   onSelectSkill: (path: string) => void;
 }
@@ -21,7 +18,6 @@ interface SkillDetailProps {
 export const SkillDetail = ({
   skill,
   winner,
-  shadowed,
   onOpenFile,
   onSelectSkill
 }: SkillDetailProps) => (
@@ -29,7 +25,16 @@ export const SkillDetail = ({
     <header className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
         <h1 className="text-base font-semibold">{skill.name}</h1>
-        <WinnerCrown shadowed={shadowed} onSelectSkill={onSelectSkill} />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-6"
+          title="Open SKILL.md"
+          onClick={() => onOpenFile(skill.path)}
+        >
+          <SquareArrowOutUpRight className="size-3.5" />
+          <span className="sr-only">Open SKILL.md</span>
+        </Button>
         <ScopeBadge scope={skill.scope} pluginName={skill.pluginName} />
         {skill.bundledFiles > 0 && (
           <Badge variant="muted">
@@ -38,15 +43,6 @@ export const SkillDetail = ({
           </Badge>
         )}
       </div>
-      <Button
-        variant="link"
-        size="sm"
-        className="h-auto justify-start p-0 text-xs"
-        onClick={() => onOpenFile(skill.path)}
-      >
-        <FileText className="size-3.5" />
-        <span className="mono break-all">{skill.path}</span>
-      </Button>
     </header>
 
     <ShadowNotice winner={winner} onSelectSkill={onSelectSkill} />

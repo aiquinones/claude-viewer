@@ -13,7 +13,7 @@ export default meta;
 
 type Story = StoryObj<typeof ShadowNotice>;
 
-// Standing on the losing skill. The winning side is WinnerCrown, not this.
+// Standing on the losing skill. The resolution stays in this notice rather than the header.
 export const Shadowed: Story = {
   args: { winner: projectDeploy }
 };
