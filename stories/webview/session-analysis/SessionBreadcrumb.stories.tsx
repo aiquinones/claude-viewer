@@ -8,6 +8,7 @@ const meta: Meta<typeof SessionBreadcrumb> = {
   args: {
     session: claudeSession,
     onBack: () => undefined,
+    onOpenAgents: () => undefined,
     onCopyId: () => undefined,
     onSearch: () => undefined,
     onRefresh: () => undefined

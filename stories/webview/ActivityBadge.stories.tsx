@@ -21,6 +21,13 @@ export const Idle: Story = { args: { activity: 'idle', tail: 'settled' } };
 // permission request rather than inferred from a stopped clock.
 export const BlockedStated: Story = { args: { activity: 'blocked', tail: 'blocked' } };
 
+// The badge on a session page, where it's a way to the Active Agents list rather than a label. The
+// same dot and word: what changes is that it takes a hover and a press, and the tooltip says where
+// it goes.
+export const Selectable: Story = {
+  args: { activity: 'running', tail: 'working', onSelect: () => undefined }
+};
+
 // All three together, which is the only way to see that they read as one scale.
 export const EveryState: Story = {
   render: () => (

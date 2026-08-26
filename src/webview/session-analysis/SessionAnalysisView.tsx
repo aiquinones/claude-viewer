@@ -43,6 +43,9 @@ interface SessionAnalysisViewProps {
   agent?: AgentSession;
   skills: SkillEntry[];
   onOpenSkill: (path: string) => void;
+  // The Active Agents surface, from the badge beside the session name. Leaves this surface, so the
+  // panel owns it — the same door `onOpenSkill` goes through.
+  onOpenAgents: () => void;
   onCopyId: (sessionId: string) => void;
   onSearch: () => void;
   onRefresh: () => void;
@@ -61,6 +64,7 @@ export const SessionAnalysisView = ({
   agent,
   skills,
   onOpenSkill,
+  onOpenAgents,
   onCopyId,
   onSearch,
   onRefresh,
@@ -76,6 +80,7 @@ export const SessionAnalysisView = ({
         agent={agent}
         onBack={onBack}
         origin={origin}
+        onOpenAgents={onOpenAgents}
         onCopyId={onCopyId}
         onSearch={onSearch}
         onRefresh={onRefresh}

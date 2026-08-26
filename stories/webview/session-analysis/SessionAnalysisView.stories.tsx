@@ -50,6 +50,7 @@ const meta: Meta<typeof SessionAnalysisView> = {
     onWatch: () => undefined,
     skills: usageSkills,
     onOpenSkill: () => undefined,
+    onOpenAgents: () => undefined,
     onCopyId: () => undefined,
     onSearch: () => undefined,
     onRefresh: () => undefined,

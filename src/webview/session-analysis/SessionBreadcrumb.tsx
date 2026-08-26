@@ -27,6 +27,9 @@ interface SessionBreadcrumbProps {
   // Where the reader came from, when that isn't the tabs. Absent for a session opened from the list,
   // where "up" and "back" are the same place and the arrow does what it always did.
   origin?: SessionOrigin;
+  // Where the activity badge goes. Not the same trip as the arrow: that one retraces how you got
+  // here, this one is the list of every agent running, whether or not you came from it.
+  onOpenAgents: () => void;
   onCopyId: (sessionId: string) => void;
   onSearch: () => void;
   onRefresh: () => void;
@@ -44,6 +47,7 @@ export const SessionBreadcrumb = ({
   agent,
   onBack,
   origin,
+  onOpenAgents,
   onCopyId,
   onSearch,
   onRefresh
@@ -74,7 +78,7 @@ export const SessionBreadcrumb = ({
         <AgentToolIcon tool={session.tool} size="md" />
         {/* Why the numbers below move on their own. The same badge the Active Agents rows draw, on
             the same clock — a page that reads itself should say so where its name is. */}
-        {agent && <SessionActivity agent={agent} />}
+        {agent && <SessionActivity agent={agent} onOpenAgents={onOpenAgents} />}
       </span>
       <span className="flex min-w-0 items-center gap-2">
         <SessionId sessionId={session.sessionId} onCopy={onCopyId} />
