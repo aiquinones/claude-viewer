@@ -1,0 +1,5 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";import{n as t}from"./iframe-BqMUbHN9.js";import{n,t as r}from"./UnsplitStages-9KA1zee5.js";var i,a,o,s,c;function l(){return(l=e((()=>{n(),i=t(),a={title:`Usage/UnsplitStages`,component:r,args:{onAssignNames:()=>void 0},decorators:[e=>(0,i.jsx)(`div`,{className:`w-[42rem] max-w-full p-4`,children:(0,i.jsx)(e,{})})]},o={},s={decorators:[e=>(0,i.jsx)(`div`,{className:`w-[19rem]`,children:(0,i.jsx)(e,{})})]},o.parameters={...o.parameters,docs:{...o.parameters?.docs,source:{originalSource:`{}`,...o.parameters?.docs?.source}}},s.parameters={...s.parameters,docs:{...s.parameters?.docs,source:{originalSource:`{
+  decorators: [Story => <div className="w-[19rem]">
+        <Story />
+      </div>]
+}`,...s.parameters?.docs?.source}}},c=[`Unsplit`,`Narrow`]})))()}l();export{s as Narrow,o as Unsplit,c as __namedExportsOrder,a as default};
