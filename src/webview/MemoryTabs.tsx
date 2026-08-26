@@ -10,12 +10,13 @@ interface MemoryTabsProps {
 // the same tool the same way.
 const ACTIVE: Record<AgentTool, string> = {
   claude: 'border-agent-claude text-agent-claude',
-  copilot: 'border-agent-copilot text-agent-copilot'
+  copilot: 'border-agent-copilot text-agent-copilot',
+  codex: 'border-agent-codex text-agent-codex'
 };
 
 // Which CLI's memory is on screen. Tabs rather than one merged list — unlike the agents surface,
-// where both tools put rows on disk, Copilot keeps its memories on GitHub and has nothing to list.
-// The two halves answer different questions, so they don't belong in one column.
+// where every tool puts rows on disk, only Claude's memories are local files this panel reads.
+// Halves that answer different questions don't belong in one column.
 //
 // Text, not icons: the tool's name is the entire content of the choice.
 export const MemoryTabs = ({ tool, onChange }: MemoryTabsProps) => (

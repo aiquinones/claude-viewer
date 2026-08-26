@@ -10,15 +10,17 @@ const AT: number = new Date(2026, 11, 3, 12).getTime();
 interface DayArgs {
   claude: number;
   copilot: number;
+  // Defaulted, so the stories that predate Codex read unchanged.
+  codex?: number;
   at?: number;
 }
 
-const day = ({ claude, copilot, at = AT }: DayArgs): GridDay => ({
+const day = ({ claude, copilot, codex = 0, at = AT }: DayArgs): GridDay => ({
   day: '2026-12-03',
   at,
-  sessions: claude + copilot,
-  byTool: { claude, copilot },
-  level: Math.min(claude + copilot, 4),
+  sessions: claude + copilot + codex,
+  byTool: { claude, copilot, codex },
+  level: Math.min(claude + copilot + codex, 4),
   future: false
 });
 

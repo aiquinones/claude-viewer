@@ -34,6 +34,10 @@ interface AgentMenuProps {
 // not a column of buttons: one of the four goes somewhere, two are things you do once, and the last
 // ends a session.
 //
+// Kill is drawn only for a row whose CLI names its process. Codex names one nowhere, so there is
+// nothing to signal — and an item that's present and does nothing is worse than an absent one on a
+// menu whose last entry ends a session.
+//
 // Not in here: the row colour. `ColorSwatches` and the store behind it are intact and it has no way
 // in — the corner dot that used to open it came off with the log button. Putting the swatches back
 // is one line in the list below.
@@ -65,7 +69,7 @@ export const AgentMenu = ({
     <div
       ref={box}
       role="menu"
-      aria-label={`Commands for ${agent.tool} session ${agent.pid}`}
+      aria-label={`Commands for ${agent.tool} session ${agent.sessionId.slice(0, 8)}`}
       style={{ zIndex: Z.card, left: point.x, top: point.y } as CSSProperties}
       // The row underneath opens the agent on click, and the dismiss listener closes on any press.
       // Both are stopped here, or picking an item would do the item and one other thing.
@@ -91,13 +95,15 @@ export const AgentMenu = ({
           />
           {/* Doesn't run anything — it asks. `run` is for the two that are done when you press
               them. */}
-          <MenuItem
-            icon={OctagonX}
-            label={MENU_ITEMS.kill.label}
-            note={String(agent.pid)}
-            destructive
-            onClick={() => setConfirming(true)}
-          />
+          {agent.pid !== undefined && (
+            <MenuItem
+              icon={OctagonX}
+              label={MENU_ITEMS.kill.label}
+              note={String(agent.pid)}
+              destructive
+              onClick={() => setConfirming(true)}
+            />
+          )}
         </>
       )}
     </div>

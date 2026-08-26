@@ -4,6 +4,8 @@ import { AgentRow } from '@src/webview/AgentRow';
 import { SettingsProvider } from '@src/webview/settings/SettingsContext';
 import {
   askingAgent,
+  codexIdleAgent,
+  codexWorkingAgent,
   copilotBlockedAgent,
   copilotMcpAgent,
   copilotSubagentAgent,
@@ -111,15 +113,25 @@ export const CopilotMcpTool: Story = { args: { agent: copilotMcpAgent } };
 // to dip to the sub-agent's size and back while one was out.
 export const CopilotSubagents: Story = { args: { agent: copilotSubagentAgent } };
 
-// The context bar across its three levels, stacked so the colours can be compared. The Copilot row
-// at the bottom is in it deliberately: its number comes from a different file and different
-// arithmetic, and the row should give no sign of that.
+// A Codex row mid-turn. Two things are only true here: its window is off its own log rather than
+// the built-in table, and it carries no pid — so the right-click menu comes up without a Kill on it.
+export const CodexWorking: Story = { args: { agent: codexWorkingAgent } };
+
+// Idle, and in a worktree — which is what makes the folder print, since a row only says where it is
+// when that isn't the workspace root.
+export const CodexIdle: Story = { args: { agent: codexIdleAgent } };
+
+// The context bar across its three levels, stacked so the colours can be compared. The other two
+// CLIs' rows are in it deliberately: their numbers come from different files and, for Copilot and
+// Codex, different arithmetic — and the row should give no sign of that.
 export const ContextLevels: Story = {
   render: (args) => (
     <div className="flex flex-col gap-1">
-      {[workingAgent, waitingAgent, askingAgent, copilotWorkingAgent].map((agent) => (
-        <AgentRow {...args} key={agent.sessionId} agent={agent} />
-      ))}
+      {[workingAgent, waitingAgent, askingAgent, copilotWorkingAgent, codexWorkingAgent].map(
+        (agent) => (
+          <AgentRow {...args} key={agent.sessionId} agent={agent} />
+        )
+      )}
     </div>
   )
 };

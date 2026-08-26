@@ -30,9 +30,13 @@ export const copySessionId = async (sessionId: string): Promise<void> => {
 // SIGTERM, not SIGKILL: the CLI cleans up its session file and its lock on the way out, and a
 // killed-but-not-cleaned process leaves a row that only disappears once something notices the pid
 // is gone. The webview has already asked whether you meant it.
+//
+// A row with no pid can't be killed and the menu doesn't offer it — Codex records its process
+// nowhere. Guarded here too rather than trusted: `pid` is optional on the type, so the webview not
+// drawing the item is a second line of defence and not the only one.
 export const killAgent = async (sessionId: string): Promise<void> => {
   const agent: AgentSession | undefined = _find(sessionId);
-  if (!agent) return;
+  if (!agent?.pid) return;
 
   try {
     process.kill(agent.pid, 'SIGTERM');

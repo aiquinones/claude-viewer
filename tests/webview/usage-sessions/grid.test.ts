@@ -67,15 +67,15 @@ describe('buildGrid, over both CLIs at once', () => {
     const day: GridDay = dayOf(grid, 2);
 
     expect(day.sessions).toBe(3);
-    expect(day.byTool).toEqual({ claude: 2, copilot: 1 });
+    expect(day.byTool).toEqual({ claude: 2, copilot: 1, codex: 0 });
   });
 
   it('counts a session on every day it was active', () => {
     const grid: UsageGrid = gridOf([session({ id: 'a', tool: 'copilot', daysAgo: [0, 1, 2] })]);
 
-    expect(dayOf(grid, 0).byTool).toEqual({ claude: 0, copilot: 1 });
-    expect(dayOf(grid, 1).byTool).toEqual({ claude: 0, copilot: 1 });
-    expect(grid.byTool).toEqual({ claude: 0, copilot: 3 });
+    expect(dayOf(grid, 0).byTool).toEqual({ claude: 0, copilot: 1, codex: 0 });
+    expect(dayOf(grid, 1).byTool).toEqual({ claude: 0, copilot: 1, codex: 0 });
+    expect(grid.byTool).toEqual({ claude: 0, copilot: 3, codex: 0 });
   });
 
   it('shades a square from the total rather than from either tool', () => {
@@ -112,7 +112,7 @@ describe('buildGrid, over both CLIs at once', () => {
     const grid: UsageGrid = gridOf([]);
 
     expect(grid.sessions).toBe(0);
-    expect(grid.byTool).toEqual({ claude: 0, copilot: 0 });
+    expect(grid.byTool).toEqual({ claude: 0, copilot: 0, codex: 0 });
     expect(grid.activeDays).toBe(0);
     expect(grid.oldestClaudeDays).toBeUndefined();
   });
