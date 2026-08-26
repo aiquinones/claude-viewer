@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import { readTextFile } from '../config/read';
 import { ConfigError, Result } from '../config/result';
+import { perfLog } from '../model/perf/recorder';
+import { buildReport } from '../model/perf/report';
+import { PerfReport } from '../model/perf/types';
 import { ViewerSettings } from '../model/settings/settings';
 import { loadSkillBody } from '../model/skill-body';
 import {
@@ -97,6 +100,9 @@ let navigationNonce: number = 0;
 // Which surface the webview is showing, `undefined` for the landing page. Only the agents poll
 // reads it, but the webview reports every surface — the next one that goes stale gets it free.
 let visibleSurface: string | undefined;
+// When this panel was created. The webview measures its own half of the launch against it — the
+// wall clock is the only thing the two processes share.
+let openedAt: number = 0;
 
 interface OpenPanelArgs {
   context: vscode.ExtensionContext;
@@ -129,6 +135,7 @@ export const openPanel = ({ context, target }: OpenPanelArgs): void => {
 
   pendingTarget = target;
   webviewReady = false;
+  openedAt = Date.now();
 
   panel = vscode.window.createWebviewPanel(
     PANEL_VIEW_TYPE,
@@ -174,7 +181,11 @@ export const openPanel = ({ context, target }: OpenPanelArgs): void => {
   // Picking a colour shouldn't cost a disk read, so it rides its own message like the rest.
   colorsSubscription = onDidChangeAgentColors((colors) => void _postAgentColors(colors));
   // And this one is the reason the rule exists: a usage pass reads every transcript on the machine.
-  usageSubscription = onDidChangeUsage((report) => void _postUsage(report));
+  // The perf report rides along: this is the last stage of a launch, and it lands after the page.
+  usageSubscription = onDidChangeUsage((report) => {
+    void _postUsage(report);
+    void _postPerf();
+  });
   // The Sessions tab's own channel — every session on disk rather than the last seven days of them.
   historySubscription = onDidChangeUsageHistory((history) => void _postUsageHistory(history));
   // One session, re-read while a live agent is still writing to it. Its own channel like the rest,
@@ -337,6 +348,10 @@ const _onReady = async (): Promise<void> => {
   // starts a first scan — the landing card sat on "Reading session logs…" while nothing read.
   void currentUsage();
 
+  // After the two reads above, so the report names what they cost. The usage scan is still out and
+  // the report says so; it's posted again when that lands.
+  await _postPerf();
+
   const waiting: PanelTarget | undefined = pendingTarget;
   pendingTarget = undefined;
   if (waiting) await _navigate(waiting);
@@ -357,6 +372,14 @@ const _navigate = async (target: PanelTarget): Promise<void> => {
 const _post = async (snapshot: ConfigSnapshot): Promise<void> => {
   if (!webviewReady) return;
   await panel?.webview.postMessage({ type: 'snapshot', snapshot });
+};
+
+// What the launch cost, composed from the recorder's log. Posted twice — once when the page can be
+// drawn, once when the usage scan behind it finishes.
+const _postPerf = async (): Promise<void> => {
+  if (!webviewReady) return;
+  const report: PerfReport = buildReport({ log: perfLog(), openedAt });
+  await panel?.webview.postMessage({ type: 'perf', report });
 };
 
 const _postSettings = async (settings: ViewerSettings): Promise<void> => {

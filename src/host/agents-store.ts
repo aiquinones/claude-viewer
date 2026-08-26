@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { copilotSessionStateDir, sessionsDir } from '../config/paths';
+import { perfPhase } from '../model/perf/recorder';
 import { CopilotPrCache, newCopilotPrCache } from '../model/sessions/copilot/pull-request';
 import { loadAgentSessions } from '../model/sessions/load';
 import { SkillTrailCache, newSkillTrailCache } from '../model/sessions/skill-trail';
@@ -59,7 +60,9 @@ export const currentAgents = async (): Promise<AgentSession[]> => agents ?? refr
 export const cachedAgents = (): AgentSession[] => agents ?? [];
 
 export const refreshAgents = async (): Promise<AgentSession[]> => {
-  const next: AgentSession[] = await loadAgentSessions({ copilotPullRequests, skillTrails });
+  const next: AgentSession[] = await perfPhase('agents', () =>
+    loadAgentSessions({ copilotPullRequests, skillTrails })
+  );
   const changed: boolean = signature(next) !== signature(agents);
   agents = next;
   // Most poll passes find exactly what the last one did, and firing anyway would re-render the

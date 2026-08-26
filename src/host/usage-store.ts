@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { perfPhase } from '../model/perf/recorder';
 import { UsageCache } from '../model/usage/incremental';
 import { loadUsageTurns } from '../model/usage/load';
 import { buildUsageReport, WIDEST_WINDOW_MS } from '../model/usage/report';
@@ -45,7 +46,7 @@ export const currentUsage = async (): Promise<UsageReport> => report ?? refreshU
 
 export const refreshUsage = async (): Promise<UsageReport> => {
   const since: number = Date.now() - WIDEST_WINDOW_MS;
-  turns = await loadUsageTurns({ since, cache });
+  turns = await perfPhase('usage', () => loadUsageTurns({ since, cache }));
   return publish();
 };
 
