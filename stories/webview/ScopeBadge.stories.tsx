@@ -15,6 +15,10 @@ export const Project: Story = { args: { scope: 'project' } };
 
 export const User: Story = { args: { scope: 'user' } };
 
+export const Local: Story = { args: { scope: 'local' } };
+
+export const Nested: Story = { args: { scope: 'nested' } };
+
 export const Plugin: Story = { args: { scope: 'plugin' } };
 
 // Plugin skills name their plugin instead of the scope — which plugin shipped it is the useful part.
