@@ -82,7 +82,7 @@ export const AgentRobotRow = ({
           happens to emit the two rules in. `pointer-events-none` lets the row's click through the
           full-width strip, and the bar itself takes them back. */}
       <div className="pointer-events-none absolute inset-x-0 bottom-2.5 flex justify-center">
-        <AgentContext agent={agent} className="pointer-events-auto w-28" />
+        <AgentContext context={agent.context} className="pointer-events-auto w-28" />
       </div>
 
       {/* Outside the button: a `<button>` can hold neither an `<a>` nor another button. */}

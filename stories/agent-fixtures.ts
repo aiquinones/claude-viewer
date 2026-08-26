@@ -1,4 +1,4 @@
-import { AgentSession } from '@src/model/types';
+import { AgentSession, Subagent } from '@src/model/types';
 import { WORKSPACE } from './fixtures';
 
 // Synthetic only, like every other fixture here — working on this extension means reading your own
@@ -231,9 +231,59 @@ export const copilotMcpAgent: AgentSession = makeCopilotAgent({
   lastActivityAt: ago(15_000)
 });
 
+// The sub-agents a session has out. Only Copilot writes these: a `subagent.started` with no
+// `subagent.completed` behind it, joined to that sub-agent's own rows in the usage database.
+//
+// One of them has finished no request yet, so it carries no reading — that's the ordinary state for
+// the first second or two of a sub-agent's life, and it draws no bar rather than an empty one. The
+// last has no purpose, which is what a sub-agent whose `task` call fell outside the window looks
+// like.
+export const subagents: Subagent[] = [
+  {
+    id: 'call_kBU8gx9lKjCsicYKlU9299Vt',
+    name: 'general-purpose',
+    displayName: 'General Purpose Agent',
+    purpose: 'Trace where the upload retry budget is set',
+    model: 'gpt-5.6-luna',
+    context: { tokens: 26_000, model: 'gpt-5.6-luna' }
+  },
+  {
+    id: 'call_Wf4he84wxJj0oNxdjfNX34Ig',
+    name: 'explore',
+    displayName: 'Explore Agent',
+    purpose: 'Sweep the stories for the old heading copy',
+    model: 'claude-haiku-4.5'
+  },
+  {
+    id: 'call_H4oUY7KiJIUP8BpFnvK6zUB8',
+    name: 'general-purpose',
+    displayName: 'General Purpose Agent',
+    model: 'gpt-5.6-luna',
+    context: { tokens: 212_000, model: 'gpt-5.6-luna' }
+  }
+];
+
+// A Copilot session with work delegated out. Its own bar measures its own conversation — the
+// sub-agents' rows in the usage database are filed under the same session id and are deliberately
+// not part of it.
+export const copilotSubagentAgent: AgentSession = makeCopilotAgent({
+  sessionId: 'f6d7b743-f17f-4360-8bfd-ac490b27a92e',
+  pid: 92816,
+  cwd: WORKSPACE,
+  title: 'Split the retry budget out of the uploader',
+  branch: 'feat/retry-budget',
+  tail: 'working',
+  pendingTool: 'task',
+  lastActivityAt: ago(3_000),
+  context: { tokens: 302_000, model: 'gpt-5.6-luna' },
+  subagents,
+  pullRequest: { number: 419, url: 'https://github.com/example/example-app/pull/419' }
+});
+
 // Most recently active first, the way the loader sorts them — across both CLIs, so the list reads
 // as one thing rather than two lists stacked.
 export const allAgents: AgentSession[] = [
+  copilotSubagentAgent,
   copilotWorkingAgent,
   workingAgent,
   copilotBlockedAgent,

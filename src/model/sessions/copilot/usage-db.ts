@@ -12,9 +12,16 @@ import { copilotSessionStorePath } from '../../../config/paths';
 import { AgentContext } from '../../types';
 import { ContextPoint } from '../../usage/types';
 
-// The last usage row for each of the sessions asked about. `input_tokens` is the whole prompt —
-// `token_details_json` on the same row breaks it into input + cache_read + cache_write and those sum
-// to it exactly — so unlike Claude's transcript there is nothing to add up here.
+// The last usage row for each conversation in each of the sessions asked about. `input_tokens` is
+// the whole prompt — `token_details_json` on the same row breaks it into input + cache_read +
+// cache_write and those sum to it exactly — so unlike Claude's transcript there is nothing to add up
+// here.
+//
+// The grouping is by `parent_tool_call_id` as well as by session, and that second column is the
+// whole point: a sub-agent's requests land in this table under the same `session_id`, so grouping by
+// session alone hands back the sub-agent's prompt whenever one is mid-flight — a bar that dips by a
+// few thousand tokens and recovers, measuring a conversation the row isn't about. The session's own
+// rows are the ones with no parent, which SQLite groups together as one NULL group.
 //
 // Keyed off `MAX(id)` rather than off `created_at`: several rows share a turn and a timestamp, and the
 // autoincrement is the only thing that says which the CLI wrote last.
@@ -22,12 +29,12 @@ import { ContextPoint } from '../../usage/types';
 // One placeholder per id rather than a JSON array: `json_each` would be tidier and needs the JSON1
 // extension, which this build of SQLite is not guaranteed to carry.
 const lastUsageSql = (count: number): string => `
-  SELECT session_id, model, input_tokens
+  SELECT session_id, parent_tool_call_id, model, input_tokens
     FROM assistant_usage_events
    WHERE id IN (
      SELECT MAX(id) FROM assistant_usage_events
       WHERE session_id IN (${new Array(count).fill('?').join(', ')})
-      GROUP BY session_id
+      GROUP BY session_id, parent_tool_call_id
    )
 `;
 
@@ -69,12 +76,13 @@ export const readCopilotContextSeries = async (sessionId: string): Promise<Conte
   }
 };
 
-// Session id → how full its context is. Absent for a session with no finished turn, which is the
-// same reason a fresh Claude session has no reading.
+// Session id → how full its context is, and how full each of its sub-agents' is. Both are absent
+// for a conversation with no finished turn, which is the same reason a fresh Claude session has no
+// reading.
 export const readCopilotContexts = async (
   sessionIds: string[]
-): Promise<Map<string, AgentContext>> => {
-  const contexts: Map<string, AgentContext> = new Map();
+): Promise<Map<string, CopilotContexts>> => {
+  const contexts: Map<string, CopilotContexts> = new Map();
   if (sessionIds.length === 0) return contexts;
 
   const database: SqliteDatabase | undefined = await open();
@@ -85,7 +93,12 @@ export const readCopilotContexts = async (
 
     for (const row of rows) {
       const reading: SessionReading | undefined = toReading(row);
-      if (reading) contexts.set(reading.sessionId, reading.context);
+      if (!reading) continue;
+
+      const found: CopilotContexts = contexts.get(reading.sessionId) ?? { subagents: new Map() };
+      if (reading.subagentId) found.subagents.set(reading.subagentId, reading.context);
+      else found.session = reading.context;
+      contexts.set(reading.sessionId, found);
     }
   } catch {
     // A drifted schema — a renamed table or column — reads as no data rather than as an error. The
@@ -135,8 +148,19 @@ type SqliteModule = typeof import('node:sqlite');
 
 type SqliteDatabase = InstanceType<SqliteModule['DatabaseSync']>;
 
+// What one session's rows in that table say. The two are read the same way and mean different
+// conversations, which is why they aren't one number.
+export interface CopilotContexts {
+  // The session's own, off its last row that isn't a sub-agent's.
+  session?: AgentContext;
+  // Keyed by the `task` tool call that started the sub-agent, which is what `Subagent.id` holds.
+  subagents: Map<string, AgentContext>;
+}
+
 interface SessionReading {
   sessionId: string;
+  // The sub-agent this row belongs to, or undefined for the session's own.
+  subagentId?: string;
   context: AgentContext;
 }
 
@@ -160,8 +184,17 @@ const toPoint = (row: unknown): ContextPoint | undefined => {
 const toReading = (row: unknown): SessionReading | undefined => {
   if (typeof row !== 'object' || row === null) return undefined;
 
-  const { session_id: sessionId, model, input_tokens: tokens } = row as Record<string, unknown>;
+  const {
+    session_id: sessionId,
+    parent_tool_call_id: parent,
+    model,
+    input_tokens: tokens
+  } = row as Record<string, unknown>;
   if (typeof sessionId !== 'string' || typeof tokens !== 'number' || tokens <= 0) return undefined;
 
-  return { sessionId, context: { tokens, model: typeof model === 'string' ? model : '' } };
+  return {
+    sessionId,
+    subagentId: typeof parent === 'string' && parent ? parent : undefined,
+    context: { tokens, model: typeof model === 'string' ? model : '' }
+  };
 };

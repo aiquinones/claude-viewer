@@ -165,6 +165,24 @@ export interface AgentContext {
   model: string;
 }
 
+// A sub-agent the session has running right now. It's a conversation of its own, with its own
+// window — which is why its context is listed beside the session's rather than folded into it.
+export interface Subagent {
+  // The `task` tool call that started it. Unique within the session, so it doubles as the row key,
+  // and it's what the usage database files the sub-agent's own requests under.
+  id: string;
+  // What kind of agent it is: the id (`general-purpose`) and the name the CLI shows for it.
+  name: string;
+  displayName?: string;
+  // The one-line description the model wrote when it delegated. Absent when the tool call that
+  // started it fell outside the window read — the sub-agent is still listed, just unlabelled.
+  purpose?: string;
+  model: string;
+  // Absent until the sub-agent has finished a request of its own, the same reason a fresh session
+  // has no reading.
+  context?: AgentContext;
+}
+
 // A pull request a session opened. Both fields or neither — a link with no number has nothing to
 // print, and a number with no link has nowhere to go.
 export interface AgentPullRequest {
@@ -213,6 +231,10 @@ export interface AgentSession {
   // How full the model's context is. Both CLIs, and absent until the session finishes one assistant
   // turn — or, for Copilot, when the usage database can't be read at all.
   context?: AgentContext;
+  // The sub-agents this session has out right now, in the order it started them. Copilot only: it
+  // writes a `subagent.started` and a `subagent.completed` to its log, and Claude's transcript
+  // records no equivalent. Absent rather than empty when there are none.
+  subagents?: Subagent[];
   // When the log was last written, and when the process started.
   lastActivityAt: number;
   startedAt: number;
