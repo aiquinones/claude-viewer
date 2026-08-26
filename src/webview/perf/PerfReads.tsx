@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { PerfRead, PerfReport } from '../../model/perf/types';
 import { displayDirectory, fileName } from '../display-path';
+import { CollapsibleHeading } from '../CollapsibleHeading';
 import { formatBytes, plural } from '../format-size';
 import { formatMs } from './format-ms';
 import { READ_KIND_LABELS } from './perf-labels';
@@ -11,27 +13,36 @@ interface PerfReadsProps {
 
 // What the launch actually opened, and which of those took the longest. The second half is the
 // point: a total says the launch was slow, a named file says what to go and look at.
-export const PerfReads = ({ report, workspaceRoot }: PerfReadsProps) => (
+export const PerfReads = ({ report, workspaceRoot }: PerfReadsProps) => {
+  const [slowestOpen, setSlowestOpen] = useState<boolean>(false);
+
+  return (
   <div className="flex flex-col gap-2">
     <p className="text-xs text-muted-foreground">
       <span className="text-foreground">{plural(report.files, 'file')}</span> and{' '}
-      <span className="text-foreground">{plural(report.directories, 'directory', 'directories')}</span>{' '}
+      <span className="text-foreground">
+        {plural(report.directories, 'directory', 'directories')}
+      </span>{' '}
       opened · <span className="text-foreground">{formatBytes(report.bytes)}</span> read ·{' '}
       <span className="text-foreground">{formatMs(report.ioMs)}</span> of it waiting on disk
     </p>
 
     {report.slowest.length > 0 && (
       <div className="flex flex-col gap-1">
-        <h3 className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-          Slowest reads
-        </h3>
-        {report.slowest.map((read) => (
-          <SlowRead key={`${read.path}-${read.ms}`} read={read} workspaceRoot={workspaceRoot} />
-        ))}
+        <CollapsibleHeading
+          title="Slowest reads"
+          collapsed={!slowestOpen}
+          onToggle={() => setSlowestOpen(!slowestOpen)}
+        />
+        {slowestOpen &&
+          report.slowest.map((read) => (
+            <SlowRead key={`${read.path}-${read.ms}`} read={read} workspaceRoot={workspaceRoot} />
+          ))}
       </div>
     )}
   </div>
-);
+  );
+};
 
 interface SlowReadProps {
   read: PerfRead;

@@ -1,4 +1,4 @@
-import { Check, ChevronRight, Copy, X, Zap } from 'lucide-react';
+import { Check, Copy, X, Zap } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 import { PerfClientMarks, withClientMarks } from '../../model/perf/client-marks';
 import { PerfReport } from '../../model/perf/types';
@@ -31,20 +31,12 @@ export const PerfOverlay = ({ report, marks, workspaceRoot, onDismiss }: PerfOve
       {isOpen && <Card report={full} workspaceRoot={workspaceRoot} />}
 
       <div className="flex items-center gap-1 rounded-full border border-border bg-popover py-1 pl-2.5 pr-1 shadow-lg">
-        <Zap className="size-3.5 shrink-0 text-primary" />
-        <span className="text-xs">View performance</span>
-        <span className="mono pl-0.5 text-xs tabular-nums text-muted-foreground">
-          {full.readyMs === undefined ? '—' : formatMs(full.readyMs)}
-        </span>
-
         <PillButton
-          label={isOpen ? 'Hide the breakdown' : 'Show the breakdown'}
+          label={isOpen ? 'Hide performance details' : 'Show performance details'}
           expanded={isOpen}
           onClick={() => setIsOpen(!isOpen)}
         >
-          <ChevronRight
-            className={`size-3.5 transition-transform ${isOpen ? 'rotate-90' : ''}`}
-          />
+          <Zap className="size-3.5 text-primary" />
         </PillButton>
 
         <PillButton label="Dismiss" onClick={onDismiss}>
