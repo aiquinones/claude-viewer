@@ -209,6 +209,9 @@ export const copilotBlockedAgent: AgentSession = makeCopilotAgent({
   cwd: `${WORKSPACE}/services/api`,
   title: 'Roll the staging database forward',
   branch: 'feat/schema-v4',
+  // The footer is the same footer a Claude row draws. Copilot names its PR once, in the output of
+  // the command that opened it, rather than on a line of its own like Claude does.
+  pullRequest: { number: 89, url: 'https://github.com/example/example-app/pull/89' },
   tail: 'blocked',
   pendingTool: 'bash',
   lastActivityAt: ago(6_000),

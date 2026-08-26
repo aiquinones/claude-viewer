@@ -2,29 +2,43 @@ import { copilotEventsPath } from '../../../config/paths';
 import { AgentSession, Subagent } from '../../types';
 import { CopilotEventSummary, readEvents } from './events';
 import { LiveCopilotSession, liveCopilotSessions } from './live';
+import { CopilotPrCache, pruneCopilotPrCache, readCopilotPullRequest } from './pull-request';
 import { CopilotContexts, readCopilotContexts } from './usage-db';
 
-// Locate → parse → validate → typed entries, the same shape every other loader uses. Three sources
+// Locate → parse → validate → typed entries, the same shape every other loader uses. Four sources
 // joined now, and a process that no longer exists is simply not in the list.
 //
 // The contexts are read in one query for every session rather than per row: they all live in one
-// database for the whole machine, unlike the per-session event logs beside them.
-export const loadCopilotSessions = async (): Promise<AgentSession[]> => {
+// database for the whole machine, unlike the per-session event logs beside them. The PR scan is the
+// opposite — one file each, and the cache is what keeps it to one full read per session.
+export const loadCopilotSessions = async (
+  pullRequests: CopilotPrCache
+): Promise<AgentSession[]> => {
   const sessions: LiveCopilotSession[] = await liveCopilotSessions();
 
   const contexts: Map<string, CopilotContexts> = await readCopilotContexts(
     sessions.map((session) => session.sessionId)
   );
 
-  return Promise.all(sessions.map((session) => toEntry({ session, contexts })));
+  const entries: AgentSession[] = await Promise.all(
+    sessions.map((session) => toEntry({ session, contexts, pullRequests }))
+  );
+
+  pruneCopilotPrCache(
+    pullRequests,
+    entries.map((entry) => entry.transcriptPath)
+  );
+
+  return entries;
 };
 
 interface ToEntryArgs {
   session: LiveCopilotSession;
   contexts: Map<string, CopilotContexts>;
+  pullRequests: CopilotPrCache;
 }
 
-const toEntry = async ({ session, contexts }: ToEntryArgs): Promise<AgentSession> => {
+const toEntry = async ({ session, contexts, pullRequests }: ToEntryArgs): Promise<AgentSession> => {
   const path: string = copilotEventsPath(session.dir);
   const summary: CopilotEventSummary = await readEvents(path);
   const startedAt: number = timestamp(session.workspace.created_at);
@@ -40,6 +54,7 @@ const toEntry = async ({ session, contexts }: ToEntryArgs): Promise<AgentSession
     title: session.workspace.name,
     repository: session.workspace.repository,
     branch: session.workspace.branch,
+    pullRequest: await readCopilotPullRequest({ path, cache: pullRequests }),
     lastPrompt: summary.lastPrompt,
     tail: summary.tail,
     pendingTool: summary.pendingTool,

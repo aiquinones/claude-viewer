@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { copilotSessionStateDir, sessionsDir } from '../config/paths';
+import { CopilotPrCache, newCopilotPrCache } from '../model/sessions/copilot/pull-request';
 import { loadAgentSessions } from '../model/sessions/load';
 import { AgentSession } from '../model/types';
 
@@ -38,6 +39,11 @@ let refreshTimer: NodeJS.Timeout | undefined;
 let pollMode: AgentPollMode = 'off';
 let pollTimer: NodeJS.Timeout | undefined;
 
+// Held across passes so a Copilot log is walked whole once and by its appended bytes after. It's
+// here rather than inside the loader for the reason `usage-store.ts` holds its own: nothing in
+// `model/` keeps state, so a cache belongs to whoever decided to poll.
+const copilotPullRequests: CopilotPrCache = newCopilotPrCache();
+
 const changeEmitter: vscode.EventEmitter<AgentSession[]> = new vscode.EventEmitter();
 
 export const onDidChangeAgents: vscode.Event<AgentSession[]> = changeEmitter.event;
@@ -48,7 +54,7 @@ export const currentAgents = async (): Promise<AgentSession[]> => agents ?? refr
 export const cachedAgents = (): AgentSession[] => agents ?? [];
 
 export const refreshAgents = async (): Promise<AgentSession[]> => {
-  const next: AgentSession[] = await loadAgentSessions();
+  const next: AgentSession[] = await loadAgentSessions(copilotPullRequests);
   const changed: boolean = signature(next) !== signature(agents);
   agents = next;
   // Most poll passes find exactly what the last one did, and firing anyway would re-render the
