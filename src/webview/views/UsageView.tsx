@@ -69,8 +69,9 @@ interface UsageViewProps {
   // Drops that request, from the note shown when it names a session the history doesn't hold. The
   // panel owns it, so clearing it is the panel's to do.
   onClearRequest: () => void;
-  // Leaves for another surface, which is how a session opened from an agent row gets back to the row
-  // it came from. The panel owns navigation, so this leaves the view the way `onOpenSkill` does.
+  // Leaves for another surface. Two things ask for it: a session opened from an agent row getting
+  // back to the row it came from, and the analysis page's activity badge going to the list of
+  // running agents. The panel owns navigation, so this leaves the view the way `onOpenSkill` does.
   onOpenSurface: (id: SurfaceId) => void;
   onSearch: () => void;
   onRefresh: () => void;
@@ -152,6 +153,7 @@ export const UsageView = ({
           agent={findAgent({ agents, sessionId: session.sessionId, tool: session.tool })}
           skills={skills}
           onOpenSkill={onOpenSkill}
+          onOpenAgents={() => onOpenSurface('active-agents')}
           onCopyId={onCopySessionId}
           onSearch={onSearch}
           onRefresh={onRefresh}
