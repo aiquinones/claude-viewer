@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { CSSProperties } from 'react';
 import { surfaceAccent } from '@src/webview/surfaces';
 import { SessionsTab } from '@src/webview/usage-sessions/SessionsTab';
+import { workingAgent } from '../../agent-fixtures';
 import {
   busyYear,
   copilotOnlyHistory,
@@ -15,6 +16,7 @@ const meta: Meta<typeof SessionsTab> = {
   component: SessionsTab,
   args: {
     history: busyYear,
+    agents: [{ ...workingAgent, sessionId: 'session-0' }],
     workspaceRoot: '/Users/dev/repos/example-app',
     onOpenSession: () => undefined
   },

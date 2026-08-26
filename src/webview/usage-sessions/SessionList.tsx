@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
+import { AgentSession } from '../../model/types';
 import { SessionUsage } from '../../model/usage/types';
 import { plural } from '../format-size';
+import { useNow } from '../useNow';
 import { SessionRow } from './SessionRow';
 import { filterSessions } from './session-filter';
 
 interface SessionListProps {
   sessions: SessionUsage[];
+  agents: AgentSession[];
   now: number;
   onOpen: (session: SessionUsage) => void;
 }
@@ -14,8 +17,9 @@ interface SessionListProps {
 // Every session on record, filtered by name. The box has a height and the rows scroll inside it:
 // this list runs to dozens and the grid above it is what the tab is for — a list that pushed the
 // grid off the top would invert that.
-export const SessionList = ({ sessions, now, onOpen }: SessionListProps) => {
+export const SessionList = ({ sessions, agents, now, onOpen }: SessionListProps) => {
   const [query, setQuery] = useState<string>('');
+  const activityNow: number = useNow(1000);
 
   const shown: SessionUsage[] = useMemo(
     () => filterSessions(sessions, query),
@@ -58,6 +62,11 @@ export const SessionList = ({ sessions, now, onOpen }: SessionListProps) => {
             <SessionRow
               key={`${session.tool}:${session.sessionId}`}
               session={session}
+              agent={agents.find(
+                (agent: AgentSession) =>
+                  agent.sessionId === session.sessionId && agent.tool === session.tool
+              )}
+              activityNow={activityNow}
               now={now}
               onOpen={onOpen}
             />

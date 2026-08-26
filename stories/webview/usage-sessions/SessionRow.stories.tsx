@@ -7,6 +7,7 @@ const meta: Meta<typeof SessionRow> = {
   component: SessionRow,
   args: {
     session: oneSession,
+    activityNow: Date.now(),
     now: Date.now(),
     onOpen: () => undefined
   },

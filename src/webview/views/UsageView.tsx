@@ -225,6 +225,7 @@ export const UsageView = ({
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-clip">
           <SessionsTab
             history={history}
+            agents={agents}
             workspaceRoot={workspaceRoot}
             onOpenSession={setSession}
           />
