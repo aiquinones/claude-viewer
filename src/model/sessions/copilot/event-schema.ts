@@ -41,6 +41,14 @@ const eventSchema = z
           .object({ description: z.string().optional() })
           .passthrough()
           .optional()
+          .catch(undefined),
+        // tool.execution_complete. The tool's own output, read for one thing only: the line
+        // `gh pr create` prints. Same `.catch` as `arguments` above, and for the same reason —
+        // every tool writes its own shape in here.
+        result: z
+          .object({ content: z.string().optional() })
+          .passthrough()
+          .optional()
           .catch(undefined)
       })
       .passthrough()

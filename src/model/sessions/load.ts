@@ -1,14 +1,21 @@
 import { AgentSession } from '../types';
 import { loadClaudeSessions } from './claude/load';
 import { loadCopilotSessions } from './copilot/load';
+import { CopilotPrCache } from './copilot/pull-request';
 
 // Every agent running right now, whichever CLI is running it. Each tool has its own loader because
 // each reads a different set of files; they meet here, in one list, because the question the surface
 // answers — what is running, and where — spans both.
-export const loadAgentSessions = async (): Promise<AgentSession[]> => {
+//
+// The one thing held between passes is Copilot's: the PR a session opened is named once, anywhere in
+// a log that reaches megabytes, so it's found by a full read the first time and by the appended
+// bytes after. Claude repeats its own PR line near the end of the file, so its loader needs nothing.
+export const loadAgentSessions = async (
+  copilotPullRequests: CopilotPrCache
+): Promise<AgentSession[]> => {
   const [claude, copilot]: AgentSession[][] = await Promise.all([
     loadClaudeSessions(),
-    loadCopilotSessions()
+    loadCopilotSessions(copilotPullRequests)
   ]);
 
   // Newest session first, and sorted across both so the list reads as one thing rather than two

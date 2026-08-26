@@ -4,10 +4,9 @@
 // and every pass after it reads only what was appended.
 
 import { join } from 'node:path';
-import { listDirectories, listFiles } from '../../../config/read';
+import { AppendedLines, listDirectories, listFiles, readAppendedLines } from '../../../config/read';
 import { projectsDir } from '../../../config/paths';
 import { parseTranscriptLine, TranscriptLine } from '../../sessions/claude/transcript-schema';
-import { AppendedLines, readAppendedLines } from '../incremental';
 import { parseClaudeTurns } from '../claude/scan';
 import { addTurn, emptyFold, SessionFold } from './fold';
 
