@@ -625,32 +625,46 @@ body:is(.vscode-light, .vscode-high-contrast-light):not([data-panel-theme='dark'
   animation: activity-pulse 1.8s ease-in-out infinite;
 }
 
-/* The stage a working agent is in. A highlight sweeps along the letters rather than the whole label
-   pulsing: the label is text you read, and text that fades in and out is text you re-read.
+/* The stage a working agent is in: a band of light travelling across the letters. Not the label
+   pulsing — text that fades in and out is text you re-read — and not a glow around it, which would
+   be a second shape on a row that has no room for one.
 
-   Painted by clipping a moving gradient to the glyphs, which is why `color` has to be transparent —
-   and why the reduced-motion branch below has to hand it back rather than only stopping the
-   animation. The two ends are `--muted-foreground` so a still frame is exactly the idle row's
-   colour; only the band crossing it is brighter. */
+   Painted by clipping a moving gradient to the glyphs, which is why `color` has to be transparent,
+   and why the reduced-motion branch below hands it back rather than only stopping the animation.
+
+   The resting colour is mixed *toward the panel ground* rather than being `--muted-foreground`
+   itself, so the ramp is dim → bright → dim in every theme. Under `inherit` the editor's
+   description and foreground colours differ only in alpha, and a band between those two is a band
+   you can't see. */
 .stage-shimmer {
+  --stage-dim: color-mix(in oklch, var(--muted-foreground) 84%, var(--background));
   background-image: linear-gradient(
     100deg,
-    var(--muted-foreground) 40%,
+    var(--stage-dim) 0%,
+    var(--stage-dim) 34%,
     var(--foreground) 50%,
-    var(--muted-foreground) 60%
+    var(--stage-dim) 66%,
+    var(--stage-dim) 100%
   );
-  background-size: 300% 100%;
+  background-size: 180% 100%;
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-  animation: stage-shimmer 3.2s linear infinite;
+  animation: stage-shimmer 2.6s linear infinite;
 }
 
-/* Right to left, one gradient-width of travel, so the band enters off one edge and leaves by the
-   other. `background-position` rather than `translate`: the element itself must not move. */
+/* Left to right, with the label's reading direction. `background-position` rather than `translate`:
+   the element itself must not move.
+
+   Both numbers above are set against the width of a word. A percentage position moves the image by
+   `box - image`, so at 180% the band travels the box between 112% and -12%, and the run below is
+   that plus a hair — five sixths of the cycle is the light crossing and the rest is the gap before
+   it comes round again. The first cut was 250% over 120% → -20%, which sounds similar and isn't:
+   the lit band was a sixth of a short word, and it was off screen for half the time. One letter
+   blinking, rather than something passing through. */
 @keyframes stage-shimmer {
-  from { background-position: 150% 0; }
-  to   { background-position: -150% 0; }
+  from { background-position: 125% 0; }
+  to   { background-position: -25% 0; }
 }
 
 /* Refresh button rotation. Triggered when the refresh icon is clicked, rotates the icon 360°. */

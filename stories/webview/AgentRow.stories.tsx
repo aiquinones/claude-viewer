@@ -54,18 +54,21 @@ export default meta;
 
 type Story = StoryObj<typeof AgentRow>;
 
-// Mid-turn, written seconds ago, and no PR — that footer is absent rather than empty. The stage
-// beside the age shimmers while the agent is going, and says Build rather than the unnamed skill
+// Mid-turn, written seconds ago, and no PR — that footer is absent rather than empty. No age on
+// this state: a working agent is a live thing and a counter beside it resolves into nothing. The
+// stage at the far end has a light passing through it, and says Build rather than the unnamed skill
 // loaded after it.
 export const Working: Story = { args: { agent: workingAgent } };
 
-// The same tail shape, seven minutes cold. Nothing on disk says whether it's a permission prompt or
-// a long command — the tool name and the age are what let you tell. Also the PR case: a session
-// that opened one keeps the link on its row, under the button because an <a> can't sit inside one.
+// The same tail shape, seven minutes cold — the one state that keeps an age, beside the badge it
+// qualifies. Nothing on disk says whether it's a permission prompt or a long command, so how long
+// it has been out and the tool name are what let you tell. Also the PR case: a session that opened
+// one keeps the link on its row, under the button because an <a> can't sit inside one.
 export const Waiting: Story = { args: { agent: waitingAgent } };
 
 // The last turn ended in text. Dimmed, because this one is waiting on you — and the stage keeps
-// its label and loses the shimmer, since where a session stopped isn't in progress.
+// its label and loses the light, since where a session stopped isn't in progress. No age either:
+// "Idle" already says what there is to know.
 export const Idle: Story = { args: { agent: idleAgent } };
 
 // Truncates rather than wrapping: a row that grows a second line breaks the rhythm of the list.

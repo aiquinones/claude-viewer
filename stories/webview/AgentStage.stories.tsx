@@ -34,11 +34,12 @@ export default meta;
 
 type Story = StoryObj<typeof AgentStage>;
 
-// The shimmer. It's a highlight sweeping the letters rather than the label fading, so the word
-// stays readable the whole time — worth watching for a few seconds rather than screenshotting.
+// The light passing through. A band sweeping the letters rather than the label fading, so the word
+// stays readable the whole time — worth watching for a few seconds rather than screenshotting. Try
+// `LongLabel` too: the band is a share of the gradient, so it scales with the word.
 export const Working: Story = {};
 
-// Same label, no sweep. The stage a session ended in is a fact, and a second thing animating on
+// Same label, no light. The stage a session ended in is a fact, and a second thing animating on
 // every row of a list you leave open is noise.
 export const Idle: Story = { args: { agent: idleAgent, activity: 'idle' } };
 

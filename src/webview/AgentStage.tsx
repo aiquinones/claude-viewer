@@ -30,9 +30,11 @@ export const AgentStage = ({ agent, activity }: AgentStageProps) => {
           leave open is noise rather than a signal. */}
       <span
         className={cn(
-          // Capped and clipped: a stage name is the reader's own and can run to a sentence, and
-          // the title beside it should lose its room before this does.
-          'max-w-36 truncate text-xs',
+          // Heavier than the row's other small text, and heavier than the title beside it: the
+          // shimmer is a gradient clipped to the glyphs, so a thin face leaves it almost nothing to
+          // paint. Capped and clipped, since a stage name is the reader's own and can run to a
+          // sentence — the title should keep its room before this does.
+          'max-w-36 truncate text-xs font-semibold',
           activity === 'idle' ? 'text-muted-foreground' : 'stage-shimmer'
         )}
       >
