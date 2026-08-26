@@ -66,10 +66,6 @@ export const SkillView = ({
   const winner: SkillEntry | undefined = selected?.shadowedBy
     ? skills.find((skill) => skill.path === selected.shadowedBy)
     : undefined;
-  // The other side of the collision: the skills this one wins over.
-  const shadowed: SkillEntry[] = selected
-    ? skills.filter((skill) => skill.shadowedBy === selected.path)
-    : [];
   const shadowedCount: number = skills.filter((skill) => skill.shadowedBy).length;
   // Only the skills that are actually listed — a shadowed one costs nothing, the same way a
   // conditional CLAUDE.md stays out of the prompt surface's headline.
@@ -170,7 +166,6 @@ export const SkillView = ({
                   <SkillDetail
                     skill={selected}
                     winner={winner}
-                    shadowed={shadowed}
                     onOpenFile={onOpenFile}
                     onSelectSkill={selectSkill}
                   />

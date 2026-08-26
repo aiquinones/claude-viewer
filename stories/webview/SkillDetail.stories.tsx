@@ -6,7 +6,6 @@ import {
   noDescription,
   noSkillFile,
   plainSkill,
-  pluginDeploy,
   projectDeploy,
   userDeploy
 } from '../fixtures';
@@ -16,7 +15,6 @@ const meta: Meta<typeof SkillDetail> = {
   component: SkillDetail,
   args: {
     winner: undefined,
-    shadowed: [],
     onOpenFile: () => undefined,
     onSelectSkill: () => undefined
   },
@@ -28,11 +26,6 @@ export default meta;
 type Story = StoryObj<typeof SkillDetail>;
 
 export const Default: Story = { args: { skill: plainSkill } };
-
-// The winner's side of a collision: a crown beside the name, and the losers behind its hover card.
-export const WinsCollision: Story = {
-  args: { skill: projectDeploy, shadowed: [userDeploy, pluginDeploy] }
-};
 
 // The loser's side.
 export const Shadowed: Story = {
