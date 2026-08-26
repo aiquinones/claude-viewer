@@ -1,11 +1,16 @@
 import { GitBranch } from 'lucide-react';
+import { AgentSession } from '../../model/types';
 import { SessionUsage } from '../../model/usage/types';
+import { ActivityBadge } from '../ActivityBadge';
+import { activityOf } from '../agent-activity';
 import { AgentToolIcon } from '../agent-icon/AgentToolIcon';
 import { formatAge } from '../format-age';
 import { sessionName } from './session-filter';
 
 interface SessionRowProps {
   session: SessionUsage;
+  agent?: AgentSession;
+  activityNow: number;
   now: number;
   onOpen: (session: SessionUsage) => void;
 }
@@ -23,13 +28,21 @@ interface SessionRowProps {
 // machine, so the same rule leaves a path on most rows — one long enough to crowd the branch, and
 // repeated down the column whether or not you were asking. The scope in the `...` is what decides
 // which folders are in the list at all.
-export const SessionRow = ({ session, now, onOpen }: SessionRowProps) => (
+export const SessionRow = ({ session, agent, activityNow, now, onOpen }: SessionRowProps) => (
   <button
     type="button"
     onClick={() => onOpen(session)}
     className="flex w-full cursor-pointer flex-col gap-0.5 px-3 py-2 text-left hover:bg-accent"
   >
-    <span className="block w-full truncate text-xs text-foreground">{sessionName(session)}</span>
+    <span className="flex w-full min-w-0 items-center gap-2">
+      {agent && (
+        <ActivityBadge
+          activity={activityOf({ agent, now: activityNow })}
+          tail={agent.tail}
+        />
+      )}
+      <span className="block min-w-0 truncate text-xs text-foreground">{sessionName(session)}</span>
+    </span>
 
     <span className="flex w-full min-w-0 items-center gap-2 text-[11px] text-muted-foreground">
       {session.branch && (

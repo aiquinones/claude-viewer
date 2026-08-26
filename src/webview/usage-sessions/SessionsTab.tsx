@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { SessionUsage, UsageHistory } from '../../model/usage/types';
+import { AgentSession } from '../../model/types';
 import { Loading } from '../loading/Loading';
 import { useNow } from '../useNow';
 import { ContributionGrid } from './ContributionGrid';
@@ -24,6 +25,7 @@ interface SessionsTabProps {
   // Undefined until the first pass lands. The tab is what starts it: nothing off this surface shows
   // the history, so nothing else pays for it.
   history: UsageHistory | undefined;
+  agents: AgentSession[];
   workspaceRoot: string | undefined;
   onOpenSession: (session: SessionUsage) => void;
 }
@@ -37,7 +39,7 @@ interface SessionsTabProps {
 // tooltip is where it says which. The x-axis is the only thing that can't be true of both halves,
 // since Claude Code deletes transcripts on a schedule and Copilot publishes none: hence the (i),
 // which explains a window that is Claude's and appears only while Claude's squares are on the wall.
-export const SessionsTab = ({ history, workspaceRoot, onOpenSession }: SessionsTabProps) => {
+export const SessionsTab = ({ history, agents, workspaceRoot, onOpenSession }: SessionsTabProps) => {
   const now: number = useNow(AGE_TICK_MS);
 
   const grid: UsageGrid | undefined = useMemo(() => {
@@ -78,7 +80,7 @@ export const SessionsTab = ({ history, workspaceRoot, onOpenSession }: SessionsT
 
       <ContributionGrid grid={grid} />
 
-      <SessionList sessions={history.sessions} now={now} onOpen={onOpenSession} />
+      <SessionList sessions={history.sessions} agents={agents} now={now} onOpen={onOpenSession} />
     </div>
   );
 };

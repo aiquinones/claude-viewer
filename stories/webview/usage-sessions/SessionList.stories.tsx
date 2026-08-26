@@ -1,12 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SessionList } from '@src/webview/usage-sessions/SessionList';
 import { busyYear, emptyHistory, quietHistory } from '../../usage-history-fixtures';
+import { workingAgent } from '../../agent-fixtures';
 
 const meta: Meta<typeof SessionList> = {
   title: 'Usage/SessionList',
   component: SessionList,
   args: {
     sessions: busyYear.sessions,
+    agents: [{ ...workingAgent, sessionId: 'session-0' }],
     now: Date.now(),
     onOpen: () => undefined
   },
