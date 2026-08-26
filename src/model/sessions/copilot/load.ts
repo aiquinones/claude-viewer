@@ -1,8 +1,8 @@
 import { copilotEventsPath } from '../../../config/paths';
-import { AgentContext, AgentSession } from '../../types';
+import { AgentSession, Subagent } from '../../types';
 import { CopilotEventSummary, readEvents } from './events';
 import { LiveCopilotSession, liveCopilotSessions } from './live';
-import { readCopilotContexts } from './usage-db';
+import { CopilotContexts, readCopilotContexts } from './usage-db';
 
 // Locate → parse → validate → typed entries, the same shape every other loader uses. Three sources
 // joined now, and a process that no longer exists is simply not in the list.
@@ -12,7 +12,7 @@ import { readCopilotContexts } from './usage-db';
 export const loadCopilotSessions = async (): Promise<AgentSession[]> => {
   const sessions: LiveCopilotSession[] = await liveCopilotSessions();
 
-  const contexts: Map<string, AgentContext> = await readCopilotContexts(
+  const contexts: Map<string, CopilotContexts> = await readCopilotContexts(
     sessions.map((session) => session.sessionId)
   );
 
@@ -21,13 +21,14 @@ export const loadCopilotSessions = async (): Promise<AgentSession[]> => {
 
 interface ToEntryArgs {
   session: LiveCopilotSession;
-  contexts: Map<string, AgentContext>;
+  contexts: Map<string, CopilotContexts>;
 }
 
 const toEntry = async ({ session, contexts }: ToEntryArgs): Promise<AgentSession> => {
   const path: string = copilotEventsPath(session.dir);
   const summary: CopilotEventSummary = await readEvents(path);
   const startedAt: number = timestamp(session.workspace.created_at);
+  const read: CopilotContexts | undefined = contexts.get(session.sessionId);
 
   return {
     sessionId: session.sessionId,
@@ -42,7 +43,9 @@ const toEntry = async ({ session, contexts }: ToEntryArgs): Promise<AgentSession
     lastPrompt: summary.lastPrompt,
     tail: summary.tail,
     pendingTool: summary.pendingTool,
-    context: contexts.get(session.sessionId),
+    context: read?.session,
+    // Absent rather than empty, the way every other field only one CLI writes is.
+    subagents: withContexts({ subagents: summary.subagents, read }),
     // A session that has written no events yet is as old as its workspace file says.
     lastActivityAt: summary.lastActivityAt || timestamp(session.workspace.updated_at) || startedAt,
     startedAt,
@@ -50,6 +53,19 @@ const toEntry = async ({ session, contexts }: ToEntryArgs): Promise<AgentSession
     entrypoint: session.workspace.client_name ?? '',
     issues: summary.issues
   };
+};
+
+interface WithContextsArgs {
+  subagents: Subagent[];
+  read: CopilotContexts | undefined;
+}
+
+// The two halves joined: the log says which sub-agents are out and what each was asked to do, the
+// usage database says how big each one's own conversation has grown. A sub-agent that hasn't
+// finished a request yet is listed without a reading — it exists, it just hasn't measured anything.
+const withContexts = ({ subagents, read }: WithContextsArgs): Subagent[] | undefined => {
+  if (subagents.length === 0) return undefined;
+  return subagents.map((subagent) => ({ ...subagent, context: read?.subagents.get(subagent.id) }));
 };
 
 // The ISO timestamps in `workspace.yaml` → epoch ms, matching the absolute times the rest of the

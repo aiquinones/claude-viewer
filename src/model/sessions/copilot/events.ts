@@ -1,7 +1,8 @@
 import { FileHead, FileTail, readFileHead, readFileTail } from '../../../config/read';
 import { ConfigError, Result } from '../../../config/result';
-import { ConfigIssue, TranscriptTail } from '../../types';
+import { ConfigIssue, Subagent, TranscriptTail } from '../../types';
 import { CopilotEvent, parseEvent } from './event-schema';
+import { runningSubagents } from './subagents';
 
 // How much of the end of the log is read. Four times what the Claude transcript reader uses, and it
 // has to be: Copilot writes `encryptedContent` and `reasoningOpaque` blobs inline, so one
@@ -17,6 +18,8 @@ export interface CopilotEventSummary {
   lastPrompt?: string;
   tail: TranscriptTail;
   pendingTool?: string;
+  // The sub-agents still out, in the order they were started. Empty is the ordinary case.
+  subagents: Subagent[];
   version?: string;
   // File mtime, or 0 when the file couldn't be read.
   lastActivityAt: number;
@@ -33,13 +36,14 @@ export const readEvents = async (path: string): Promise<CopilotEventSummary> => 
       read.error.kind === 'not-found'
         ? 'no event log on disk yet — nothing has been written for this session'
         : `could not read the event log: ${read.error.message}`;
-    return { tail: 'settled', lastActivityAt: 0, issues: [warning(message)] };
+    return { tail: 'settled', subagents: [], lastActivityAt: 0, issues: [warning(message)] };
   }
 
   const events: CopilotEvent[] = parseEvents(read.value.text, read.value.truncated);
 
   return {
     ...copilotTail(events),
+    subagents: runningSubagents(events),
     lastPrompt: lastPrompt(events),
     version: await startVersion(path),
     lastActivityAt: read.value.mtimeMs,

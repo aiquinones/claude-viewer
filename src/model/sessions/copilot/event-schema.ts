@@ -23,7 +23,25 @@ const eventSchema = z
         // user.message
         content: z.string().optional(),
         // session.start
-        copilotVersion: z.string().optional()
+        copilotVersion: z.string().optional(),
+        // subagent.started / subagent.completed. `toolCallId` above pairs the two, and is also what
+        // the usage database files the sub-agent's own requests under.
+        agentName: z.string().optional(),
+        agentDisplayName: z.string().optional(),
+        // The model the sub-agent runs, which needn't be the one the session is on.
+        model: z.string().optional(),
+        // tool.execution_start. Read for the `task` tool only, where `description` is the one-line
+        // purpose the model wrote for the sub-agent it was delegating to — every other tool puts
+        // the agent's own work in here, which this surface deliberately never prints.
+        //
+        // `.catch` rather than a bare optional: every tool writes its own shape in here, and one
+        // that isn't an object would otherwise fail the whole line — dropping a
+        // `tool.execution_start` the status rule needs to see.
+        arguments: z
+          .object({ description: z.string().optional() })
+          .passthrough()
+          .optional()
+          .catch(undefined)
       })
       .passthrough()
       .optional()
