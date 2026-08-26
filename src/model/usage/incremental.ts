@@ -4,13 +4,8 @@
 // The cache holds the turns as well as the offset, because that's what makes the offset usable: the
 // caller gets the whole file's turns back every time without the file being re-parsed.
 
-import { FileSince, readFileSince } from '../../config/read';
-import { ConfigError, Result } from '../../config/result';
+import { AppendedLines, readAppendedLines } from '../../config/read';
 import { UsageTurn } from './types';
-
-// Ceiling on one pass over one file. A log that grew by more than this is finished on the next pass
-// rather than pulled into memory whole.
-const MAX_CHUNK_BYTES: number = 8 * 1024 * 1024;
 
 export interface FileUsage {
   // Byte offset just past the last whole line consumed. Always a line boundary, which is why the
@@ -20,52 +15,6 @@ export interface FileUsage {
 }
 
 export type UsageCache = Map<string, FileUsage>;
-
-export interface AppendedLines {
-  // Whole lines only. The half line at the end of the window is left for the next pass.
-  lines: string[];
-  // Byte offset just past the last one, to hand back on the next read.
-  offset: number;
-  // The file is shorter than the offset asked for, so it was replaced rather than appended to and
-  // whatever the caller accumulated from the old one describes a file that no longer exists.
-  rewound: boolean;
-}
-
-interface ReadAppendedLinesArgs {
-  path: string;
-  offset: number;
-}
-
-// The bytes since `offset`, cut into whole lines. Both readers over these logs need exactly this and
-// differ only in what they keep — turns here, a per-session fold in `history/`. Undefined means the
-// file couldn't be read at all; a session directory can be deleted while the panel is open.
-export const readAppendedLines = async ({
-  path,
-  offset
-}: ReadAppendedLinesArgs): Promise<AppendedLines | undefined> => {
-  const read: Result<FileSince, ConfigError> = await readFileSince({
-    path,
-    offset,
-    maxBytes: MAX_CHUNK_BYTES
-  });
-
-  if (!read.ok) return undefined;
-
-  const from: number = read.value.rewound ? 0 : offset;
-
-  // The file is being appended to while it's read, so the last line in the window is often half a
-  // line. Consuming up to the final newline leaves it for the next pass, whole.
-  const end: number = read.value.text.lastIndexOf('\n');
-  if (end < 0) return { lines: [], offset: from, rewound: read.value.rewound };
-
-  const consumed: string = read.value.text.slice(0, end + 1);
-
-  return {
-    lines: consumed.split('\n'),
-    offset: from + Buffer.byteLength(consumed, 'utf8'),
-    rewound: read.value.rewound
-  };
-};
 
 interface ReadNewTurnsArgs {
   path: string;
