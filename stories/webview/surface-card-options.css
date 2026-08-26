@@ -1,0 +1,89 @@
+/* Five ways to paint the landing card, for picking between in Storybook. Story-local on purpose:
+   nothing here is imported by src/, so none of it reaches the extension bundle. Once one wins it
+   moves into src/webview/styles.css as the single `.surface-card` rule and this file is deleted.
+
+   Each option is a wrapper class, so `.card-opt-b .surface-card` (0,2,0) out-specifies the shipped
+   `.surface-card` (0,1,0) without the component knowing anything about it.
+
+   Every option keeps the same recipe the current card uses — an accent tint over a ground, an
+   accent border at partial strength, and a hover that deepens the tint. What changes between them
+   is which ground and how much tint. The glow is untouched by all five. */
+
+/* ---- A · Current -------------------------------------------------------------------------
+   What ships today, here so the others have something to sit next to. 8% of the accent into the
+   page's own background, which is why the card reads as the page rather than as a thing on it. */
+.card-opt-a .surface-card {
+  border-color: color-mix(in srgb, var(--surface-accent) 35%, transparent);
+  background: color-mix(in srgb, var(--surface-accent) 8%, var(--background));
+}
+
+.card-opt-a .surface-card:hover {
+  background: color-mix(in srgb, var(--surface-accent) 16%, var(--background));
+}
+
+/* ---- B · Card ground ---------------------------------------------------------------------
+   The same 8-ish tint, over --card instead of --background. That token is already the panel's
+   "raised" ground and it moves the right way in both palettes on its own: a step lighter than the
+   page in dark, a step darker in light. So the card lifts without the accent having to do it.
+
+   oklab rather than srgb for the mix — an sRGB mix toward a near-black loses the hue and the tint
+   goes grey before it goes light. */
+.card-opt-b .surface-card {
+  border-color: color-mix(in srgb, var(--surface-accent) 35%, transparent);
+  background: color-mix(in oklab, var(--surface-accent) 10%, var(--card));
+}
+
+.card-opt-b .surface-card:hover {
+  background: color-mix(in oklab, var(--surface-accent) 18%, var(--card));
+}
+
+/* ---- C · Deeper wash ---------------------------------------------------------------------
+   Today's ground, more of the accent. Doing the whole job with the tint means the card carries its
+   surface's colour rather than sitting a step above the page — and it corrects in both directions
+   at once, since more accent is lighter against the dark palette and darker against the light one.
+   The border comes up with it so the edge doesn't get overtaken by the fill. */
+.card-opt-c .surface-card {
+  border-color: color-mix(in srgb, var(--surface-accent) 50%, transparent);
+  background: color-mix(in oklab, var(--surface-accent) 18%, var(--background));
+}
+
+.card-opt-c .surface-card:hover {
+  background: color-mix(in oklab, var(--surface-accent) 28%, var(--background));
+}
+
+/* ---- D · Card ground, deeper wash --------------------------------------------------------
+   B and C together: the raised ground *and* the stronger tint. The most separated of the five, and
+   the one to look at if B still reads flat — five of these are on screen at once, so the question
+   is whether the grid gains colour or gains noise. */
+.card-opt-d .surface-card {
+  border-color: color-mix(in srgb, var(--surface-accent) 45%, transparent);
+  background: color-mix(in oklab, var(--surface-accent) 16%, var(--card));
+}
+
+.card-opt-d .surface-card:hover {
+  background: color-mix(in oklab, var(--surface-accent) 26%, var(--card));
+}
+
+/* ---- E · Directional ---------------------------------------------------------------------
+   B's ground with the tint raked across it, strongest at the top-left, so the card has a light
+   direction for the glow to travel against instead of a flat field.
+
+   One cost worth knowing before picking it: the card's `transition-colors` covers background-color
+   and a gradient is background-image, so this is the one option whose hover snaps instead of
+   easing. Fixing that means naming the property in styles.css. */
+.card-opt-e .surface-card {
+  border-color: color-mix(in srgb, var(--surface-accent) 40%, transparent);
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--surface-accent) 20%, var(--card)),
+    color-mix(in oklab, var(--surface-accent) 5%, var(--card))
+  );
+}
+
+.card-opt-e .surface-card:hover {
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--surface-accent) 30%, var(--card)),
+    color-mix(in oklab, var(--surface-accent) 10%, var(--card))
+  );
+}
