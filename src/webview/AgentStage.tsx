@@ -25,15 +25,16 @@ export const AgentStage = ({ agent, activity }: AgentStageProps) => {
 
   return (
     <Tooltip label={stageNote(stage)} wrap>
-      {/* The shimmer only while the agent is working. The running dot is otherwise the one thing
-          that animates on this surface, and a second perpetual animation on every row of a list you
-          leave open is noise rather than a signal. */}
+      {/* The sweep only while the agent is working — an idle row keeps the label and drops to
+          muted. The running dot is otherwise the one thing that animates on this surface, and a
+          second perpetual animation on every row of a list you leave open is noise rather than a
+          signal. */}
       <span
         className={cn(
-          // Heavier than the row's other small text, and heavier than the title beside it: the
-          // shimmer is a gradient clipped to the glyphs, so a thin face leaves it almost nothing to
-          // paint. Capped and clipped, since a stage name is the reader's own and can run to a
-          // sentence — the title should keep its room before this does.
+          // Heavier than the row's other small text: the sweep is a gradient clipped to the
+          // glyphs, so a thin face leaves it almost nothing to paint. Capped and clipped, since a
+          // stage name is the reader's own and can run to a sentence — the title should keep its
+          // room before this does.
           'max-w-36 truncate text-xs font-semibold',
           activity === 'idle' ? 'text-muted-foreground' : 'stage-shimmer'
         )}
