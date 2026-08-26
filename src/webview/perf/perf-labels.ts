@@ -35,8 +35,3 @@ export const READ_KIND_LABELS: Record<PerfReadKind, string> = {
   dir: 'listed',
   db: 'query'
 };
-
-// Why the bars aren't shares of the total. `paint` contains the host's own stages and the three
-// under the config read run at the same time as each other, so a percentage would add up to more
-// than the launch.
-export const BAR_NOTE: string = 'Bars compare stages to the longest one, not to the total.';
