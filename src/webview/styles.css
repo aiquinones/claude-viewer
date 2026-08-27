@@ -89,10 +89,15 @@ body {
   --activity-idle: var(--vscode-descriptionForeground, #8b929c);
 
   /* Which CLI a session belongs to. All three are deliberately quiet — the mark identifies a row, it
-     doesn't rank it — so they sit near the muted foreground rather than at full chart saturation. */
+     doesn't rank it — so they sit near the muted foreground rather than at full chart saturation.
+
+     Codex is the odd one out because its brand is: the mark ships black on white and white on
+     black, with no hue of its own to be quiet about, so a blue that isn't in the logo says less
+     than the page's own foreground does. Not a literal white — that is only half the rule, and the
+     light palette paints a near-white page. */
   --agent-claude: color-mix(in srgb, var(--chart-orange) 70%, var(--muted-foreground));
   --agent-copilot: color-mix(in srgb, var(--chart-purple) 70%, var(--muted-foreground));
-  --agent-codex: color-mix(in srgb, var(--chart-blue) 70%, var(--muted-foreground));
+  --agent-codex: var(--foreground);
 
   /* Spotlight: the characters a query matched, and the scrim behind the box. Mixing the scrim out
      of the editor background darkens a dark theme and lightens a light one on its own. */
