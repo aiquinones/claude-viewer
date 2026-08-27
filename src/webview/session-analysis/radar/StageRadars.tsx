@@ -1,13 +1,12 @@
 import { useMemo } from 'react';
 import { Info, Tags } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SessionDetail, UsageMetric } from '../../../model/usage/types';
+import { SessionDetail } from '../../../model/usage/types';
 import { plural } from '../../format-size';
 import { HoverCard } from '../../HoverCard';
 import { useSetStageNames, useSettings } from '../../settings/SettingsContext';
-import { METRIC_LABEL } from '../../usage-format';
 import { ChartSection } from '../charts/ChartSection';
-import { formatValue } from '../session-format';
+import { formatCost } from '../session-format';
 import { invokedSkills, SessionStage, toStages } from '../stages';
 import { StageNamesDialog } from '../stage-names/StageNamesDialog';
 import { useStageNamesDialog } from '../stage-names/useStageNamesDialog';
@@ -15,6 +14,8 @@ import { StageRadar } from './StageRadar';
 import {
   ASSIGN_NAMES,
   CONTEXT_RADAR_TITLE,
+  COST_RADAR_TITLE,
+  COST_UNIT,
   formatGrowth,
   GROWTH_UNIT,
   NO_SKILLS,
@@ -25,13 +26,12 @@ import { UnsplitStages } from './UnsplitStages';
 
 interface StageRadarsProps {
   detail: SessionDetail;
-  metric: UsageMetric;
 }
 
 // The session split at the loads of the skills the reader named, drawn twice: what each stage spent
 // and what each stage did to the context. Two wheels rather than two more curves — the stages are a
 // handful of named things being compared, and the curves above already own the sequence.
-export const StageRadars = ({ detail, metric }: StageRadarsProps) => {
+export const StageRadars = ({ detail }: StageRadarsProps) => {
   const names: Record<string, string> = useSettings().stages.names;
   const setStageNames = useSetStageNames();
   const { stageNamesOpenedAt, openStageNames, dismissStageNames } = useStageNamesDialog();
@@ -46,10 +46,9 @@ export const StageRadars = ({ detail, metric }: StageRadarsProps) => {
         turns: detail.turns,
         invocations: detail.invocations,
         contexts: detail.contexts,
-        metric,
         names
       }),
-    [detail, metric, names]
+    [detail, names]
   );
 
   // Saving writes the setting and closes. The labels move when the host posts the settings back,
@@ -81,11 +80,11 @@ export const StageRadars = ({ detail, metric }: StageRadarsProps) => {
         // wrap, since justification is per line.
         <div className="flex flex-wrap justify-center gap-3">
           <StageRadar
-            title={`${METRIC_LABEL[metric]} per stage`}
+            title={COST_RADAR_TITLE}
             stages={stages}
             read={(stage) => stage.value}
-            format={(value) => formatValue({ value, metric, tool: detail.tool })}
-            unit={METRIC_LABEL[metric].toLowerCase()}
+            format={(value) => formatCost({ value, tool: detail.tool })}
+            unit={COST_UNIT}
           />
           <StageRadar
             title={CONTEXT_RADAR_TITLE}

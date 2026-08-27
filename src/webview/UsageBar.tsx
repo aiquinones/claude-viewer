@@ -1,12 +1,11 @@
 import { SkillEntry } from '../model/types';
-import { UsageMetric, UsageSlice } from '../model/usage/types';
+import { UsageSlice } from '../model/usage/types';
 import { HoverCard, HoverCardBody, HoverCardTitle } from './HoverCard';
 import { SkillHoverCard } from './SkillHoverCard';
 import { formatShare, formatSliceValue, sliceLabel } from './usage-format';
 
 interface UsageBarProps {
   slice: UsageSlice;
-  metric: UsageMetric;
   // Of the largest slice's share, so the longest bar fills the row. Shares are read off the number
   // beside the bar; the bar itself is for comparing rows to each other.
   scale: number;
@@ -19,7 +18,7 @@ interface UsageBarProps {
 // One skill's share of the window. The bar is drawn in the surface's accent, except for the turns
 // that ran with no skill — those are the baseline everything else is measured against, not a
 // participant.
-export const UsageBar = ({ slice, metric, scale, skill, onOpenSkill }: UsageBarProps) => {
+export const UsageBar = ({ slice, scale, skill, onOpenSkill }: UsageBarProps) => {
   const attributed: boolean = slice.skill !== undefined;
   const inferred: boolean = slice.sources.includes('inferred');
 
@@ -29,7 +28,7 @@ export const UsageBar = ({ slice, metric, scale, skill, onOpenSkill }: UsageBarP
         <Label slice={slice} attributed={attributed} skill={skill} onOpenSkill={onOpenSkill} />
         {inferred && <InferredTag mixed={slice.sources.length > 1} />}
         <span className="ml-auto shrink-0 text-sm tabular-nums">
-          {formatSliceValue(slice, metric)}
+          {formatSliceValue(slice)}
         </span>
         <span className="w-11 shrink-0 text-right text-sm tabular-nums text-muted-foreground">
           {formatShare(slice.fraction)}

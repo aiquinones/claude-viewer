@@ -2,14 +2,13 @@ import { createContext, ReactNode, useCallback, useContext } from 'react';
 import { estimateTokens, TokenEstimator } from '../../model/estimate-tokens';
 import { DEFAULT_SETTINGS, SettingsSection, ViewerSettings } from '../../model/settings/settings';
 import { ThemeMode } from '../../model/settings/theme';
-import { UsageMetric, UsageScope } from '../../model/usage/types';
+import { UsageScope } from '../../model/usage/types';
 
-// The usage surface's toggles write settings back. Every other setting here is read-only to the
-// panel and changed in the Settings UI; these two are controls on the surface itself, because
-// which number you're looking at is part of reading it.
+// The usage surface's scope toggle writes its setting back. Every other setting here is read-only
+// to the panel and changed in the Settings UI; this one is a control on the surface itself, because
+// which sessions you're counting is part of reading it.
 export interface UsageSettingsChange {
-  metric?: UsageMetric;
-  scope?: UsageScope;
+  scope: UsageScope;
 }
 
 // Everything about settings the webview has: the values, and the ways to change them. One context

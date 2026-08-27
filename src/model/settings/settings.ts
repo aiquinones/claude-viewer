@@ -4,7 +4,7 @@
 import { z } from 'zod';
 import { TOKEN_ESTIMATORS, TokenEstimator } from '../estimate-tokens';
 import { DEFAULT_THEME_MODE, THEME_MODES, ThemeMode } from './theme';
-import { USAGE_METRICS, USAGE_SCOPES, UsageMetric, UsageScope } from '../usage/types';
+import { USAGE_SCOPES, UsageScope } from '../usage/types';
 
 // Which part of these settings a card's CTA opens the Settings UI on. The host turns one of these
 // into the query it filters by, so a section that isn't listed here can't be asked for.
@@ -69,10 +69,9 @@ export interface Budgets {
   skills: SkillBudgets;
 }
 
-// What the usage surface reads. Two flat keys rather than one object: `inspect()` reports which
-// layer set a *key*, so an object would only ever be able to say the whole thing came from the user.
+// What the usage surface reads. A flat key rather than an object: `inspect()` reports which layer
+// set a *key*, so an object would only ever be able to say the whole thing came from the user.
 export interface UsageSettings {
-  metric: SettingValue<UsageMetric>;
   scope: SettingValue<UsageScope>;
 }
 
@@ -125,10 +124,8 @@ export interface ViewerSettings {
 export const DEFAULT_DESCRIPTION_BUDGET: number = 100;
 export const DEFAULT_CONTENT_BUDGET: number = 2000;
 
-// Output tokens because it's the one number both CLIs measure and the one Claude Code's own /usage
-// reports, so the panel and the CLI reconcile. Every session because usage limits are account-wide,
-// which is the question this surface answers even though every other surface here is per workspace.
-export const DEFAULT_USAGE_METRIC: UsageMetric = 'output-tokens';
+// Every session, because usage limits are account-wide — which is the question this surface answers
+// even though every other surface here is per workspace.
 export const DEFAULT_USAGE_SCOPE: UsageScope = 'all';
 
 // Where a conversation starts being long enough to matter, and where it's long enough to stop
@@ -161,7 +158,6 @@ export const DEFAULT_SETTINGS: ViewerSettings = {
     }
   },
   usage: {
-    metric: { value: DEFAULT_USAGE_METRIC, source: 'default' },
     scope: { value: DEFAULT_USAGE_SCOPE, source: 'default' }
   },
   context: {
@@ -222,12 +218,11 @@ export const parseContextWindows = (raw: unknown): Record<string, number> => {
   return windows;
 };
 
-// A settings.json that names a metric this version doesn't have falls through to the next layer
+// A settings.json that names a value this version doesn't have falls through to the next layer
 // rather than to the default in place, so the source a card prints always names the layer whose
 // value is on screen.
 const estimatorSchema = z.enum(TOKEN_ESTIMATORS);
 const themeModeSchema = z.enum(THEME_MODES);
-const metricSchema = z.enum(USAGE_METRICS);
 const scopeSchema = z.enum(USAGE_SCOPES);
 
 export const parseTokenEstimator = (raw: unknown): TokenEstimator | undefined => {
@@ -237,11 +232,6 @@ export const parseTokenEstimator = (raw: unknown): TokenEstimator | undefined =>
 
 export const parseThemeMode = (raw: unknown): ThemeMode | undefined => {
   const parsed = themeModeSchema.safeParse(raw);
-  return parsed.success ? parsed.data : undefined;
-};
-
-export const parseUsageMetric = (raw: unknown): UsageMetric | undefined => {
-  const parsed = metricSchema.safeParse(raw);
   return parsed.success ? parsed.data : undefined;
 };
 

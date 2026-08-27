@@ -14,7 +14,6 @@ import {
   SessionDetail,
   SessionRef,
   UsageHistory,
-  UsageMetric,
   UsageReport,
   UsageScope
 } from '../model/usage/types';
@@ -111,9 +110,9 @@ export const useSnapshot = () => {
   const openSettings = (section: SettingsSection): void =>
     vscode.postMessage({ type: 'openSettings', section });
 
-  // The usage surface's toggles. The host writes the setting and posts the whole settings object
-  // back, so nothing here guesses at what it wrote.
-  const changeUsage = (change: { metric?: UsageMetric; scope?: UsageScope }): void =>
+  // The usage surface's scope toggle. The host writes the setting and posts the whole settings
+  // object back, so nothing here guesses at what it wrote.
+  const changeUsage = (change: { scope: UsageScope }): void =>
     vscode.postMessage({ type: 'setUsage', ...change });
 
   // The estimator dialog's Apply. Same deal as the usage toggles: the host writes it and posts the

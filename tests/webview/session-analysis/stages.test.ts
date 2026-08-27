@@ -14,20 +14,23 @@ import {
 
 interface TurnArgs {
   at: number;
-  output?: number;
+  // What the turn cost, in the unit `turnValue` reads off a Copilot turn.
+  cost?: number;
 }
 
-// Output tokens only: the metric these tests read is `output-tokens`, so the turn's other counters
-// have nothing to say about the sums being asserted.
-const turn = ({ at, output = 0 }: TurnArgs): UsageTurn => ({
+// Copilot turns, because Copilot records what a turn cost and Claude's is derived from the rate
+// card. What's under test is where the cuts fall, so the sums want to be exact integers the test
+// writes rather than dollars that move when `pricing.ts` is next updated.
+const turn = ({ at, cost = 0 }: TurnArgs): UsageTurn => ({
   id: `req_${at}`,
   at,
-  tool: 'claude',
+  tool: 'copilot',
   sessionId: 'session',
   cwd: '/repo',
   source: 'read',
   model: 'claude-opus-5',
-  tokens: { ...EMPTY_TOKENS, output }
+  tokens: EMPTY_TOKENS,
+  nanoAiu: cost
 });
 
 interface LoadArgs {
@@ -56,7 +59,7 @@ const named = (...skills: string[]): Record<string, string> =>
   Object.fromEntries(skills.map((skill) => [skill, skill.toUpperCase()]));
 
 const stagesOf = ({ turns = [], invocations = [], contexts = [], names = {} }: StagesArgs) =>
-  toStages({ turns, invocations, contexts, metric: 'output-tokens', names });
+  toStages({ turns, invocations, contexts, names });
 
 describe('toStages', () => {
   it('runs a stage from its skill load to the next one', () => {
@@ -64,10 +67,10 @@ describe('toStages', () => {
       invocations: [load({ skill: 'design', at: 10 }), load({ skill: 'commit', at: 30 })],
       names: named('design', 'commit'),
       turns: [
-        turn({ at: 10, output: 100 }),
-        turn({ at: 20, output: 200 }),
-        turn({ at: 30, output: 400 }),
-        turn({ at: 40, output: 800 })
+        turn({ at: 10, cost: 100 }),
+        turn({ at: 20, cost: 200 }),
+        turn({ at: 30, cost: 400 }),
+        turn({ at: 40, cost: 800 })
       ]
     });
 
@@ -83,7 +86,7 @@ describe('toStages', () => {
     const stages = stagesOf({
       invocations: [load({ skill: 'design', at: 50 })],
       names: named('design'),
-      turns: [turn({ at: 10, output: 999 }), turn({ at: 50, output: 7 })]
+      turns: [turn({ at: 10, cost: 999 }), turn({ at: 50, cost: 7 })]
     });
 
     expect(stages).toHaveLength(1);
@@ -91,7 +94,7 @@ describe('toStages', () => {
   });
 
   it('has no stages at all when the session loaded no skills', () => {
-    expect(stagesOf({ turns: [turn({ at: 1, output: 500 })] })).toEqual([]);
+    expect(stagesOf({ turns: [turn({ at: 1, cost: 500 })] })).toEqual([]);
   });
 
   // The state the section draws a card for rather than two empty wheels. Skills ran, so there is a
@@ -99,7 +102,7 @@ describe('toStages', () => {
   it('has no stages while none of the skills that ran is named', () => {
     const stages = stagesOf({
       invocations: [load({ skill: 'design', at: 10 }), load({ skill: 'commit', at: 30 })],
-      turns: [turn({ at: 10, output: 100 }), turn({ at: 30, output: 200 })]
+      turns: [turn({ at: 10, cost: 100 }), turn({ at: 30, cost: 200 })]
     });
 
     expect(stages).toEqual([]);
@@ -116,10 +119,10 @@ describe('toStages', () => {
       ],
       names: named('dev-feature'),
       turns: [
-        turn({ at: 10, output: 1 }),
-        turn({ at: 20, output: 2 }),
-        turn({ at: 30, output: 4 }),
-        turn({ at: 40, output: 8 })
+        turn({ at: 10, cost: 1 }),
+        turn({ at: 20, cost: 2 }),
+        turn({ at: 30, cost: 4 }),
+        turn({ at: 40, cost: 8 })
       ]
     });
 
@@ -138,7 +141,7 @@ describe('toStages', () => {
         load({ skill: 'dev-feature', at: 30 })
       ],
       names: named('dev-feature'),
-      turns: [turn({ at: 10, output: 5 }), turn({ at: 30, output: 5 })]
+      turns: [turn({ at: 10, cost: 5 }), turn({ at: 30, cost: 5 })]
     });
 
     expect(stages).toHaveLength(1);
@@ -167,7 +170,7 @@ describe('toStages', () => {
         load({ skill: 'commit', at: 40 })
       ],
       names: named('dev-feature', 'commit'),
-      turns: [turn({ at: 20, output: 100 }), turn({ at: 40, output: 60 })]
+      turns: [turn({ at: 20, cost: 100 }), turn({ at: 40, cost: 60 })]
     });
 
     expect(stages.map((stage) => stage.skill)).toEqual(['dev-feature', 'commit']);
@@ -185,7 +188,7 @@ describe('toStages', () => {
         load({ skill: 'commit', at: 30 })
       ],
       names: named('commit', 'review'),
-      turns: [turn({ at: 10, output: 5 }), turn({ at: 20, output: 50 }), turn({ at: 30, output: 7 })]
+      turns: [turn({ at: 10, cost: 5 }), turn({ at: 20, cost: 50 }), turn({ at: 30, cost: 7 })]
     });
 
     expect(stages.map((stage) => stage.skill)).toEqual(['commit', 'review']);
@@ -264,7 +267,7 @@ describe('toStages', () => {
     const stages = stagesOf({
       invocations: [load({ skill: 'commit', at: 30 }), load({ skill: 'design', at: 10 })],
       names: named('commit', 'design'),
-      turns: [turn({ at: 40, output: 9 }), turn({ at: 15, output: 4 })]
+      turns: [turn({ at: 40, cost: 9 }), turn({ at: 15, cost: 4 })]
     });
 
     expect(stages.map((stage) => [stage.skill, stage.value])).toEqual([

@@ -5,19 +5,20 @@ import { DEFAULT_SETTINGS } from '@src/model/settings/settings';
 import { contextGuides, contextMax } from '@src/webview/session-analysis/charts/context-guides';
 import {
   peakOf,
+  SeriesPoint,
   toContextSeries,
-  toLoadPoints,
-  toMetricSeries
+  toCostSeries,
+  toLoadPoints
 } from '@src/webview/session-analysis/charts/series';
 import { SessionChart } from '@src/webview/session-analysis/charts/SessionChart';
 import { formatContextTokens } from '@src/webview/format-size';
+import { formatCost } from '@src/webview/session-analysis/session-format';
 import { surfaceAccent } from '@src/webview/surfaces';
-import { formatUsageTokens } from '@src/webview/usage-format';
 import { claudeDetail, copilotDetail } from '../../session-detail-fixtures';
 
 // Run through the real builders rather than written out by hand, so the curve, the dots and the
 // bubble agree with each other the way they do in the panel.
-const points = toMetricSeries({ turns: claudeDetail.turns, metric: 'output-tokens' });
+const points = toCostSeries(claudeDetail.turns);
 
 const loads = toLoadPoints({ points, invocations: claudeDetail.invocations });
 
@@ -28,8 +29,8 @@ const meta: Meta<typeof SessionChart> = {
     points,
     loads,
     max: peakOf(points),
-    unit: 'output tokens',
-    format: formatUsageTokens,
+    unit: 'cost',
+    format: (value: number) => formatCost({ value, tool: 'claude' }),
     empty: 'No requests recorded for this session.'
   },
   decorators: [
@@ -98,11 +99,13 @@ export const WithGuides: Story = {
 // session.
 export const CopilotDoubleLoad: Story = {
   args: (() => {
-    const series = toMetricSeries({ turns: copilotDetail.turns, metric: 'output-tokens' });
+    const series = toCostSeries(copilotDetail.turns);
     return {
       points: series,
       loads: toLoadPoints({ points: series, invocations: copilotDetail.invocations }),
-      max: peakOf(series)
+      max: peakOf(series),
+      unit: 'cost',
+      format: (value: number) => formatCost({ value, tool: 'copilot' })
     };
   })()
 };
@@ -115,8 +118,9 @@ export const Empty: Story = { args: { points: [], loads: [], max: 0 } };
 // above it and opens below the curve instead.
 export const CrowdedLoad: Story = {
   args: (() => {
-    const tallest = points.reduce(
-      (best, point, index) => (point.value > points[best].value ? index : best),
+    const tallest: number = points.reduce(
+      (best: number, point: SeriesPoint, index: number) =>
+        point.value > points[best].value ? index : best,
       0
     );
     const names = ['dev-feature', 'create-pr', 'claude-api', 'design', 'post-mortem', 'publish'];

@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { CSSProperties } from 'react';
 import { SessionDetail } from '@src/model/usage/types';
-import { formatUsageTokens } from '@src/webview/usage-format';
 import { StageRadar } from '@src/webview/session-analysis/radar/StageRadar';
+import { formatCost } from '@src/webview/session-analysis/session-format';
 import { formatGrowth } from '@src/webview/session-analysis/radar/stage-labels';
 import { SessionStage, toStages } from '@src/webview/session-analysis/stages';
 import { surfaceAccent } from '@src/webview/surfaces';
@@ -21,7 +21,6 @@ const stagesOf = (detail: SessionDetail, names: Record<string, string> = stageNa
     turns: detail.turns,
     invocations: detail.invocations,
     contexts: detail.contexts,
-    metric: 'output-tokens',
     names
   });
 
@@ -29,11 +28,11 @@ const meta: Meta<typeof StageRadar> = {
   title: 'Usage/StageRadar',
   component: StageRadar,
   args: {
-    title: 'Output tokens per stage',
+    title: 'Cost per stage',
     stages: stagesOf(claudeDetail),
     read: (stage: SessionStage) => stage.value,
-    format: formatUsageTokens,
-    unit: 'output tokens'
+    format: (value: number) => formatCost({ value, tool: 'claude' }),
+    unit: 'cost'
   },
   decorators: [
     (Story) => (

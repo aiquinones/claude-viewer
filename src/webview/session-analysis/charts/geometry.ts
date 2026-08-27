@@ -30,7 +30,7 @@ export interface Scale {
 interface BuildScaleArgs {
   count: number;
   // What the top of the plot means. The caller's, because the context chart has to keep its warn
-  // line on the chart where the metric chart just uses its own peak.
+  // line on the chart where the cost chart just uses its own peak.
   max: number;
   box: PlotBox;
 }

@@ -36,7 +36,7 @@ interface SessionChartProps {
   points: SeriesPoint[];
   // Where a skill's body entered the context, by point index.
   loads: LoadPoint[];
-  // Horizontal rules across the plot. The context chart's two thresholds; the metric chart has none.
+  // Horizontal rules across the plot. The context chart's two thresholds; the cost chart has none.
   guides?: ChartGuide[];
   // What the top of the plot means. The caller's, because the two charts scale on different rules.
   max: number;

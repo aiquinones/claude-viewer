@@ -30,8 +30,8 @@ interface AggregateUsageArgs {
   workspaceRoot: string | undefined;
 }
 
-// The metric isn't an argument. Every figure is computed, and the view prints whichever the setting
-// selects — which also means flipping the metric doesn't reshuffle the list.
+// Every figure is computed here — tokens, dollars and AIU — and the view prints the ones it draws.
+// The list's order is output tokens, so it doesn't move with what's being printed.
 export const aggregateUsage = ({
   turns,
   window,
@@ -74,7 +74,7 @@ export const summarizeTurns = ({ turns: inWindow }: SummarizeTurnsArgs): UsageSu
         ...(skill === NO_SKILL ? {} : { skill }),
         ...totals,
         sources: sourcesIn(group),
-        // Output tokens, whatever the metric. It's the one quantity both CLIs report in the same
+        // Output tokens rather than cost. It's the one quantity both CLIs report in the same
         // unit — a share of a figure that's dollars on one row and AIU on the next means nothing.
         fraction: total.outputTokens === 0 ? 0 : totals.outputTokens / total.outputTokens
       };

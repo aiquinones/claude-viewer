@@ -1,26 +1,24 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ReactNode } from 'react';
 import { DEFAULT_SETTINGS, SettingSource, ViewerSettings } from '@src/model/settings/settings';
-import { UsageMetric, UsageScope } from '@src/model/usage/types';
+import { UsageScope } from '@src/model/usage/types';
 import { SettingsProvider } from '@src/webview/settings/SettingsContext';
 import { UsageMenu } from '@src/webview/usage-menu/UsageMenu';
 
 interface WithUsageArgs {
-  metric?: UsageMetric;
   scope?: UsageScope;
-  // Which layer set whichever of the two a story passes. One source for both: the menu prints the
-  // line per setting, and a story is showing the line rather than the layering.
+  // Which layer set it. The menu prints the line under the group, and a story is showing that line
+  // rather than the layering behind it.
   source?: SettingSource;
   children: ReactNode;
 }
 
 // The menu reads the settings rather than props, so a story sets them the way the host does.
-const WithUsage = ({ metric, scope, source = 'user', children }: WithUsageArgs) => {
+const WithUsage = ({ scope, source = 'user', children }: WithUsageArgs) => {
   const settings: ViewerSettings = {
     ...DEFAULT_SETTINGS,
     usage: {
       ...DEFAULT_SETTINGS.usage,
-      ...(metric ? { metric: { value: metric, source } } : {}),
       ...(scope ? { scope: { value: scope, source } } : {})
     }
   };
@@ -28,11 +26,10 @@ const WithUsage = ({ metric, scope, source = 'user', children }: WithUsageArgs) 
   return <SettingsProvider settings={settings}>{children}</SettingsProvider>;
 };
 
-// Every setting the usage surface reads, in one menu: which number the figures are, and which
-// sessions they count. Click to open — a hover menu closes under the
-// pointer on the way to an item. It opens down and to the left, since on the surface it sits at the
-// top-right of the header. The decorator gives it that corner so the menu is drawn where the surface
-// draws it.
+// The one setting the usage surface reads: which sessions the figures count. Click to open — a
+// hover menu closes under the pointer on the way to an item. It opens down and to the left, since on
+// the surface it sits at the top-right of the header. The decorator gives it that corner so the menu
+// is drawn where the surface draws it.
 const meta: Meta<typeof UsageMenu> = {
   title: 'Usage/UsageMenu',
   component: UsageMenu,
@@ -49,7 +46,7 @@ export default meta;
 
 type Story = StoryObj<typeof UsageMenu>;
 
-// The shipped values: output tokens, every session on the machine, and every billed token.
+// The shipped value: every session on the machine, which is what usage limits are counted against.
 export const Default: Story = {
   render: () => (
     <WithUsage source="default">
@@ -58,11 +55,11 @@ export const Default: Story = {
   )
 };
 
-// Both moved off their defaults, and each group says the value is yours rather than the shipped
-// one — the same provenance line the budgets card prints, for the same reason.
+// Moved off the default, and the group says the value is yours rather than the shipped one — the
+// same provenance line the budgets card prints, for the same reason.
 export const Customized: Story = {
   render: () => (
-    <WithUsage metric="cost" scope="workspace">
+    <WithUsage scope="workspace">
       <UsageMenu />
     </WithUsage>
   )
@@ -81,7 +78,7 @@ export const SetForWorkspace: Story = {
 export const NarrowPanel: Story = {
   globals: { viewport: { value: 'narrowPanel' } },
   render: () => (
-    <WithUsage metric="cost">
+    <WithUsage scope="workspace">
       <UsageMenu />
     </WithUsage>
   )

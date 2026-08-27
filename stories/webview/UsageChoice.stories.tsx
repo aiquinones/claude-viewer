@@ -1,21 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { UsageMetric } from '@src/model/usage/types';
+import { UsageWindow } from '@src/model/usage/types';
 import { UsageChoice } from '@src/webview/UsageChoice';
-import { ChoiceOption } from '@src/webview/menu/choice-option';
-
-const METRICS: readonly ChoiceOption<UsageMetric>[] = [
-  {
-    id: 'output-tokens',
-    label: 'Tokens',
-    hint: 'Output tokens — measured by both CLIs.'
-  },
-  {
-    id: 'cost',
-    label: 'Cost',
-    hint: 'Dollars for Claude Code, AIU for Copilot CLI.'
-  }
-];
+import { WINDOW_OPTIONS } from '@src/webview/usage-options';
 
 const meta: Meta<typeof UsageChoice> = {
   title: 'Usage/UsageChoice',
@@ -26,12 +13,12 @@ export default meta;
 
 type Story = StoryObj<typeof UsageChoice>;
 
-// Live, because what this component is is the moving selection — a static one says nothing about
-// whether picking the other option reads as a change.
-export const Metric: Story = {
+// The one this component actually draws on the surface. Live, because what it is is the moving
+// selection — a static one says nothing about whether picking the other option reads as a change.
+export const Window: Story = {
   render: () => {
-    const [value, setValue] = useState<UsageMetric>('output-tokens');
-    return <UsageChoice label="Metric" options={METRICS} value={value} onChange={setValue} />;
+    const [value, setValue] = useState<UsageWindow>('day');
+    return <UsageChoice label="Window" options={WINDOW_OPTIONS} value={value} onChange={setValue} />;
   }
 };
 
