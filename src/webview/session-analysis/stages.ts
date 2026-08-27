@@ -3,12 +3,7 @@
 // that was running carries straight through it. So the cuts are read off the log and which cuts
 // count is the reader's. Pure — both numbers come off turns and contexts the host already sent.
 
-import {
-  ContextPoint,
-  SkillInvocation,
-  UsageMetric,
-  UsageTurn
-} from '../../model/usage/types';
+import { ContextPoint, SkillInvocation, UsageTurn } from '../../model/usage/types';
 import { stageLabel } from '../stage-name';
 import { turnValue } from './charts/series';
 
@@ -19,7 +14,7 @@ export interface SessionStage {
   skill: string;
   // What the reader named it. Never the skill's own name — an unnamed skill opens no stage.
   label: string;
-  // The metric summed over the turns inside it.
+  // What the turns inside it cost, summed.
   value: number;
   // What the context gained across it. Negative where something compacted mid-stage, which real
   // sessions do — the chart clamps it, this doesn't.
@@ -41,7 +36,6 @@ interface ToStagesArgs {
   turns: UsageTurn[];
   invocations: SkillInvocation[];
   contexts: ContextPoint[];
-  metric: UsageMetric;
   // The stage names, keyed by skill. A skill in here opens a stage; one that isn't, doesn't.
   names: Record<string, string>;
 }
@@ -50,13 +44,7 @@ interface ToStagesArgs {
 // least one skill. Turns before the first stage belong to no stage and are dropped — the session
 // was doing something, but nothing says what, and a bucket named for that would be a guess with a
 // label on it.
-export const toStages = ({
-  turns,
-  invocations,
-  contexts,
-  metric,
-  names
-}: ToStagesArgs): SessionStage[] => {
+export const toStages = ({ turns, invocations, contexts, names }: ToStagesArgs): SessionStage[] => {
   const bounds: Boundary[] = boundaries({ invocations, names });
   if (bounds.length === 0) return [];
 
@@ -76,7 +64,7 @@ export const toStages = ({
       skill: bounds[i].skill,
       // Non-empty by construction — `boundaries` already dropped the skills with no name.
       label: stageLabel({ skill: bounds[i].skill, names }) ?? bounds[i].skill,
-      value: inside.reduce((sum, turn) => sum + turnValue({ turn, metric }), 0),
+      value: inside.reduce((sum, turn) => sum + turnValue(turn), 0),
       growth: growthOver({ contexts: sortedContexts, start, end }),
       stages: 1,
       turns: inside.length,

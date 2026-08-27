@@ -126,8 +126,9 @@ const memoryDetail = ({ memory, estimate }: MemoryDetailArgs): string => {
   return `${plural(memory.memories.length, 'memory', 'memories')} · ~${formatTokens(tokens)} est. tokens`;
 };
 
-// The day's output tokens, which is the default metric and the one figure both CLIs measure. No
-// number at all until the scan lands — a zero would be a claim about a window nothing has read yet.
+// The day's output tokens — the one figure both CLIs measure, where the surface behind this card
+// reads cost in two units that don't add. No number at all until the scan lands: a zero would be a
+// claim about a window nothing has read yet.
 const usageDetail = (usage: UsageReport | undefined): string => {
   if (!usage) return 'Reading session logs…';
 

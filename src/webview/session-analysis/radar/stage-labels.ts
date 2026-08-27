@@ -15,6 +15,8 @@ export const ASSIGN_NAMES: string = 'Edit stages';
 
 export const SPLIT_SESSION: string = 'View how your session splits between stages';
 
+export const COST_RADAR_TITLE: string = 'Cost per stage';
+
 export const CONTEXT_RADAR_TITLE: string = 'Context growth';
 
 // Said where the session loaded no skills at all, which is most short sessions. Not an error, and
@@ -33,6 +35,7 @@ export const formatGrowth = (tokens: number): string =>
   `${tokens < 0 ? '−' : '+'}${formatContextTokens(Math.abs(tokens))}`;
 
 // What one value is, for the hover bubbles.
+export const COST_UNIT: string = 'cost';
 export const GROWTH_UNIT: string = 'context';
 
 // Said in the bubble where a stage gave the context back. The radar clamps it to the centre, so

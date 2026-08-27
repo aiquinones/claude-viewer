@@ -1,9 +1,9 @@
-// How a usage figure prints. Three units live on this surface — tokens, dollars and AIU — and only
-// the first is shared by both CLIs, so each one prints on its own terms and none of them is
-// converted into another.
+// How a usage figure prints. The surface reads cost, which is dollars on a Claude row and AIU on a
+// Copilot one — different units with no conversion between them, so each prints on its own terms and
+// neither is ever added to the other. Tokens still print inside the pricing card.
 
 import { UsdPart } from '../model/usage/pricing';
-import { UsageMetric, UsageSlice, UsageTotals } from '../model/usage/types';
+import { UsageSlice, UsageTotals } from '../model/usage/types';
 
 // A week of turns runs to millions, which `format-size`'s `k` alone can't say. Same idea though:
 // the digits dropped weren't carrying anything.
@@ -38,15 +38,9 @@ export const formatShare = (fraction: number): string => {
   return `${Math.round(percent)}%`;
 };
 
-export const METRIC_LABEL: Record<UsageMetric, string> = {
-  'output-tokens': 'Output tokens',
-  cost: 'Cost'
-};
-
-// What one slice reads as under the active metric. Cost is two units, so a slice showing both is a
-// slice fed by both CLIs — that's the only place they're printed together, and never added.
-export const formatSliceValue = (slice: UsageSlice, metric: UsageMetric): string =>
-  metric === 'output-tokens' ? formatUsageTokens(slice.outputTokens) : formatCost(slice);
+// What one slice costs. Two units, so a slice showing both is a slice fed by both CLIs — that's the
+// only place they're printed together, and never added.
+export const formatSliceValue = (slice: UsageSlice): string => formatCost(slice);
 
 const formatCost = (totals: UsageTotals): string => {
   const parts: string[] = [];
@@ -54,11 +48,6 @@ const formatCost = (totals: UsageTotals): string => {
   if (totals.nanoAiu > 0) parts.push(formatAiu(totals.nanoAiu));
   return parts.length === 0 ? '—' : parts.join(' + ');
 };
-
-// The one figure at the top. In cost mode the view prints a total per CLI instead of calling this,
-// so this only ever sums units that are actually the same.
-export const formatTotal = (totals: UsageTotals, metric: UsageMetric): string =>
-  metric === 'output-tokens' ? formatUsageTokens(totals.outputTokens) : formatCost(totals);
 
 // The name a slice draws. Turns with no skill are a real row, not a gap: leaving them out would
 // make the percentages look like a breakdown that doesn't add up.

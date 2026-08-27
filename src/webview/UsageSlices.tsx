@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { findSkillByName } from '../model/shadowing';
 import { SkillEntry } from '../model/types';
-import { UsageMetric, UsageSlice, UsageSummaryData } from '../model/usage/types';
+import { UsageSlice, UsageSummaryData } from '../model/usage/types';
 import { UsageBar } from './UsageBar';
 import { sliceLabel } from './usage-format';
 
@@ -9,7 +9,6 @@ interface UsageSlicesProps {
   // A window of the usage surface, or one session. The rows are the same rows either way — which
   // set of turns they came out of isn't something this has to know.
   summary: UsageSummaryData;
-  metric: UsageMetric;
   // What to say when nothing is in it. The sentence is the caller's: an empty window suggests a
   // wider one, an empty session says the session ran no skills, and neither is advice for the other.
   empty: ReactNode;
@@ -19,7 +18,7 @@ interface UsageSlicesProps {
 
 // What the turns cost, split by the skill that was running. Shared by the usage surface and the
 // session analysis page, so one session's breakdown and a week's read the same way.
-export const UsageSlices = ({ summary, metric, empty, skills, onOpenSkill }: UsageSlicesProps) => {
+export const UsageSlices = ({ summary, empty, skills, onOpenSkill }: UsageSlicesProps) => {
   if (summary.slices.length === 0) {
     return <p className="px-1 py-6 text-center text-sm text-muted-foreground">{empty}</p>;
   }
@@ -34,7 +33,6 @@ export const UsageSlices = ({ summary, metric, empty, skills, onOpenSkill }: Usa
         <UsageBar
           key={sliceLabel(slice)}
           slice={slice}
-          metric={metric}
           scale={scale}
           // The skill that would actually run under that name, which is the one the turn used —
           // a shadowed copy never reaches the system prompt, so it can't be what was invoked.

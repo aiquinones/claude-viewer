@@ -9,7 +9,6 @@ import {
   SessionDetail,
   SessionRef,
   UsageHistory,
-  UsageMetric,
   UsageReport,
   UsageScope
 } from './usage/types';
@@ -562,4 +561,4 @@ export type WebviewMessage =
   // dialog held a draft of it and a merge on the host would be a second opinion about which name
   // wins. A skill with no name in here keeps its own.
   | { type: 'setStageNames'; names: Record<string, string> }
-  | { type: 'setUsage'; metric?: UsageMetric; scope?: UsageScope };
+  | { type: 'setUsage'; scope: UsageScope };

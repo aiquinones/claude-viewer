@@ -1,26 +1,21 @@
 import { useMemo } from 'react';
-import { SessionDetail, UsageMetric } from '../../model/usage/types';
+import { SessionDetail } from '../../model/usage/types';
 import { plural } from '../format-size';
-import { METRIC_LABEL } from '../usage-format';
 import { ChartSection } from './charts/ChartSection';
 import { EMPTY_TURNS } from './charts/chart-labels';
-import { LoadPoint, peakOf, SeriesPoint, toLoadPoints, toMetricSeries } from './charts/series';
+import { LoadPoint, peakOf, SeriesPoint, toCostSeries, toLoadPoints } from './charts/series';
 import { SessionChart } from './charts/SessionChart';
-import { formatValue } from './session-format';
+import { formatCost } from './session-format';
 
-interface MetricSectionProps {
+interface CostSectionProps {
   detail: SessionDetail;
-  metric: UsageMetric;
 }
 
 // What each request cost, over the session's own turns rather than over a window. Scaled to its own
 // peak: there is no threshold at which a turn is too expensive, so the only thing worth reading off
 // the height is which requests were the big ones.
-export const MetricSection = ({ detail, metric }: MetricSectionProps) => {
-  const points: SeriesPoint[] = useMemo(
-    () => toMetricSeries({ turns: detail.turns, metric }),
-    [detail, metric]
-  );
+export const CostSection = ({ detail }: CostSectionProps) => {
+  const points: SeriesPoint[] = useMemo(() => toCostSeries(detail.turns), [detail]);
 
   const loads: LoadPoint[] = useMemo(
     () => toLoadPoints({ points, invocations: detail.invocations }),
@@ -29,9 +24,9 @@ export const MetricSection = ({ detail, metric }: MetricSectionProps) => {
 
   return (
     <ChartSection
-      // The metric, not "Turns" — the curve's height is what you came to read, and the count of
+      // "Cost", not "Turns" — the curve's height is what you came to read, and the count of
       // requests behind it is already the note beside this.
-      title={METRIC_LABEL[metric]}
+      title="Cost"
       note={
         <>
           {plural(points.length, 'request')}
@@ -43,8 +38,8 @@ export const MetricSection = ({ detail, metric }: MetricSectionProps) => {
         points={points}
         loads={loads}
         max={peakOf(points)}
-        unit={METRIC_LABEL[metric].toLowerCase()}
-        format={(value) => formatValue({ value, metric, tool: detail.tool })}
+        unit="cost"
+        format={(value) => formatCost({ value, tool: detail.tool })}
         empty={EMPTY_TURNS}
       />
     </ChartSection>

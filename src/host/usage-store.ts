@@ -51,8 +51,7 @@ export const refreshUsage = async (): Promise<UsageReport> => {
 };
 
 // The same numbers again from the turns already in hand — no disk. What a settings change costs:
-// the scope decides which turns count and the metric decides which figure is printed, and neither
-// is a question the disk has an opinion about.
+// the scope decides which turns count, which is not a question the disk has an opinion about.
 //
 // Undefined before the first scan. An empty report there would draw a total of zero, which is a
 // claim, where nothing drawn yet is the truth.

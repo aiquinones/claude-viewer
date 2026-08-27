@@ -19,7 +19,6 @@ const meta: Meta<typeof UsageBar> = {
   component: UsageBar,
   args: {
     slice: slice({}),
-    metric: 'output-tokens',
     scale: 1,
     skill: { ...plainSkill, name: 'dev-feature' },
     onOpenSkill: () => undefined
@@ -65,15 +64,14 @@ export const Mixed: Story = {
 // rest are measured against, not a participant.
 export const NoSkill: Story = {
   args: {
-    slice: slice({ skill: undefined, fraction: 0.55, outputTokens: 372_355 })
+    slice: slice({ skill: undefined, fraction: 0.55, usd: 16.4 })
   }
 };
 
-// Cost mode with both units in one row, which happens when a skill ran under both CLIs. They're
-// printed side by side and never added.
+// Both units in one row, which happens when a skill ran under both CLIs. They're printed side by
+// side and never added.
 export const CostBothUnits: Story = {
   args: {
-    metric: 'cost',
     slice: slice({
       sources: ['read', 'inferred'],
       usd: 11.99,

@@ -6,22 +6,19 @@ import {
   SessionDetail,
   SessionRef,
   SessionUsage,
-  UsageMetric,
   UsageSummaryData
 } from '../../model/usage/types';
 import { Loading } from '../loading/Loading';
 import { useSettings } from '../settings/SettingsContext';
-import { METRIC_LABEL } from '../usage-format';
-import { UsageCostNote } from '../UsageCostNote';
-import { UsageMenu, UsageMenuSection } from '../usage-menu/UsageMenu';
+import { UsageInfo } from '../UsageInfo';
 import { plural } from '../format-size';
 import { ContextSection } from './ContextSection';
-import { MetricSection } from './MetricSection';
+import { CostSection } from './CostSection';
 import { StageRadars } from './radar/StageRadars';
 import { SessionBreadcrumb } from './SessionBreadcrumb';
 import { SessionOrigin } from './session-target';
 import { estimatorReason, sessionEstimator } from './session-estimator';
-import { formatValue } from './session-format';
+import { formatCost } from './session-format';
 import { SkillLoadList } from './SkillLoadList';
 import { toSkillLoads, SkillLoad } from './skill-loads';
 import { useSessionDetail } from './useSessionDetail';
@@ -113,7 +110,6 @@ interface BodyProps {
 }
 
 const Body = ({ detail, session, skills, onOpenSkill }: BodyProps) => {
-  const { metric } = useSettings().usage;
   const setting: TokenEstimator = useSettings().tokens.estimator.value;
   // Component state, and it writes nothing. The estimator is a preference about every number in the
   // panel; turning it off here is a question about this page, and leaving puts it back.
@@ -135,15 +131,13 @@ const Body = ({ detail, session, skills, onOpenSkill }: BodyProps) => {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto overflow-x-clip">
       <div className="flex flex-col gap-5 px-4 py-4">
-        <Headline detail={detail} summary={summary} metric={metric.value} />
+        <Headline detail={detail} summary={summary} />
 
-        {metric.value === 'cost' && detail.tool === 'claude' && <UsageCostNote summary={summary} />}
-
-        <MetricSection detail={detail} metric={metric.value} />
+        <CostSection detail={detail} />
 
         <ContextSection detail={detail} />
 
-        <StageRadars detail={detail} metric={metric.value} />
+        <StageRadars detail={detail} />
 
         <SkillLoadList
           loads={loads}
@@ -161,33 +155,22 @@ const Body = ({ detail, session, skills, onOpenSkill }: BodyProps) => {
 interface HeadlineProps {
   detail: SessionDetail;
   summary: UsageSummaryData;
-  metric: UsageMetric;
 }
 
-// The session's own total, and the `...` beside it. Two settings rather than three: the scope is
-// meaningless for one session, and the Claude cost basis only means something on a Claude one.
-const Headline = ({ detail, summary, metric }: HeadlineProps) => (
-  <section className="flex items-start gap-3">
-    <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
-      <span className="text-2xl font-semibold tabular-nums">
-        {formatValue({
-          value: metric === 'output-tokens' ? summary.total.outputTokens : costOf(summary, detail),
-          metric,
-          tool: detail.tool
-        })}
-      </span>
-      <span className="text-xs text-muted-foreground">
-        {METRIC_LABEL[metric].toLowerCase()} · {plural(summary.total.turns, 'request')}
-      </span>
-    </div>
-    <UsageMenu className="ml-auto mt-1 shrink-0" sections={MENU_SECTIONS} />
+// The session's own total. No `...` beside it: the scope is meaningless for one session, and cost is
+// the only figure now — so there is nothing left to ask here.
+const Headline = ({ detail, summary }: HeadlineProps) => (
+  <section className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
+    <span className="text-2xl font-semibold tabular-nums">
+      {formatCost({ value: costOf(summary, detail), tool: detail.tool })}
+    </span>
+    <span className="text-xs text-muted-foreground">
+      {/* The (i) sits inside the caption rather than beside it, so a panel too narrow for the line
+          wraps the words and keeps the icon on "cost" instead of stranding it. */}
+      cost <UsageInfo breakdown={summary} /> · {plural(summary.total.turns, 'request')}
+    </span>
   </section>
 );
-
-// Which settings the `...` offers. The scope is gone — you are looking at one session, and it is in
-// whatever folder it is in. Same for both CLIs, since the metric is the only thing left and it means
-// the same on either.
-const MENU_SECTIONS: readonly UsageMenuSection[] = ['metric'];
 
 const costOf = (summary: UsageSummaryData, detail: SessionDetail): number =>
   detail.tool === 'claude' ? summary.total.usd : summary.total.nanoAiu;

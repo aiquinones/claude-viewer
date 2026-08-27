@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ReactNode } from 'react';
 import { DEFAULT_SETTINGS, ViewerSettings } from '@src/model/settings/settings';
-import { UsageMetric, UsageScope } from '@src/model/usage/types';
+import { UsageScope } from '@src/model/usage/types';
 import { SettingsProvider } from '@src/webview/settings/SettingsContext';
 import {
   bothClis,
@@ -21,22 +21,17 @@ import {
 } from '../../usage-history-fixtures';
 import { UsageView } from '@src/webview/views/UsageView';
 
-// The metric and the scope are settings, so a story that wants one of them has to say so the way
-// the host does — through the provider. Everything else on the surface is state or props.
+// The scope is a setting, so a story that wants it has to say so the way the host does — through
+// the provider. Everything else on the surface is state or props.
 interface WithSettingsArgs {
-  metric?: UsageMetric;
   scope?: UsageScope;
   children: ReactNode;
 }
 
-const WithSettings = ({ metric, scope, children }: WithSettingsArgs) => {
+const WithSettings = ({ scope, children }: WithSettingsArgs) => {
   const settings: ViewerSettings = {
     ...DEFAULT_SETTINGS,
     usage: {
-      metric: {
-        value: metric ?? 'output-tokens',
-        source: metric ? 'user' : 'default'
-      },
       scope: { value: scope ?? 'all', source: scope ? 'user' : 'default' }
     }
   };
@@ -91,30 +86,13 @@ export const Day: Story = { args: { initialTab: 'skills' } };
 export const Week: Story = { args: { initialTab: 'skills', initialWindow: 'week' } };
 
 // Dollars on the Claude rows, AIU on the Copilot ones, and no combined figure anywhere — the two
-// units have no conversion in either CLI's data.
-export const Cost: Story = {
-  args: { initialTab: 'skills', report: bothClis },
-  render: (args) => (
-    <WithSettings metric="cost">
-      <UsageView {...args} />
-    </WithSettings>
-  )
-};
-
-// The same window on tokens, which is the only metric with one total across both CLIs. Read it
-// against Cost: the shares are the same, the numbers aren't comparable.
+// units have no conversion in either CLI's data. The shares still add up, because a slice's share is
+// output tokens rather than money.
 export const BothClis: Story = { args: { initialTab: 'skills', report: bothClis } };
 
 // A model the price table doesn't know. Its tokens are in the total and its dollars aren't, and the
-// note under the list names it rather than letting the figure look complete.
-export const UnpricedModel: Story = {
-  args: { initialTab: 'skills', report: unpricedModel },
-  render: (args) => (
-    <WithSettings metric="cost">
-      <UsageView {...args} />
-    </WithSettings>
-  )
-};
+// (i) beside the headline names it under Models rather than letting the figure look complete.
+export const UnpricedModel: Story = { args: { initialTab: 'skills', report: unpricedModel } };
 
 // Nothing today. The Week toggle has something in it, which is what the empty copy points at.
 export const QuietDay: Story = { args: { initialTab: 'skills', report: quietDay } };

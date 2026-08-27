@@ -5,14 +5,6 @@ import { AgentContext, AgentTool } from '../types';
 import { Retention } from '../retention/types';
 import { UsdParts } from './pricing';
 
-// Which number the surface reads. `output-tokens` is measured on both sides and is what Claude
-// Code's own /usage reports, so it's the default and the only metric with one cross-CLI total.
-//
-// Deliberately not annotated: a type here would erase the literals UsageMetric derives from.
-export const USAGE_METRICS = ['output-tokens', 'cost'] as const;
-
-export type UsageMetric = (typeof USAGE_METRICS)[number];
-
 export const USAGE_WINDOWS = ['day', 'week'] as const;
 
 export type UsageWindow = (typeof USAGE_WINDOWS)[number];
@@ -86,7 +78,8 @@ export interface UsageSlice {
   nanoAiu: number;
   turns: number;
   sources: UsageSource[];
-  // Of the window's total for the active metric, 0–1.
+  // Of the window's output tokens, 0–1. Not of the cost: a share of a figure that's dollars on one
+  // row and AIU on the next means nothing.
   fraction: number;
 }
 
@@ -124,11 +117,11 @@ export interface UsageSummaryData {
   // Distinct sessions that contributed. A total of zero and a scan that read nothing look the same
   // on the numbers, and this is what tells them apart.
   sessions: number;
-  // Sorted by the active metric, largest first.
+  // Sorted by output tokens, largest first.
   slices: UsageSlice[];
   total: UsageTotals;
   // Per CLI, because AIU and USD are different units and no conversion is defined by either CLI's
-  // data. Cost mode shows these two and no combined figure.
+  // data. The headline shows these two and no combined figure.
   byTool: Record<AgentTool, UsageTotals>;
   // Model ids `pricing.ts` doesn't know. Their tokens count; their dollars don't, and the view
   // names them rather than quietly pricing them at zero.

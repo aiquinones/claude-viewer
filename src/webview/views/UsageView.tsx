@@ -9,7 +9,6 @@ import {
   SessionUsage,
   UsageBreakdown,
   UsageHistory,
-  UsageMetric,
   UsageReport,
   UsageWindow
 } from '../../model/usage/types';
@@ -23,7 +22,6 @@ import { SessionOrigin, SessionRequest } from '../session-analysis/session-targe
 import { SessionTargetState, useSessionTarget } from '../session-analysis/useSessionTarget';
 import { useSettings } from '../settings/SettingsContext';
 import { SurfaceId, surfaceAccent, surfaceTitle } from '../surfaces';
-import { UsageCostNote } from '../UsageCostNote';
 import { UsageSlices } from '../UsageSlices';
 import { UsageTab, UsageTabs } from '../UsageTabs';
 import { HISTORY_EXPECTED_MS, SessionsTab } from '../usage-sessions/SessionsTab';
@@ -104,14 +102,14 @@ export const UsageView = ({
   onRefresh,
   onBack
 }: UsageViewProps) => {
-  // Component state, not a setting: which window you're looking at is a glance, where the metric is
+  // Component state, not a setting: which window you're looking at is a glance, where the scope is
   // a preference. Same split the skills surface makes between its selection and its budgets.
   const [window, setWindow] = useState<UsageWindow>(initialWindow);
   const [tab, setTab] = useState<UsageTab>(initialTab);
   // The session being taken apart, or none. State rather than navigation: the tabs stay mounted, so
   // coming back keeps the Sessions filter text and its scroll position.
   const [session, setSession] = useState<SessionUsage | undefined>(initialSession);
-  const { metric, scope } = useSettings().usage;
+  const { scope } = useSettings().usage;
   // A session named by id from off this surface. Resolving one sets the same state a Sessions row
   // sets, so once it lands there is nothing different about how it was opened.
   const targetState: SessionTargetState = useSessionTarget({
@@ -211,12 +209,7 @@ export const UsageView = ({
         onBack={onBack}
       />
 
-      <UsageSummary
-        breakdown={breakdown}
-        metric={metric.value}
-        window={window}
-        onWindow={setWindow}
-      />
+      <UsageSummary breakdown={breakdown} window={window} onWindow={setWindow} />
 
       <div className="border-b border-border px-3">
         <UsageTabs tab={tab} onChange={setTab} />
@@ -240,7 +233,6 @@ export const UsageView = ({
           <div className="flex flex-col gap-4 px-4 py-4">
             <UsageSlices
               summary={breakdown}
-              metric={metric.value}
               // The window is named rather than called "this window", and the way out changes with
               // it: suggesting Week to someone already looking at Week is advice they've taken.
               empty={
@@ -252,7 +244,6 @@ export const UsageView = ({
               skills={skills}
               onOpenSkill={onOpenSkill}
             />
-            {metric.value === 'cost' && <UsageCostNote summary={breakdown} />}
           </div>
         </div>
       )}

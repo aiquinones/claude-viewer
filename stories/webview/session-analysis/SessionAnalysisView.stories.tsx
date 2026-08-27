@@ -3,7 +3,6 @@ import { CSSProperties, ReactNode } from 'react';
 import { surfaceAccent } from '@src/webview/surfaces';
 import { TokenEstimator } from '@src/model/estimate-tokens';
 import { DEFAULT_SETTINGS, ViewerSettings } from '@src/model/settings/settings';
-import { UsageMetric } from '@src/model/usage/types';
 import { SettingsProvider } from '@src/webview/settings/SettingsContext';
 import { SessionAnalysisView } from '@src/webview/session-analysis/SessionAnalysisView';
 import {
@@ -18,23 +17,18 @@ import {
 } from '../../session-detail-fixtures';
 import { usageSkills } from '../../usage-fixtures';
 
-// The metric and the estimator are settings, so a story that wants one of them says so the way the
-// host does — through the provider.
+// The estimator is a setting, so a story that wants one says so the way the host does — through the
+// provider.
 interface WithSettingsArgs {
-  metric?: UsageMetric;
   estimator?: TokenEstimator;
   children: ReactNode;
 }
 
-const WithSettings = ({ metric, estimator, children }: WithSettingsArgs) => {
+const WithSettings = ({ estimator, children }: WithSettingsArgs) => {
   const settings: ViewerSettings = {
     ...DEFAULT_SETTINGS,
     tokens: {
       estimator: { value: estimator ?? 'standard', source: estimator ? 'user' : 'default' }
-    },
-    usage: {
-      ...DEFAULT_SETTINGS.usage,
-      metric: { value: metric ?? 'output-tokens', source: metric ? 'user' : 'default' }
     }
   };
 
@@ -79,21 +73,11 @@ type Story = StoryObj<typeof SessionAnalysisView>;
 // loaded, so the `create-pr` spike near the end lines up with the row for it below.
 export const Claude: Story = {};
 
-// Dollars rather than tokens. The `...` here offers the metric and the Claude cost basis and not the
-// scope — you are looking at one session, and it is in whatever folder it is in.
-export const Cost: Story = {
-  render: (args) => (
-    <WithSettings metric="cost">
-      <SessionAnalysisView {...args} />
-    </WithSettings>
-  )
-};
-
 // One `/dev-feature` that loaded the body twice, five seconds apart — Copilot injects the skill
 // because its name was typed and then loads it again when the model asks for what it already has.
 // That is why the row counts loads rather than calls, and why the weighted sum is double the body.
 //
-// The `...` drops the cost basis too: this session bills in AIU, which nothing here prices.
+// It bills in AIU, so the headline is that unit and the (i) beside it has no dollars to take apart.
 export const CopilotDoubleLoad: Story = {
   args: { session: copilotSession, detail: copilotDetail }
 };

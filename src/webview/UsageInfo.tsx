@@ -23,8 +23,8 @@ interface UsageInfoProps {
   breakdown: UsageSummaryData;
 }
 
-// The (i) beside the cost note. Same card shape as BudgetInfo, for the same reason: a number you
-// can't take apart is a number you either trust blindly or dismiss.
+// The (i) beside the word "cost" under the headline. Same card shape as BudgetInfo, for the same
+// reason: a number you can't take apart is a number you either trust blindly or dismiss.
 //
 // This one exists because the total invites a check that fails. A week producing 1.4M output tokens
 // priced at $249 reads as a bug — until the card shows that $148 of it is cache reads, because every
@@ -34,10 +34,11 @@ export const UsageInfo = ({ breakdown }: UsageInfoProps) => {
   const card = useRef<HTMLDivElement>(null);
   const { drop, measure } = useCardDrop(trigger, card);
 
-  // A window with nothing in it has nothing to explain, and an (i) that opens an empty box is worse
-  // than no (i) at all. Below the hooks rather than above them, since the note it sits in renders
-  // either way.
-  if (breakdown.models.length === 0) return null;
+  // Only Claude's turns are priced from a table, so only they have anything to explain — a Copilot
+  // session bills in AIU and reports the figure itself. A window with no Claude turns opens an empty
+  // box, which is worse than no (i) at all. Below the hooks rather than above them, since the
+  // caption it sits in renders either way.
+  if (breakdown.byTool.claude.turns === 0) return null;
 
   // `align-middle` centres an inline box on the *x-height*, which leaves a 14px icon about a pixel
   // below where the eye reads the line's centre. Its bottom sits 0.23em under the baseline instead,
@@ -63,9 +64,9 @@ export const UsageInfo = ({ breakdown }: UsageInfoProps) => {
       {/* Padding rather than a margin: the gap stays inside the group, so the card survives the
           mouse crossing it — which is why it moves ends with the card instead of being one rule.
 
-          Which end it opens toward is measured, because the two mount points differ: on the usage
-          surface the note is the last thing in the scroll body, and on the session page it's under
-          the headline at the top of one. */}
+          Which end it opens toward is measured rather than pinned: the card is ~300px and the
+          caption it hangs off sits near the top of its pane, so a short panel is the case where
+          neither end is free and the roomier one has to win. */}
       <div
         ref={card}
         id={CARD_ID}
@@ -90,6 +91,10 @@ const CARD_ID: string = 'usage-info-card';
 // card is a hover card.
 const MODEL_LIMIT: number = 4;
 
+// Where the dollars come from. Claude Code records tokens and no price, so every figure under this
+// heading is the rate card applied to a token count rather than something it reported.
+const ESTIMATED_FROM_TOKENS: string = 'USD is estimated from token consumption';
+
 interface CostPartsProps {
   breakdown: UsageSummaryData;
 }
@@ -105,6 +110,7 @@ const CostParts = ({ breakdown }: CostPartsProps) => {
 
   return (
     <section className="flex flex-col gap-1">
+      <p className="text-muted-foreground">{ESTIMATED_FROM_TOKENS}</p>
       <h3 className="font-semibold text-foreground">
         What the {formatUsd(breakdown.total.usd)} is
       </h3>
@@ -176,9 +182,8 @@ const Rates = ({ models }: RatesProps) => {
           value={`reads ${CACHE_MULTIPLIERS.read}× input · writes ${CACHE_MULTIPLIERS.write5m}× (5m) and ${CACHE_MULTIPLIERS.write1h}× (1h)`}
         />
       </dl>
-      <p>
-        Last checked on {PRICED_AT}. Note: Subscription plans don't pay these. This is API cost.
-      </p>
+      <p>Last checked on {PRICED_AT}.</p>
+      <p>Note: Subscription plans don't pay these. This is API cost.</p>
     </section>
   );
 };

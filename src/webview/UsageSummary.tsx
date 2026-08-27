@@ -1,17 +1,17 @@
 import { AGENT_TOOL_LABEL, AgentTool } from '../model/types';
 import { toolsIn } from '../model/usage/aggregate';
-import { UsageBreakdown, UsageMetric, UsageWindow } from '../model/usage/types';
+import { UsageBreakdown, UsageWindow } from '../model/usage/types';
 import { plural } from './format-size';
-import { formatAiu, formatTotal, formatUsd, METRIC_LABEL } from './usage-format';
+import { formatAiu, formatUsd } from './usage-format';
 import { WINDOW_OPTIONS } from './usage-options';
 import { UsageChoice } from './UsageChoice';
+import { UsageInfo } from './UsageInfo';
 import { UsageMenu } from './usage-menu/UsageMenu';
 
 interface UsageSummaryProps {
   // Undefined until the first scan lands. The header sits above the tabs, so it's on screen before
   // there is a number to put in it.
   breakdown: UsageBreakdown | undefined;
-  metric: UsageMetric;
   window: UsageWindow;
   onWindow: (window: UsageWindow) => void;
 }
@@ -20,19 +20,20 @@ interface UsageSummaryProps {
 // so the figure and the settings behind it belong to the surface rather than to a half of it.
 //
 // The window is the one control still on the surface. It says what the number is a total *of*, which
-// is the caption to the figure above it — everything that changes which number you're reading is in
-// the `...` instead.
-export const UsageSummary = ({ breakdown, metric, window, onWindow }: UsageSummaryProps) => (
+// is the caption to the figure above it — which sessions are counted is in the `...` instead.
+export const UsageSummary = ({ breakdown, window, onWindow }: UsageSummaryProps) => (
   <section className="flex flex-col gap-2 px-4 py-3">
     {/* The figures wrap inside their own box rather than being flex items beside the menu, so a
         panel too narrow for them wraps the numbers and leaves the `...` in the corner — as siblings
         the menu was laid out against the whole group and dropped onto a line of its own. */}
     <div className="flex items-start gap-3">
       <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
-        <Headline breakdown={breakdown} metric={metric} />
+        <Headline breakdown={breakdown} />
         {breakdown && (
           <span className="text-xs text-muted-foreground">
-            {METRIC_LABEL[metric].toLowerCase()} · {plural(breakdown.total.turns, 'request')}
+            {/* The (i) sits inside the caption rather than beside it, so a panel too narrow for the
+                line wraps the words and keeps the icon on "cost" instead of stranding it. */}
+            cost <UsageInfo breakdown={breakdown} /> · {plural(breakdown.total.turns, 'request')}
           </span>
         )}
       </div>
@@ -50,23 +51,16 @@ export const UsageSummary = ({ breakdown, metric, window, onWindow }: UsageSumma
 
 interface HeadlineProps {
   breakdown: UsageBreakdown | undefined;
-  metric: UsageMetric;
 }
 
 // The figure itself. A dash while the scan is out — a zero would be a reading, and there isn't one
 // yet; the tab below says what is being waited on.
-const Headline = ({ breakdown, metric }: HeadlineProps) => {
+const Headline = ({ breakdown }: HeadlineProps) => {
   if (!breakdown) {
     return <span className="text-2xl font-semibold tabular-nums text-muted-foreground">—</span>;
   }
 
-  if (metric === 'cost') return <CostTotals breakdown={breakdown} />;
-
-  return (
-    <span className="text-2xl font-semibold tabular-nums">
-      {formatTotal(breakdown.total, metric)}
-    </span>
-  );
+  return <CostTotals breakdown={breakdown} />;
 };
 
 interface CostTotalsProps {

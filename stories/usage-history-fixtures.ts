@@ -110,7 +110,7 @@ const history = (sessions: SessionUsage[], retention: Retention = DEFAULT_RETENT
 // rank-based shading worth having.
 //
 // Sessions come in overlapping pairs and threes rather than one to a day. That's what a real week
-// is, and it's the only way the Sessions metric shows anything: every day holding exactly one
+// is, and it's the only way the Sessions grid shows anything: every day holding exactly one
 // session is one distinct value, which correctly paints the whole grid a single shade.
 export const busyYear: UsageHistory = history(
   Array.from({ length: 24 }, (_, index) =>

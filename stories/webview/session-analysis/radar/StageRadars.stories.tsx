@@ -24,7 +24,7 @@ const withNames =
 const meta: Meta<typeof StageRadars> = {
   title: 'Usage/StageRadars',
   component: StageRadars,
-  args: { detail: claudeDetail, metric: 'output-tokens' },
+  args: { detail: claudeDetail },
   decorators: [
     withNames(stageNames),
     (Story) => (
@@ -46,13 +46,9 @@ type Story = StoryObj<typeof StageRadars>;
 // did to the context are two readings of one split, and reading them together is the point.
 export const Session: Story = {};
 
-// Cost rather than output tokens, which the `...` above this section switches. The heading names
-// the metric, so the two wheels can't end up in different units.
-export const Cost: Story = { args: { metric: 'cost' } };
-
 // A Copilot session: one skill, loaded twice, one stage. AIU rather than dollars, which the CLI
 // decides and not the reader.
-export const Copilot: Story = { args: { detail: copilotDetail, metric: 'cost' } };
+export const Copilot: Story = { args: { detail: copilotDetail } };
 
 // Skills ran and none of them is a stage yet, which is where every session starts. The card takes
 // the wheels' place and carries the way out of the state — two empty wheels would say the session

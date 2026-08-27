@@ -2,7 +2,7 @@
 // arithmetic of its own beyond fitting them to a box.
 
 import { usdPartsFor, sumUsdParts, UsdParts } from '../../../model/usage/pricing';
-import { ContextPoint, SkillInvocation, UsageMetric, UsageTurn } from '../../../model/usage/types';
+import { ContextPoint, SkillInvocation, UsageTurn } from '../../../model/usage/types';
 
 // One point on a chart. Both series produce these, so the chart never learns which of the two it is
 // drawing — what a value means is the caller's `format` and `unit`.
@@ -17,32 +17,21 @@ export interface SeriesPoint {
   skill?: string;
 }
 
-interface ToMetricSeriesArgs {
-  turns: UsageTurn[];
-  metric: UsageMetric;
-}
-
-// What each request was worth under the metric you're reading.
-export const toMetricSeries = ({ turns, metric }: ToMetricSeriesArgs): SeriesPoint[] =>
+// What each request cost.
+export const toCostSeries = (turns: UsageTurn[]): SeriesPoint[] =>
   turns.map((turn) => ({
     id: turn.id,
     at: turn.at,
     model: turn.model,
     ...(turn.skill ? { skill: turn.skill } : {}),
-    value: turnValue({ turn, metric })
+    value: turnValue(turn)
   }));
 
-export interface TurnValueArgs {
-  turn: UsageTurn;
-  metric: UsageMetric;
-}
-
-// What one request was worth under the metric being read. Cost is dollars on a Claude turn and
-// nano-AIU on a Copilot one, and a session ran under one CLI — so the chart is one unit, and the
-// heading says which. Exported because the stage radar sums the same number over a span of turns:
-// two readings of one session that disagreed about what a turn cost would be worse than either.
-export const turnValue = ({ turn, metric }: TurnValueArgs): number => {
-  if (metric === 'output-tokens') return turn.tokens.output;
+// What one request cost. Dollars on a Claude turn and nano-AIU on a Copilot one, and a session ran
+// under one CLI — so the chart is one unit, and the heading says which. Exported because the stage
+// radar sums the same number over a span of turns: two readings of one session that disagreed about
+// what a turn cost would be worse than either.
+export const turnValue = (turn: UsageTurn): number => {
   if (turn.tool === 'copilot') return turn.nanoAiu ?? 0;
 
   const parts: UsdParts | undefined = usdPartsFor({ model: turn.model, tokens: turn.tokens });
@@ -50,7 +39,7 @@ export const turnValue = ({ turn, metric }: TurnValueArgs): number => {
   return sumUsdParts(parts);
 };
 
-// How full the context was at each request. Its own series rather than a field on the metric one:
+// How full the context was at each request. Its own series rather than a field on the cost one:
 // on the Copilot side the two are read out of different files and don't have to be the same length.
 export const toContextSeries = (contexts: ContextPoint[]): SeriesPoint[] =>
   contexts.map((point, index) => ({
