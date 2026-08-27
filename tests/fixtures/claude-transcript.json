@@ -1,0 +1,734 @@
+[
+  {
+    "expected": "running",
+    "line": {
+      "type": "user",
+      "timestamp": "2026-08-26T19:26:53.954Z",
+      "message": {
+        "content": [
+          {
+            "type": "tool_result"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "attachment",
+      "timestamp": "2026-08-26T19:26:53.957Z"
+    }
+  },
+  {
+    "expected": "idle",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:27:02.158Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 267613,
+          "cache_creation_input_tokens": 372
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Pushed to the same branch — the PR has it."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "idle",
+    "line": {
+      "type": "queue-operation",
+      "timestamp": "2026-08-26T19:30:21.075Z"
+    }
+  },
+  {
+    "expected": "idle",
+    "line": {
+      "type": "queue-operation",
+      "timestamp": "2026-08-26T19:30:21.076Z"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "user",
+      "timestamp": "2026-08-26T19:30:21.082Z",
+      "message": {
+        "content": [
+          {
+            "type": "text",
+            "text": "flip the colors on the moving band"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "attachment",
+      "timestamp": "2026-08-26T19:30:21.082Z"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "file-history-snapshot"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "last-prompt",
+      "lastPrompt": "flip the colors on the moving band"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "ai-title",
+      "aiTitle": "Waiting states and band styling"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "relocated"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "atis-latch"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "worktree-state"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "pr-link",
+      "timestamp": "2026-08-26T19:30:21.147Z",
+      "prNumber": 94,
+      "prUrl": "https://example.invalid/pull/94"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "bridge-session"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:30:33.265Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 267985,
+          "cache_creation_input_tokens": 514
+        },
+        "content": [
+          {
+            "type": "thinking"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:30:33.267Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 267985,
+          "cache_creation_input_tokens": 514
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Flipping it — bright label, dim band passing through."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:30:47.290Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 267985,
+          "cache_creation_input_tokens": 514
+        },
+        "content": [
+          {
+            "type": "tool_use",
+            "name": "Bash"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "user",
+      "timestamp": "2026-08-26T19:30:51.618Z",
+      "message": {
+        "content": [
+          {
+            "type": "tool_result"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "attachment",
+      "timestamp": "2026-08-26T19:30:51.620Z"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:30:53.998Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 268499,
+          "cache_creation_input_tokens": 2377
+        },
+        "content": [
+          {
+            "type": "tool_use",
+            "name": "Read"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "user",
+      "timestamp": "2026-08-26T19:30:54.015Z",
+      "message": {
+        "content": [
+          {
+            "type": "tool_result"
+          }
+        ]
+      }
+    },
+    "padTo": 505461
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "attachment",
+      "timestamp": "2026-08-26T19:30:54.035Z"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "last-prompt",
+      "lastPrompt": "flip the colors on the moving band"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "ai-title",
+      "aiTitle": "Waiting states and band styling"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "relocated"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "atis-latch"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "worktree-state"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "pr-link",
+      "timestamp": "2026-08-26T19:30:54.043Z",
+      "prNumber": 94,
+      "prUrl": "https://example.invalid/pull/94"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "bridge-session"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:31:08.182Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 270876,
+          "cache_creation_input_tokens": 2562
+        },
+        "content": [
+          {
+            "type": "thinking"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:31:08.884Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 270876,
+          "cache_creation_input_tokens": 2562
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "A is right — the label stays readable and a shade of the same hue reads as one control."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:31:23.767Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 270876,
+          "cache_creation_input_tokens": 2562
+        },
+        "content": [
+          {
+            "type": "tool_use",
+            "name": "Bash"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "user",
+      "timestamp": "2026-08-26T19:31:29.551Z",
+      "message": {
+        "content": [
+          {
+            "type": "tool_result"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "attachment",
+      "timestamp": "2026-08-26T19:31:29.553Z"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:31:44.325Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 273438,
+          "cache_creation_input_tokens": 2494
+        },
+        "content": [
+          {
+            "type": "tool_use",
+            "name": "Bash"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "user",
+      "timestamp": "2026-08-26T19:31:48.571Z",
+      "message": {
+        "content": [
+          {
+            "type": "tool_result"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "attachment",
+      "timestamp": "2026-08-26T19:31:48.572Z"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:31:50.748Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 275932,
+          "cache_creation_input_tokens": 1475
+        },
+        "content": [
+          {
+            "type": "tool_use",
+            "name": "Read"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "user",
+      "timestamp": "2026-08-26T19:31:50.768Z",
+      "message": {
+        "content": [
+          {
+            "type": "tool_result"
+          }
+        ]
+      }
+    },
+    "padTo": 578133
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "attachment",
+      "timestamp": "2026-08-26T19:31:50.785Z"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "last-prompt",
+      "lastPrompt": "flip the colors on the moving band"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "ai-title",
+      "aiTitle": "Waiting states and band styling"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "relocated"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "atis-latch"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "worktree-state"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "pr-link",
+      "timestamp": "2026-08-26T19:31:50.793Z",
+      "prNumber": 94,
+      "prUrl": "https://example.invalid/pull/94"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "bridge-session"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:31:58.141Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 277407,
+          "cache_creation_input_tokens": 2953
+        },
+        "content": [
+          {
+            "type": "thinking"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:31:58.863Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 277407,
+          "cache_creation_input_tokens": 2953
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Works in both palettes. One inconsistency the flip introduces, fixing it now."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:32:03.076Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 277407,
+          "cache_creation_input_tokens": 2953
+        },
+        "content": [
+          {
+            "type": "tool_use",
+            "name": "Bash"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "user",
+      "timestamp": "2026-08-26T19:32:08.889Z",
+      "message": {
+        "content": [
+          {
+            "type": "tool_result"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "attachment",
+      "timestamp": "2026-08-26T19:32:08.890Z"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:32:15.052Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 280360,
+          "cache_creation_input_tokens": 1034
+        },
+        "content": [
+          {
+            "type": "tool_use",
+            "name": "Bash"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "user",
+      "timestamp": "2026-08-26T19:32:16.395Z",
+      "message": {
+        "content": [
+          {
+            "type": "tool_result"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "attachment",
+      "timestamp": "2026-08-26T19:32:16.397Z"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "pr-link",
+      "timestamp": "2026-08-26T19:32:16.935Z",
+      "prNumber": 94,
+      "prUrl": "https://example.invalid/pull/94"
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:32:21.004Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 281394,
+          "cache_creation_input_tokens": 595
+        },
+        "content": [
+          {
+            "type": "tool_use",
+            "name": "SendUserFile"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "user",
+      "timestamp": "2026-08-26T19:32:21.654Z",
+      "message": {
+        "content": [
+          {
+            "type": "tool_result"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "expected": "running",
+    "line": {
+      "type": "attachment",
+      "timestamp": "2026-08-26T19:32:21.658Z"
+    }
+  },
+  {
+    "expected": "idle",
+    "line": {
+      "type": "assistant",
+      "timestamp": "2026-08-26T19:32:27.445Z",
+      "message": {
+        "model": "claude-opus-5",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 2,
+          "cache_read_input_tokens": 281989,
+          "cache_creation_input_tokens": 349
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Flipped and pushed. The label rests at full strength and the band carries the tint."
+          }
+        ]
+      }
+    }
+  }
+]

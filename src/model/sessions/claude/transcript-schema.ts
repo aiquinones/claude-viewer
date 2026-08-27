@@ -39,6 +39,11 @@ const transcriptLineSchema = z
         // Which model answered, and how full its context was. Both off the same line: the window a
         // reading is measured against depends on the model, and only the line knows which one ran.
         model: z.string().optional(),
+        // Why the model stopped. One response is written as several lines — the thinking, the prose
+        // and the tool call each get their own — and every one of them carries the reason the whole
+        // response ended, so this is what says whether a text-only line is the end of a turn or the
+        // middle of one. Null on a response that was cut off mid-stream.
+        stop_reason: z.string().nullish(),
         usage: usageSchema.optional()
       })
       .passthrough()
