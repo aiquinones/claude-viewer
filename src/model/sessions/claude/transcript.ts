@@ -1,11 +1,16 @@
 import { FileHead, FileTail, readFileHead, readFileTail } from '../../../config/read';
-import { ConfigError, Result } from '../../../config/result';
+import { ConfigError, Result, ok } from '../../../config/result';
 import { AgentContext, AgentPullRequest, ConfigIssue, TranscriptTail } from '../../types';
 import { ContentBlock, TranscriptLine, parseTranscriptLine } from './transcript-schema';
 
-// How much of the end of a transcript is read. They reach megabytes; the last prompt, the PR link
-// and the trailing turn all sit in the last few kilobytes of one.
-const TAIL_BYTES: number = 64 * 1024;
+// How much of the end of a transcript is read. The last prompt, the PR link and the trailing turn
+// all sit in the last few kilobytes of one — except when a single line is bigger than the window.
+// A `Read` of a large file writes its result as one line, and 150 of the lines measured here go
+// past 64KB, up to 932KB: the window lands entirely inside one, its only line is torn, and the walk
+// below has nothing left to read. So the window grows until it holds a message line and stops
+// there, the same shape the title's head read takes. One read in the ordinary case; 1MB covered
+// every transcript on this machine.
+const TAIL_WINDOWS: readonly number[] = [64 * 1024, 256 * 1024, 1024 * 1024];
 
 // The title is at the *other* end, and how far in varies more than you'd want to hardcode: usually
 // around 20KB, but 308KB in one session measured here — a session that opens with a long first turn
@@ -29,6 +34,14 @@ const SYNTHETIC_MODEL: string = '<synthetic>';
 // are handled locally: the line is written to the transcript and nothing is sent to the model.
 const COMMAND_MARKER: string = '<command-name>';
 
+// What `stop_reason` says about the turn. `tool_use` is the one that matters: the model's prose and
+// the tool call it leads into are written as separate lines of one response, so a text-only line
+// carrying it is the middle of a turn rather than the end. 2,064 of the 2,573 text-only assistant
+// lines measured here are that line, each one followed by its tool call a few seconds later — long
+// enough for several polls to land on it.
+const TURN_OVER: readonly string[] = ['end_turn', 'stop_sequence', 'max_tokens', 'refusal'];
+const TURN_CONTINUES: readonly string[] = ['tool_use', 'pause_turn'];
+
 export interface TranscriptSummary {
   // The file isn't on disk. Distinct from one that couldn't be read: a session that has never been
   // prompted has written nothing yet, and there is no conversation to show for it.
@@ -49,7 +62,7 @@ export interface TranscriptSummary {
 // What a session row needs, off both ends of the file. Never throws: a missing or unreadable
 // transcript still produces a summary, carrying the reason as an issue.
 export const readTranscript = async (path: string): Promise<TranscriptSummary> => {
-  const read: Result<FileTail, ConfigError> = await readFileTail({ path, maxBytes: TAIL_BYTES });
+  const read: Result<TranscriptWindow, ConfigError> = await readTail(path);
 
   if (!read.ok) {
     const message: string =
@@ -64,7 +77,7 @@ export const readTranscript = async (path: string): Promise<TranscriptSummary> =
     };
   }
 
-  const lines: TranscriptLine[] = parseLines(read.value.text, read.value.truncated);
+  const lines: TranscriptLine[] = read.value.lines;
 
   return {
     ...lastTurn(lines),
@@ -79,6 +92,41 @@ export const readTranscript = async (path: string): Promise<TranscriptSummary> =
     issues: []
   };
 };
+
+interface TranscriptWindow {
+  lines: TranscriptLine[];
+  mtimeMs: number;
+}
+
+// The end of the file, widened until there is a turn in it to read. Each window is a fresh read
+// rather than an extension of the one before: a transcript is appended to while it's being read, so
+// two reads stitched together would carry a seam through the middle of them.
+//
+// The loop stops at the first window holding a message line, which is the question `lastTurn` asks.
+// The other three fields read off this window can still fall outside it — a pasted image is a 57KB
+// `user` line that satisfies the loop while pushing the last context reading past the edge — and
+// they're carried across polls by `carry-forward.ts` instead. Growing for each of them separately
+// would mean reading the file once per field.
+const readTail = async (path: string): Promise<Result<TranscriptWindow, ConfigError>> => {
+  let widest: TranscriptWindow | undefined;
+
+  for (const maxBytes of TAIL_WINDOWS) {
+    const read: Result<FileTail, ConfigError> = await readFileTail({ path, maxBytes });
+    if (!read.ok) return read;
+
+    const lines: TranscriptLine[] = parseLines(read.value.text, read.value.truncated);
+    widest = { lines, mtimeMs: read.value.mtimeMs };
+
+    // A window with a turn in it answers the question. So does the whole file: there is nothing
+    // further back to widen into, whether or not it found one.
+    if (lines.some(isMessage) || !read.value.truncated) break;
+  }
+
+  // The loop runs at least once, so this is the last window read rather than a default.
+  return ok(widest ?? { lines: [], mtimeMs: 0 });
+};
+
+const isMessage = (line: TranscriptLine): boolean => MESSAGE_TYPES.includes(line.type);
 
 // The first `ai-title` in the file. Claude Code rewrites the title as the session goes on and the
 // later ones chase whatever the newest turn was about — "Online implementation" for a session that
@@ -152,13 +200,14 @@ const lastPullRequest = (lines: TranscriptLine[]): AgentPullRequest | undefined 
   return undefined;
 };
 
-// Walk back to the last line that is actually a message, and read the shape of it. A completed turn
-// always ends the same way — an assistant line whose only block is text — so everything else means
-// the agent is mid-turn: a tool is out, or a result just landed and the model has it.
+// Walk back to the last line that is actually a message, and read whether its turn is over. The
+// line says so itself in `stop_reason`, which is the only thing that separates the two text-only
+// assistant lines that look identical: the one ending a turn, and the one the model writes just
+// before a tool call.
 const lastTurn = (lines: TranscriptLine[]): Pick<TranscriptSummary, 'tail' | 'pendingTool'> => {
   for (let i = lines.length - 1; i >= 0; i -= 1) {
     const line: TranscriptLine = lines[i];
-    if (!MESSAGE_TYPES.includes(line.type)) continue;
+    if (!isMessage(line)) continue;
     if (line.type === 'user') {
       if (!isPrompt(line)) continue;
       return { tail: 'working' };
@@ -167,15 +216,28 @@ const lastTurn = (lines: TranscriptLine[]): Pick<TranscriptSummary, 'tail' | 'pe
     if (line.isApiErrorMessage) return { tail: 'settled' };
 
     const blocks: ContentBlock[] = contentBlocks(line);
+    // Named only when this line is the tool call. The prose line ahead of it carries the same
+    // `stop_reason` and doesn't yet know what the tool will be, which is a row that says Working
+    // without naming one — true, and all the log supports at that moment.
+    const tool: ContentBlock | undefined = blocks.find((block) => block.type === 'tool_use');
+    const stop: string | null | undefined = line.message?.stop_reason;
+
+    if (stop && TURN_OVER.includes(stop)) return { tail: 'settled' };
+    if (stop && TURN_CONTINUES.includes(stop)) return { tail: 'working', pendingTool: tool?.name };
+
+    // No reason, or one this doesn't know yet. Fall back to the shape of the blocks, which is what
+    // this rule was before: a completed turn ends on text alone, so anything else is mid-turn. It's
+    // the weaker reading — it's what called the prose line a finished turn — but an unrecognised
+    // `stop_reason` is the format drifting rather than a turn ending, and the nine lines in 17,007
+    // measured here that carry none are responses cut off mid-stream.
     if (blocks.length > 0 && blocks.every((block) => block.type === 'text')) {
       return { tail: 'settled' };
     }
-
-    const tool: ContentBlock | undefined = blocks.find((block) => block.type === 'tool_use');
     return { tail: 'working', pendingTool: tool?.name };
   }
 
-  // Nothing but metadata in the window — no turn to read, so nothing is claimed about one.
+  // Nothing but metadata in the window. `readTail` widens until a message line is in it, so getting
+  // here means the file genuinely holds no turn yet — a session prompted but not yet answered.
   return { tail: 'settled' };
 };
 
