@@ -2,6 +2,20 @@
 
 Notable changes to Claude Viewer, newest first.
 
+## 0.26.1 - 2026-08-27
+
+### Changed
+
+- **Usage is always shown on the cost basis.** The separate usage metric switch and output-only
+  cost option are gone; dollar figures now reflect all billed tokens.
+- **The Codex mark is measured and rendered more accurately.**
+
+### Fixed
+
+- **Working agents no longer appear idle mid-turn.**
+- **Agent rows retain their PR, context, and prompt details when the panel cannot currently see
+  the source window.**
+
 ## 0.26.0 - 2026-08-26
 
 ### Added
