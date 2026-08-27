@@ -1,1 +1,0 @@
-import{n as e}from"./rolldown-runtime-DkW27tQK.js";var t,n,r,i;function a(){return(a=e((()=>{t=[[`contained`,0],[`ground`,0],[`raised`,10],[`stickyHeading`,20],[`stickyTop`,30],[`card`,40],[`nav`,50],[`floating`,60],[`overlay`,70]],n=Object.fromEntries(t),r=n.stickyTop-n.stickyHeading,i=e=>n.stickyTop-Math.min(Math.max(e,1),r)})))()}export{a as n,i as r,n as t};
