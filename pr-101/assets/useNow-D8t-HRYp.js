@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";import{sn as t}from"./iframe-D7xoosLR.js";var n,r;function i(){return(i=e((()=>{n=t(),r=e=>{let[t,r]=(0,n.useState)(()=>Date.now());return(0,n.useEffect)(()=>{let t=setInterval(()=>r(Date.now()),e);return()=>clearInterval(t)},[e]),t}})))()}export{r as n,i as t};
