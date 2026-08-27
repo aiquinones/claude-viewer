@@ -21,6 +21,18 @@ const SECOND: number = 1_000;
 // A fixed clock, so a story renders the same bars and the same times every run.
 const START: number = Date.UTC(2026, 7, 18, 9, 0, 0);
 
+const DETAIL_SESSION_ID: Record<AgentTool, string> = {
+  claude: 'a1b2c3d4-0000-4000-8000-000000000001',
+  copilot: 'f7be248b-0000-4000-8000-000000000002',
+  codex: '01a03fdb-0000-4000-8000-000000000003'
+};
+
+const DETAIL_MODEL: Record<AgentTool, string> = {
+  claude: 'claude-opus-5',
+  copilot: 'gpt-5.6-luna',
+  codex: 'gpt-5.6-terra'
+};
+
 interface TurnArgs {
   index: number;
   minutesIn: number;
@@ -43,11 +55,13 @@ const turn = ({
   id: `req_${index}`,
   at: START + minutesIn * MINUTE,
   tool,
-  sessionId: tool === 'claude' ? 'a1b2c3d4-0000-4000-8000-000000000001' : 'f7be248b-0000-4000-8000-000000000002',
+  sessionId: DETAIL_SESSION_ID[tool],
   cwd: '/Users/dev/repos/example-app',
   ...(skill ? { skill } : {}),
-  source: tool === 'claude' ? 'read' : 'inferred',
-  model: model ?? (tool === 'claude' ? 'claude-opus-5' : 'gpt-5.6-luna'),
+  // Copilot's is the only inferred one — it announces a skill and never closes it. Codex announces
+  // nothing at all, which is why no Codex turn here carries a skill.
+  source: tool === 'copilot' ? 'inferred' : 'read',
+  model: model ?? DETAIL_MODEL[tool],
   tokens: {
     input: 12,
     output,
@@ -282,4 +296,38 @@ export const missingDetail: SessionDetail = {
   invocations: [],
   contexts: [],
   error: "This session's transcript couldn't be read."
+};
+
+// A Codex session. Its counters arrive already split by `usage/codex/scan.ts`, so the context curve
+// is read the same way Claude's is — and `invocations` is empty because Codex records no skill load
+// of any kind, which the page says in those words rather than reporting that none ran.
+const codexTurns: UsageTurn[] = [
+  turn({ index: 400, minutesIn: 0, output: 125, tool: 'codex' }),
+  turn({ index: 401, minutesIn: 2, output: 67, tool: 'codex' }),
+  turn({ index: 402, minutesIn: 5, output: 179, tool: 'codex' }),
+  turn({ index: 403, minutesIn: 9, output: 336, tool: 'codex' }),
+  turn({ index: 404, minutesIn: 14, output: 283, tool: 'codex', model: 'gpt-5.6-luna' }),
+  turn({ index: 405, minutesIn: 18, output: 372, tool: 'codex', model: 'gpt-5.6-luna' })
+];
+
+export const codexDetail: SessionDetail = {
+  sessionId: DETAIL_SESSION_ID.codex,
+  tool: 'codex',
+  turns: codexTurns,
+  invocations: [],
+  contexts: contextPointsFromTurns(codexTurns)
+};
+
+export const codexSession: SessionUsage = {
+  sessionId: codexDetail.sessionId,
+  tool: 'codex',
+  // Codex writes no title of its own, so a row shows the first line of the opening prompt.
+  title: 'add the rate limit card to the usage surface',
+  cwd: '/Users/dev/repos/example-app',
+  branch: 'feat/rate-limits',
+  firstAt: START,
+  lastAt: START + 18 * MINUTE,
+  outputTokens: codexTurns.reduce((sum, one) => sum + one.tokens.output, 0),
+  turns: codexTurns.length,
+  days: []
 };

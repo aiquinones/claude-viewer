@@ -17,6 +17,7 @@ const meta: Meta<typeof SkillLoadList> = {
   component: SkillLoadList,
   args: {
     loads: claudeLoads,
+    tool: 'claude',
     estimator: 'anthropic',
     sessionEstimator: 'anthropic',
     reason: 'This is a Claude Code session, so it ran Claude’s tokenizer.',
@@ -90,3 +91,8 @@ export const NotInstalled: Story = {
 
 // Nothing ran. Says so rather than drawing an empty box under a heading claiming a total of zero.
 export const None: Story = { args: { loads: [] } };
+
+// The same empty list on a Codex session, which means something else: Codex writes no record of a
+// skill being loaded, so nothing here can tell a session that used none from a log that can't say.
+// Claiming none ran would be a claim the data doesn't support.
+export const NoneOnCodex: Story = { args: { loads: [], tool: 'codex' } };

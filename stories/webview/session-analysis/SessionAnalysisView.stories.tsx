@@ -9,6 +9,8 @@ import {
   bareDetail,
   claudeDetail,
   claudeSession,
+  codexDetail,
+  codexSession,
   copilotDetail,
   copilotSession,
   liveClaudeAgent,
@@ -80,6 +82,25 @@ export const Claude: Story = {};
 // It bills in AIU, so the headline is that unit and the (i) beside it has no dollars to take apart.
 export const CopilotDoubleLoad: Story = {
   args: { session: copilotSession, detail: copilotDetail }
+};
+
+// A Codex session. Its turns and its context curve read like the other two, and its skill list is
+// the one thing that can't: Codex records no skill load of any kind, so the list says that rather
+// than reporting that no skills ran.
+export const Codex: Story = {
+  args: { session: codexSession, detail: codexDetail }
+};
+
+// The same session in cost mode, which is where Codex differs. It bills against a rate-limit window
+// rather than per token, so the headline is a dash and the chart says why — instead of a $0 total
+// over a curve flat along the floor.
+export const CodexInCostMode: Story = {
+  args: { session: codexSession, detail: codexDetail },
+  render: (args) => (
+    <WithSettings metric="cost">
+      <SessionAnalysisView {...args} />
+    </WithSettings>
+  )
 };
 
 // The setting says Standard and the session ran Claude's tokenizer, so every size on the page is

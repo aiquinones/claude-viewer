@@ -1,4 +1,4 @@
-import { SkillEntry } from '@src/model/types';
+import { AgentTool, SkillEntry } from '@src/model/types';
 import { UsageReport, UsageTurn } from '@src/model/usage/types';
 import { buildUsageReport } from '@src/model/usage/report';
 import { plainSkill } from './fixtures';
@@ -17,10 +17,22 @@ interface TurnArgs {
   minutesAgo: number;
   skill?: string;
   output: number;
-  tool?: 'claude' | 'copilot';
+  tool?: AgentTool;
   model?: string;
   nanoAiu?: number;
 }
+
+const SESSION_ID: Record<AgentTool, string> = {
+  claude: 'a1b2c3d4',
+  copilot: 'f7be248b',
+  codex: '01a03fdb'
+};
+
+const DEFAULT_MODEL: Record<AgentTool, string> = {
+  claude: 'claude-opus-5',
+  copilot: 'claude-haiku-4.5',
+  codex: 'gpt-5.6-terra'
+};
 
 let nextId: number = 0;
 
@@ -38,11 +50,13 @@ const turn = ({
     id: `req_${nextId}`,
     at: ago(minutesAgo * MINUTE),
     tool,
-    sessionId: tool === 'claude' ? 'a1b2c3d4' : 'f7be248b',
+    sessionId: SESSION_ID[tool],
     cwd: '/Users/dev/repos/example-app',
     ...(skill ? { skill } : {}),
-    source: tool === 'claude' ? 'read' : 'inferred',
-    model: model ?? (tool === 'claude' ? 'claude-opus-5' : 'claude-haiku-4.5'),
+    // Copilot's is the only inferred one: it announces a skill and never closes it, so a skill
+    // claims every later message. Codex announces nothing at all and so never carries one.
+    source: tool === 'copilot' ? 'inferred' : 'read',
+    model: model ?? DEFAULT_MODEL[tool],
     tokens: {
       input: 12,
       output,
@@ -98,6 +112,23 @@ export const bothClis: UsageReport = report([
     model: 'gpt-5-mini',
     nanoAiu: 1_100_000_000
   })
+]);
+
+// All three CLIs in one window, which is what the cost header has to survive: dollars, AIU, and a
+// dash. Codex bills against a rate-limit window rather than per token, so it contributes tokens to
+// the token total and no figure at all to the cost one.
+export const threeClis: UsageReport = report([
+  turn({ minutesAgo: 15, skill: 'dev-feature', output: 3_400 }),
+  turn({ minutesAgo: 25, output: 4_800 }),
+  turn({
+    minutesAgo: 12,
+    skill: 'dev-feature',
+    output: 1_180,
+    tool: 'copilot',
+    nanoAiu: 8_600_000_000
+  }),
+  turn({ minutesAgo: 22, output: 1_920, tool: 'codex' }),
+  turn({ minutesAgo: 40, output: 2_450, tool: 'codex' })
 ]);
 
 // A model the price table doesn't know. Its tokens are in the totals and its dollars aren't, and the

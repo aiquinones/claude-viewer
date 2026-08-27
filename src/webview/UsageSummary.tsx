@@ -1,5 +1,6 @@
 import { AGENT_TOOL_LABEL, AgentTool } from '../model/types';
 import { toolsIn } from '../model/usage/aggregate';
+import { CostUnit, costUnitOf, NO_COST_REASON } from '../model/usage/cost-unit';
 import { UsageBreakdown, UsageWindow } from '../model/usage/types';
 import { plural } from './format-size';
 import { formatAiu, formatUsd } from './usage-format';
@@ -71,7 +72,9 @@ interface CostTotalsProps {
 // different units and neither CLI's data defines a conversion, so adding them would invent one.
 //
 // A CLI that contributed nothing to the window isn't drawn either — a `$0` beside a real figure
-// reads as a claim that nothing was spent.
+// reads as a claim that nothing was spent. A CLI with no unit at all draws a dash for the same
+// reason: Codex bills against a rate-limit window, and `0 AIU` beside a real figure is a worse
+// answer than admitting there isn't one.
 const CostTotals = ({ breakdown }: CostTotalsProps) => {
   const tools: AgentTool[] = toolsIn(breakdown);
   if (tools.length === 0) return <span className="text-2xl font-semibold tabular-nums">—</span>;
@@ -80,14 +83,38 @@ const CostTotals = ({ breakdown }: CostTotalsProps) => {
     <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
       {tools.map((tool) => (
         <span key={tool} className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-semibold tabular-nums">
-            {tool === 'claude'
-              ? formatUsd(breakdown.byTool[tool].usd)
-              : formatAiu(breakdown.byTool[tool].nanoAiu)}
-          </span>
+          <ToolCost breakdown={breakdown} tool={tool} />
           <span className="text-xs text-muted-foreground">{AGENT_TOOL_LABEL[tool]}</span>
         </span>
       ))}
     </div>
+  );
+};
+
+interface ToolCostProps {
+  breakdown: UsageBreakdown;
+  tool: AgentTool;
+}
+
+const ToolCost = ({ breakdown, tool }: ToolCostProps) => {
+  const unit: CostUnit = costUnitOf(tool);
+
+  if (unit === 'none') {
+    return (
+      <span
+        className="text-2xl font-semibold tabular-nums text-muted-foreground"
+        title={NO_COST_REASON}
+      >
+        —
+      </span>
+    );
+  }
+
+  return (
+    <span className="text-2xl font-semibold tabular-nums">
+      {unit === 'usd'
+        ? formatUsd(breakdown.byTool[tool].usd)
+        : formatAiu(breakdown.byTool[tool].nanoAiu)}
+    </span>
   );
 };

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { hasCost, NO_COST_REASON } from '../../model/usage/cost-unit';
 import { SessionDetail } from '../../model/usage/types';
 import { plural } from '../format-size';
 import { ChartSection } from './charts/ChartSection';
@@ -22,6 +23,11 @@ export const CostSection = ({ detail }: CostSectionProps) => {
     [points, detail]
   );
 
+  // The CLI states no per-token cost, so there are no points — but there were requests, and the
+  // context chart below draws them. The note counts the turns rather than the points, or a session
+  // that plainly ran would be captioned "0 requests".
+  const priced: boolean = hasCost(detail.tool);
+
   return (
     <ChartSection
       // "Cost", not "Turns" — the curve's height is what you came to read, and the count of
@@ -29,7 +35,7 @@ export const CostSection = ({ detail }: CostSectionProps) => {
       title="Cost"
       note={
         <>
-          {plural(points.length, 'request')}
+          {plural(priced ? points.length : detail.turns.length, 'request')}
           {loads.length > 0 && ' · dots are skill loads'}
         </>
       }
@@ -40,7 +46,7 @@ export const CostSection = ({ detail }: CostSectionProps) => {
         max={peakOf(points)}
         unit="cost"
         format={(value) => formatCost({ value, tool: detail.tool })}
-        empty={EMPTY_TURNS}
+        empty={priced ? EMPTY_TURNS : NO_COST_REASON}
       />
     </ChartSection>
   );
