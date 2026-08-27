@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { copilotSessionStateDir, sessionsDir } from '../config/paths';
 import { perfPhase } from '../model/perf/recorder';
+import { carryForward } from '../model/sessions/carry-forward';
 import { CopilotPrCache, newCopilotPrCache } from '../model/sessions/copilot/pull-request';
 import { loadAgentSessions } from '../model/sessions/load';
 import { SkillTrailCache, newSkillTrailCache } from '../model/sessions/skill-trail';
@@ -60,9 +61,15 @@ export const currentAgents = async (): Promise<AgentSession[]> => agents ?? refr
 export const cachedAgents = (): AgentSession[] => agents ?? [];
 
 export const refreshAgents = async (): Promise<AgentSession[]> => {
-  const next: AgentSession[] = await perfPhase('agents', () =>
+  const loaded: AgentSession[] = await perfPhase('agents', () =>
     loadAgentSessions({ copilotPullRequests, skillTrails })
   );
+  // The third thing held across passes, and the only one that isn't a cache of work: a row's PR
+  // link, context reading and last prompt live further back in the log than the window each pass
+  // reads, so they'd blink out whenever something large was written. Carried before the comparison
+  // below, or a field dropping and coming back would count as two changes and redraw the surface
+  // twice for nothing.
+  const next: AgentSession[] = carryForward(agents ?? [], loaded);
   const changed: boolean = signature(next) !== signature(agents);
   agents = next;
   // Most poll passes find exactly what the last one did, and firing anyway would re-render the
