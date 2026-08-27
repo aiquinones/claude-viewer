@@ -70,7 +70,7 @@ export const cachedSessions = (): SessionUsage[] => scanned?.sessions ?? [];
 // that isn't the session id, so this is the only way to get from one to the other — and the cache
 // already knows, because the fold it built is keyed by both.
 export const transcriptPathsFor = (sessionId: string): string[] =>
-  pathsForSession(cache, sessionId);
+  pathsForSession(cache.claude, sessionId);
 
 const publish = (): UsageHistory => {
   const next: UsageHistory = narrowHistory({
