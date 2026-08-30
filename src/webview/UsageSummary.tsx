@@ -1,6 +1,6 @@
 import { AGENT_TOOL_LABEL, AgentTool } from '../model/types';
 import { toolsIn } from '../model/usage/aggregate';
-import { CostUnit, costUnitOf, NO_COST_REASON } from '../model/usage/cost-unit';
+import { CostUnit, costUnitOf, noCostReason } from '../model/usage/cost-unit';
 import { UsageBreakdown, UsageWindow } from '../model/usage/types';
 import { plural } from './format-size';
 import { formatAiu, formatUsd } from './usage-format';
@@ -72,9 +72,9 @@ interface CostTotalsProps {
 // different units and neither CLI's data defines a conversion, so adding them would invent one.
 //
 // A CLI that contributed nothing to the window isn't drawn either — a `$0` beside a real figure
-// reads as a claim that nothing was spent. A CLI with no unit at all draws a dash for the same
-// reason: Codex bills against a rate-limit window, and `0 AIU` beside a real figure is a worse
-// answer than admitting there isn't one.
+// reads as a claim that nothing was spent. A CLI whose turns all ran on models the rate table
+// doesn't know draws a dash for the same reason: `$0` there is a worse answer than admitting there
+// isn't a figure.
 const CostTotals = ({ breakdown }: CostTotalsProps) => {
   const tools: AgentTool[] = toolsIn(breakdown);
   if (tools.length === 0) return <span className="text-2xl font-semibold tabular-nums">—</span>;
@@ -98,12 +98,17 @@ interface ToolCostProps {
 
 const ToolCost = ({ breakdown, tool }: ToolCostProps) => {
   const unit: CostUnit = costUnitOf(tool);
+  const value: number =
+    unit === 'usd' ? breakdown.byTool[tool].usd : breakdown.byTool[tool].nanoAiu;
 
-  if (unit === 'none') {
+  // A turn priced from the table always costs something, so `$0` on a CLI that ran requests means
+  // the table knew none of its models. `0 AIU` is a real reading and is drawn as one — Copilot
+  // reports its own figure rather than having one worked out for it.
+  if (unit === 'usd' && value === 0) {
     return (
       <span
         className="text-2xl font-semibold tabular-nums text-muted-foreground"
-        title={NO_COST_REASON}
+        title={noCostReason(breakdown.unpricedModels)}
       >
         —
       </span>
@@ -112,9 +117,7 @@ const ToolCost = ({ breakdown, tool }: ToolCostProps) => {
 
   return (
     <span className="text-2xl font-semibold tabular-nums">
-      {unit === 'usd'
-        ? formatUsd(breakdown.byTool[tool].usd)
-        : formatAiu(breakdown.byTool[tool].nanoAiu)}
+      {unit === 'usd' ? formatUsd(value) : formatAiu(value)}
     </span>
   );
 };

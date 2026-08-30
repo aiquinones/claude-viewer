@@ -1,15 +1,9 @@
 import { Info } from 'lucide-react';
 import { useRef } from 'react';
-import {
-  CACHE_MULTIPLIERS,
-  ModelRates,
-  PRICED_AT,
-  ratesFor,
-  USD_PART_KEYS,
-  UsdPart
-} from '../model/usage/pricing';
+import { ModelRates, ratesFor, USD_PART_KEYS, UsdPart } from '../model/usage/pricing';
 import { UsageModelUse, UsageSummaryData } from '../model/usage/types';
 import {
+  formatCacheRates,
   formatShare,
   formatRate,
   formatUsageTokens,
@@ -29,16 +23,20 @@ interface UsageInfoProps {
 // This one exists because the total invites a check that fails. A week producing 1.4M output tokens
 // priced at $249 reads as a bug — until the card shows that $148 of it is cache reads, because every
 // turn re-reads the context it's working in, and those tokens appear in no figure on the surface.
+//
+// Two providers reach it: Claude Code and Codex both record tokens and no price. Which rate card is
+// shown follows whichever model produced the window, so a Codex-only window explains itself in
+// OpenAI's rates without the card knowing there is more than one table.
 export const UsageInfo = ({ breakdown }: UsageInfoProps) => {
   const trigger = useRef<HTMLSpanElement>(null);
   const card = useRef<HTMLDivElement>(null);
   const { drop, measure } = useCardDrop(trigger, card);
 
-  // Only Claude's turns are priced from a table, so only they have anything to explain — a Copilot
-  // session bills in AIU and reports the figure itself. A window with no Claude turns opens an empty
-  // box, which is worse than no (i) at all. Below the hooks rather than above them, since the
-  // caption it sits in renders either way.
-  if (breakdown.byTool.claude.turns === 0) return null;
+  // Only turns priced from a table have anything to explain — a Copilot session bills in AIU and
+  // reports the figure itself. A window of nothing but those opens an empty box, which is worse than
+  // no (i) at all. Below the hooks rather than above them, since the caption it sits in renders
+  // either way.
+  if (breakdown.total.usd === 0) return null;
 
   // `align-middle` centres an inline box on the *x-height*, which leaves a 14px icon about a pixel
   // below where the eye reads the line's centre. Its bottom sits 0.23em under the baseline instead,
@@ -91,9 +89,11 @@ const CARD_ID: string = 'usage-info-card';
 // card is a hover card.
 const MODEL_LIMIT: number = 4;
 
-// Where the dollars come from. Claude Code records tokens and no price, so every figure under this
-// heading is the rate card applied to a token count rather than something it reported.
-const ESTIMATED_FROM_TOKENS: string = 'USD is estimated from token consumption';
+// Where the dollars come from, and — since the header splits its figures per CLI and this total
+// doesn't — which ones are in it. Every CLI that records tokens and no price is, which is both of
+// the two that aren't Copilot.
+const ESTIMATED_FROM_TOKENS: string =
+  'USD is estimated from token consumption, across every CLI that records tokens';
 
 interface CostPartsProps {
   breakdown: UsageSummaryData;
@@ -177,12 +177,9 @@ const Rates = ({ models }: RatesProps) => {
       <dl className="grid grid-cols-[auto_auto] gap-x-6">
         <Line label="Input" value={formatRate(rates.inputPerMTok)} />
         <Line label="Output" value={formatRate(rates.outputPerMTok)} />
-        <Line
-          label="Cache"
-          value={`reads ${CACHE_MULTIPLIERS.read}× input · writes ${CACHE_MULTIPLIERS.write5m}× (5m) and ${CACHE_MULTIPLIERS.write1h}× (1h)`}
-        />
+        <Line label="Cache" value={formatCacheRates(rates.cache)} />
       </dl>
-      <p>Last checked on {PRICED_AT}.</p>
+      <p>Last checked on {rates.pricedAt}.</p>
       <p>Note: Subscription plans don't pay these. This is API cost.</p>
     </section>
   );

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { hasCost, NO_COST_REASON } from '../../model/usage/cost-unit';
+import { noCostReason, unpricedModelsIn } from '../../model/usage/cost-unit';
 import { SessionDetail } from '../../model/usage/types';
 import { plural } from '../format-size';
 import { ChartSection } from './charts/ChartSection';
@@ -23,10 +23,11 @@ export const CostSection = ({ detail }: CostSectionProps) => {
     [points, detail]
   );
 
-  // The CLI states no per-token cost, so there are no points — but there were requests, and the
-  // context chart below draws them. The note counts the turns rather than the points, or a session
-  // that plainly ran would be captioned "0 requests".
-  const priced: boolean = hasCost(detail.tool);
+  // Nothing here could be priced — a session run entirely on a model the rate table doesn't know.
+  // There were still requests, and the context chart below draws them, so the note counts the turns
+  // rather than the points or a session that plainly ran would be captioned "0 requests".
+  const unpricedModels: string[] = useMemo(() => unpricedModelsIn(detail.turns), [detail]);
+  const priced: boolean = points.length > 0 || detail.turns.length === 0;
 
   return (
     <ChartSection
@@ -46,7 +47,7 @@ export const CostSection = ({ detail }: CostSectionProps) => {
         max={peakOf(points)}
         unit="cost"
         format={(value) => formatCost({ value, tool: detail.tool })}
-        empty={priced ? EMPTY_TURNS : NO_COST_REASON}
+        empty={priced ? EMPTY_TURNS : noCostReason(unpricedModels)}
       />
     </ChartSection>
   );

@@ -1,4 +1,4 @@
-import { costUnitOf, hasCost, NO_COST_REASON } from '../../model/usage/cost-unit';
+import { costUnitOf, noCostReason } from '../../model/usage/cost-unit';
 import { SessionDetail, UsageSummaryData } from '../../model/usage/types';
 import { plural } from '../format-size';
 import { UsageInfo } from '../UsageInfo';
@@ -12,20 +12,25 @@ interface SessionHeadlineProps {
 // The session's own total. No `...` beside it: the scope is meaningless for one session, and cost is
 // the only figure now — so there is nothing left to ask here.
 //
-// Its own file because what it prints depends on the CLI: three of them, and one states no
-// per-token cost at all.
+// Its own file because what it prints depends on more than the figure: two of the three CLIs are
+// priced from a rate table, and a session can have run on a model that table has never heard of.
 export const SessionHeadline = ({ detail, summary }: SessionHeadlineProps) => {
-  // A dash rather than a figure when the CLI has no cost unit — the same answer the chart below
-  // gives, so the page doesn't report a total it then declines to draw.
-  const unpriced: boolean = !hasCost(detail.tool);
+  const cost: number = costOf(summary, detail);
+
+  // A turn priced from the table always costs something, so `$0` on a session that ran requests
+  // means the table knew none of its models — a dash, the same answer the chart below gives, so the
+  // page doesn't report a total it then declines to draw. A session that priced some of its turns
+  // keeps its figure and names the models it missed in the card.
+  const unpriced: boolean =
+    costUnitOf(detail.tool) === 'usd' && cost === 0 && summary.total.turns > 0;
 
   return (
     <section className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
       <span
         className={`text-2xl font-semibold tabular-nums${unpriced ? ' text-muted-foreground' : ''}`}
-        title={unpriced ? NO_COST_REASON : undefined}
+        title={unpriced ? noCostReason(summary.unpricedModels) : undefined}
       >
-        {unpriced ? '—' : formatCost({ value: costOf(summary, detail), tool: detail.tool })}
+        {unpriced ? '—' : formatCost({ value: cost, tool: detail.tool })}
       </span>
       <span className="text-xs text-muted-foreground">
         {/* The (i) sits inside the caption rather than beside it, so a panel too narrow for the line
