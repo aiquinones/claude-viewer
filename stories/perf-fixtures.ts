@@ -43,7 +43,7 @@ const read = ({ path, ms, bytes, kind = 'file' }: ReadArgs): PerfRead => ({
 // A launch on a small workspace: everything under a fifth of a second, nothing worth looking at.
 export const fastLaunch: PerfReport = {
   openedAt: OPENED_AT,
-  scanning: false,
+  running: [],
   phases: [
     phase({ phase: 'activate', ms: 11 }),
     phase({ phase: 'snapshot', ms: 42, files: 47, directories: 22, bytes: 486_000, ioMs: 31 }),

@@ -1,18 +1,12 @@
 import {
   PERF_PHASES,
   PerfLog,
-  PerfPhase,
   PerfPhaseReport,
   PerfReport,
-  PerfSpan,
   ReadTotals
 } from './types';
 
 const NO_READS: ReadTotals = { files: 0, directories: 0, bytes: 0, ioMs: 0 };
-
-// Which stage the usage scan is, and the one the report waits on: it starts un-awaited on the ready
-// path and lands seconds after the page is up.
-const SCAN_PHASE: PerfPhase = 'usage';
 
 interface BuildReportArgs {
   log: PerfLog;
@@ -45,7 +39,7 @@ export const buildReport = ({ log, openedAt }: BuildReportArgs): PerfReport => {
     bytes: sumOf({ phases: top, field: 'bytes' }),
     ioMs: sumOf({ phases: top, field: 'ioMs' }),
     slowest: log.slowest,
-    scanning: !log.spans.some((span: PerfSpan) => span.phase === SCAN_PHASE)
+    running: log.running
   };
 };
 

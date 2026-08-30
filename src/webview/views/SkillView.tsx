@@ -4,6 +4,8 @@ import { listed } from '../../model/shadowing';
 import { ConfigSnapshot, Reveal, SkillEntry, SkillGraph } from '../../model/types';
 import { Button } from '@/components/ui/button';
 import { AllowedTools } from '../AllowedTools';
+import { CONFIG_EXPECTED_MS, isPending } from '../config-pending';
+import { Loading } from '../loading/Loading';
 import { PanelActions } from '../PanelActions';
 import { SkillBody } from '../SkillBody';
 import { SkillDetail } from '../SkillDetail';
@@ -61,6 +63,9 @@ export const SkillView = ({
   }, [reveal]);
 
   const skills: SkillEntry[] = snapshot.skills;
+  // This surface's loader opens every SKILL.md on the machine, so the list can be empty here for a
+  // while on a launch. "None found" would be a claim about a read that hasn't happened.
+  const reading: boolean = isPending({ snapshot, part: 'skills' });
   const selected: SkillEntry | undefined =
     skills.find((skill) => skill.path === selectedPath) ?? skills[0];
   const winner: SkillEntry | undefined = selected?.shadowedBy
@@ -129,15 +134,23 @@ export const SkillView = ({
         <div className="mr-auto flex flex-col gap-0.5">
           <span className="text-sm font-semibold">Skills</span>
           <span className="text-xs text-muted-foreground">
-            {skills.length} found · <TokenEstimate chars={listingChars} long /> listed
-            {shadowedCount > 0 && ` · ${shadowedCount} shadowed`}
-            {!snapshot.workspaceRoot && ' · no folder open, user + plugin scopes only'}
+            {reading ? (
+              'reading the skill directories…'
+            ) : (
+              <>
+                {skills.length} found · <TokenEstimate chars={listingChars} long /> listed
+                {shadowedCount > 0 && ` · ${shadowedCount} shadowed`}
+                {!snapshot.workspaceRoot && ' · no folder open, user + plugin scopes only'}
+              </>
+            )}
           </span>
         </div>
         <PanelActions onSearch={onSearch} onRefresh={onRefresh} />
       </header>
 
-      {skills.length === 0 ? (
+      {reading ? (
+        <Reading />
+      ) : skills.length === 0 ? (
         <Empty />
       ) : (
         // One column under `md`, where SkillNav overlays instead of sitting in the grid. `relative`
@@ -230,6 +243,14 @@ const flowBlocker = ({
   if (flow) return {};
   return { flow: "This skill isn't written as a sequence of steps" };
 };
+
+// The loader is still out — every SKILL.md on the machine, which on a big install is the slowest
+// stage of a launch after the workspace walk.
+const Reading = () => (
+  <div className="flex flex-1 items-center justify-center p-5">
+    <Loading label="Reading skills…" expectedMs={CONFIG_EXPECTED_MS} />
+  </div>
+);
 
 const Empty = () => (
   <div className="flex flex-1 items-center justify-center p-5 text-center text-sm text-muted-foreground">

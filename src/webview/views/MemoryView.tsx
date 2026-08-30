@@ -13,6 +13,8 @@ import { ClaudeMemoryPane } from '../ClaudeMemoryPane';
 import { CodexMemoryCard } from '../CodexMemoryCard';
 import { CopilotMemoryCard } from '../CopilotMemoryCard';
 import { MemoryTabs } from '../MemoryTabs';
+import { CONFIG_EXPECTED_MS, isPending } from '../config-pending';
+import { Loading } from '../loading/Loading';
 import { PanelActions } from '../PanelActions';
 import { formatTokens, plural } from '../format-size';
 import { indexDocument } from '../memory-document';
@@ -51,6 +53,9 @@ export const MemoryView = ({
 }: MemoryViewProps) => {
   const memory: MemorySet | undefined = snapshot.memory;
   const memories: MemoryEntry[] = memory?.memories ?? [];
+  // Undefined means two different things here: no folder open, or the loader hasn't landed. This is
+  // the one that separates them.
+  const reading: boolean = isPending({ snapshot, part: 'memory' });
   const estimate = useEstimate();
 
   const [tool, setTool] = useState<AgentTool>('claude');
@@ -110,7 +115,9 @@ export const MemoryView = ({
         <div className="mr-auto flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-semibold">Memory</span>
           <span className="truncate text-xs text-muted-foreground">
-            {subtitle({ tool, memory, estimate })}
+            {reading && tool === 'claude'
+              ? 'reading the memory directory…'
+              : subtitle({ tool, memory, estimate })}
           </span>
         </div>
         <PanelActions
@@ -129,6 +136,8 @@ export const MemoryView = ({
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-clip px-2 pt-3">
           {tool === 'copilot' ? <CopilotMemoryCard /> : <CodexMemoryCard />}
         </div>
+      ) : reading ? (
+        <Reading />
       ) : !memory ? (
         <NoWorkspace />
       ) : (
@@ -170,6 +179,13 @@ const subtitle = ({ tool, memory, estimate }: SubtitleArgs): string => {
     estimate(memory.index.chars)
   )} est. tokens every session`;
 };
+
+// The other two tabs hold a card that reads nothing, so this only ever covers Claude's.
+const Reading = () => (
+  <div className="flex flex-1 items-center justify-center p-5">
+    <Loading label="Reading memories…" expectedMs={CONFIG_EXPECTED_MS} />
+  </div>
+);
 
 const NoWorkspace = () => (
   <div className="flex flex-1 items-center justify-center p-5 text-center text-sm text-muted-foreground">

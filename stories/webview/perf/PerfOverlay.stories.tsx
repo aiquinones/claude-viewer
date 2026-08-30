@@ -49,13 +49,29 @@ export const SlowLaunch: Story = {
   play: openCard
 };
 
-// Posted before the usage scan lands, which is what the first of the two messages always looks
-// like. The scan's row is absent rather than zero, and the card says why.
+// The first report of a launch: the page is up and almost nothing has finished reading. Every
+// outstanding stage's row is absent rather than zero, and the card names each one — this is what
+// makes a launch watchable rather than something you only see the end of.
+export const StillReading: Story = {
+  args: {
+    report: {
+      ...fastLaunch,
+      running: ['snapshot', 'skills', 'system-prompt', 'usage'],
+      phases: fastLaunch.phases.filter(
+        (phase) => !['snapshot', 'skills', 'system-prompt', 'usage'].includes(phase.phase)
+      )
+    } satisfies PerfReport
+  },
+  play: openCard
+};
+
+// The last thing still out, which is where a launch spends most of its visible life: the config is
+// in and the scan behind it is still walking every transcript on the machine.
 export const StillScanning: Story = {
   args: {
     report: {
       ...fastLaunch,
-      scanning: true,
+      running: ['usage'],
       phases: fastLaunch.phases.filter((phase) => phase.phase !== 'usage')
     } satisfies PerfReport
   },

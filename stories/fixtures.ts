@@ -20,6 +20,7 @@ import {
   SearchHit,
   SkillEntry,
   SkillGraph,
+  SnapshotPart,
   SystemPromptFile
 } from '@src/model/types';
 
@@ -278,6 +279,9 @@ export const brokenPromptFiles: SystemPromptFile[] = inLoadOrder([
 export const userOnlyPromptFiles: SystemPromptFile[] = inLoadOrder([userPrompt]);
 
 interface SnapshotArgs {
+  // Which parts haven't landed. A story that wants a surface mid-read names its own part; every
+  // other story is a finished read, which is the default below.
+  pending?: SnapshotPart[];
   skills: SkillEntry[];
   systemPrompt?: SystemPromptFile[];
   // `null` is no folder open, which is the one state where there is no memory directory at all.
@@ -292,13 +296,15 @@ export const snapshot = ({
   skills,
   systemPrompt,
   memory,
-  workspaceRoot
+  workspaceRoot,
+  pending
 }: SnapshotArgs): ConfigSnapshot => ({
   workspaceRoot: workspaceRoot ?? WORKSPACE,
   skills,
   systemPrompt: systemPrompt ?? allPromptFiles,
   memory: memory === null ? undefined : (memory ?? memorySet),
-  loadedAt: Date.UTC(2026, 7, 1)
+  loadedAt: Date.UTC(2026, 7, 1),
+  pending: pending ?? []
 });
 
 // What the host posts when the palette or a deep link names a skill.

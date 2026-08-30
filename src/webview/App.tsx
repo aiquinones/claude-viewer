@@ -25,9 +25,10 @@ import { UsageView } from './views/UsageView';
 import { SkillView } from './views/SkillView';
 import { SystemPromptView } from './views/SystemPromptView';
 
-// What the first snapshot usually costs. Longer than a file read: it walks the workspace for
-// nested CLAUDE.md files, which on a big repo is seconds — past this the bar stops guessing.
-const SNAPSHOT_EXPECTED_MS: number = 1500;
+// How long the panel waits before it has anything at all. Not a disk read any more — the host
+// posts the shell as soon as the webview says it's listening, and each part of the config fills
+// itself in behind that. So this covers one message hop, and the surfaces own their own waits.
+const SHELL_EXPECTED_MS: number = 200;
 
 // Holds the host bridge and owns navigation. The views know nothing about it, so the next surface
 // is a sibling under views/ plus an entry in SURFACES.
@@ -177,7 +178,7 @@ export const App = () => {
   if (!snapshot) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loading label="Reading configuration…" expectedMs={SNAPSHOT_EXPECTED_MS} />
+        <Loading label="Starting up…" expectedMs={SHELL_EXPECTED_MS} />
       </div>
     );
   }

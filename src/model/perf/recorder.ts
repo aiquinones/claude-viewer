@@ -5,7 +5,7 @@ import { PerfLog, PerfPhase, PerfRead, PerfReadKind, PerfSpan, ReadTotals } from
 // launch, and none of this is per-panel.
 //
 // Which stage a read belongs to goes through AsyncLocalStorage rather than a "current phase"
-// variable. `buildSnapshot` runs three loaders in one `Promise.all` and the polls overlap each
+// variable. The snapshot stage runs three loaders concurrently and the polls overlap each
 // other, so a variable would credit whichever of them ran last.
 const openPhases: AsyncLocalStorage<PerfPhase[]> = new AsyncLocalStorage();
 
@@ -14,13 +14,16 @@ const openPhases: AsyncLocalStorage<PerfPhase[]> = new AsyncLocalStorage();
 const SLOWEST_KEPT: number = 8;
 
 const spans: PerfSpan[] = [];
+// Stages that have been entered and haven't returned. What the report calls `running`, and the
+// reason it can be built and posted before a launch is over.
+const running: Set<PerfPhase> = new Set();
 const totals: Map<PerfPhase, ReadTotals> = new Map();
 // Stages that have already run once. A launch is the first time each one happens.
 const finished: Set<PerfPhase> = new Set();
 let slowest: PerfRead[] = [];
 
 // Everything collected so far. `report.ts` does the arithmetic.
-export const perfLog = (): PerfLog => ({ spans, totals, slowest });
+export const perfLog = (): PerfLog => ({ spans, totals, slowest, running: [...running] });
 
 // Runs `load` as a named stage, and every read inside it — however deeply nested, however
 // concurrent — is attributed here. A stage runs again on every poll, and the launch is the first
@@ -34,10 +37,12 @@ export const perfPhase = async <Value>(
   const open: PerfPhase[] = openPhases.getStore() ?? [];
   const startedAt: number = Date.now();
   const start: number = performance.now();
+  running.add(phase);
 
   try {
     return await openPhases.run([...open, phase], load);
   } finally {
+    running.delete(phase);
     finished.add(phase);
     spans.push({ phase, ms: performance.now() - start, depth: open.length, startedAt });
   }
