@@ -1,0 +1,19 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";import{Ct as t,at as n,it as r,n as i,wt as a}from"./iframe-CsVp7LyP.js";import{n as o,t as s}from"./SettingsContext-frDIep6N.js";import{d as c,i as l,n as u,o as d,t as f}from"./session-detail-fixtures-i6NA3UbE.js";import{n as p,t as m}from"./StageRadars-hW5povUb.js";var h,g,_,v,y,b,x,S,C,w;function T(){return(T=e((()=>{n(),p(),o(),t(),d(),h=i(),g=e=>t=>(0,h.jsx)(s,{settings:{...r,stages:{names:e}},children:(0,h.jsx)(t,{})}),_={title:`Usage/StageRadars`,component:m,args:{detail:u},decorators:[g(c),e=>(0,h.jsx)(`div`,{className:`w-[42rem] max-w-full p-4`,style:{"--surface-accent":a(`usage`)},children:(0,h.jsx)(e,{})})]},v={},y={args:{detail:l}},b={decorators:[g({})]},x={decorators:[g({"dev-feature":`Build`})]},S={args:{detail:f}},C={decorators:[e=>(0,h.jsx)(`div`,{className:`w-[19rem]`,children:(0,h.jsx)(e,{})})]},v.parameters={...v.parameters,docs:{...v.parameters?.docs,source:{originalSource:`{}`,...v.parameters?.docs?.source}}},y.parameters={...y.parameters,docs:{...y.parameters?.docs,source:{originalSource:`{
+  args: {
+    detail: copilotDetail
+  }
+}`,...y.parameters?.docs?.source}}},b.parameters={...b.parameters,docs:{...b.parameters?.docs,source:{originalSource:`{
+  decorators: [withNames({})]
+}`,...b.parameters?.docs?.source}}},x.parameters={...x.parameters,docs:{...x.parameters?.docs,source:{originalSource:`{
+  decorators: [withNames({
+    'dev-feature': 'Build'
+  })]
+}`,...x.parameters?.docs?.source}}},S.parameters={...S.parameters,docs:{...S.parameters?.docs,source:{originalSource:`{
+  args: {
+    detail: bareDetail
+  }
+}`,...S.parameters?.docs?.source}}},C.parameters={...C.parameters,docs:{...C.parameters?.docs,source:{originalSource:`{
+  decorators: [Story => <div className="w-[19rem]">
+        <Story />
+      </div>]
+}`,...C.parameters?.docs?.source}}},w=[`Session`,`Copilot`,`Unsplit`,`SomeIgnored`,`NoSkills`,`Narrow`]})))()}T();export{y as Copilot,C as Narrow,S as NoSkills,v as Session,x as SomeIgnored,b as Unsplit,w as __namedExportsOrder,_ as default};
