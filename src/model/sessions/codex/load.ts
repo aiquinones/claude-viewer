@@ -1,7 +1,7 @@
 import { AgentSession } from '../../types';
 import { liveCodexThreadIds } from './live';
 import { CodexRolloutSummary, readRollout } from './rollout';
-import { CodexThread, readCodexThreads } from './threads-db';
+import { CodexThread, readCodexThreads, threadTitle } from './threads-db';
 
 // Locate → parse → validate → typed entries, the same shape every other loader uses. Two sources
 // joined: the lock directory says which threads are live, and one query against the thread index
@@ -39,7 +39,7 @@ const toEntry = async (thread: CodexThread): Promise<AgentSession> => {
     otherPids: [],
     cwd: thread.cwd,
     transcriptPath: thread.rolloutPath,
-    title: firstLine(thread.title),
+    title: threadTitle(thread),
     repository: thread.repository,
     branch: thread.branch,
     lastPrompt: summary.lastPrompt,
@@ -55,11 +55,4 @@ const toEntry = async (thread: CodexThread): Promise<AgentSession> => {
     entrypoint: '',
     issues: summary.issues
   };
-};
-
-// Codex generates no title, so its `title` column is the opening prompt verbatim — many lines of it,
-// in the ordinary case. The row has one line, and the first is the one that names the session.
-const firstLine = (title: string): string | undefined => {
-  const line: string = title.split('\n')[0].trim();
-  return line || undefined;
 };

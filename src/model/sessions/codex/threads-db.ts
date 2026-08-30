@@ -21,12 +21,20 @@ import { SqliteDatabase, closeDatabase, openDatabase } from '../sqlite';
 //
 // One placeholder per id rather than a JSON array, for the same reason as Copilot's: `json_each`
 // needs the JSON1 extension and this build of SQLite is not guaranteed to carry it.
+const THREAD_COLUMNS: string = `
+  id, rollout_path, cwd, title, model, git_branch, git_origin_url,
+  thread_source, created_at_ms, updated_at_ms
+`;
+
 const threadsSql = (count: number): string => `
-  SELECT id, rollout_path, cwd, title, model, git_branch, git_origin_url,
-         thread_source, created_at_ms, updated_at_ms
+  SELECT ${THREAD_COLUMNS}
     FROM threads
    WHERE id IN (${new Array(count).fill('?').join(', ')})
 `;
+
+// Every thread the database knows, for the usage scan — which is about the whole corpus rather than
+// about what is running, so it has no set of ids to ask for.
+const ALL_THREADS_SQL: string = `SELECT ${THREAD_COLUMNS} FROM threads`;
 
 // What one thread's row says. The database's snake_case stops here.
 export interface CodexThread {
@@ -51,8 +59,25 @@ export interface CodexThread {
 export const readCodexThreads = async (
   threadIds: string[]
 ): Promise<Map<string, CodexThread>> => {
+  if (threadIds.length === 0) return new Map();
+  return queryThreads({ sql: threadsSql(threadIds.length), params: threadIds });
+};
+
+// Every thread on the machine, keyed by id. What the usage scan walks: each row names its own
+// rollout, so this is the index that replaces a walk of the dated `sessions/` tree.
+//
+// A rollout the database doesn't list is a file Codex wrote before this table existed. Those predate
+// `token_count` too, so they hold no usage to miss.
+export const readAllCodexThreads = async (): Promise<Map<string, CodexThread>> =>
+  queryThreads({ sql: ALL_THREADS_SQL, params: [] });
+
+interface QueryThreadsArgs {
+  sql: string;
+  params: string[];
+}
+
+const queryThreads = async ({ sql, params }: QueryThreadsArgs): Promise<Map<string, CodexThread>> => {
   const threads: Map<string, CodexThread> = new Map();
-  if (threadIds.length === 0) return threads;
 
   const path: string | undefined = await codexStatePath();
   if (!path) return threads;
@@ -62,7 +87,7 @@ export const readCodexThreads = async (
   if (!database) return threads;
 
   try {
-    const rows: unknown[] = database.prepare(threadsSql(threadIds.length)).all(...threadIds);
+    const rows: unknown[] = database.prepare(sql).all(...params);
 
     for (const row of rows) {
       const thread: CodexThread | undefined = toThread(row);
@@ -113,6 +138,14 @@ const toThread = (row: unknown): CodexThread | undefined => {
     createdAt: count(createdAt),
     updatedAt: count(updatedAt)
   };
+};
+
+// Codex generates no title, so its `title` column is the opening prompt verbatim — many lines of it,
+// in the ordinary case. Both surfaces that name a thread want one line, and what the column holds is
+// this module's business rather than each caller's.
+export const threadTitle = (thread: CodexThread): string | undefined => {
+  const line: string = thread.title.split('\n')[0].trim();
+  return line || undefined;
 };
 
 const text = (value: unknown): string => (typeof value === 'string' ? value : '');

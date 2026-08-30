@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { UsageBreakdown } from '@src/model/usage/types';
-import { bothClis, dayOfWork } from '../usage-fixtures';
+import { bothClis, dayOfWork, threeClis } from '../usage-fixtures';
 import { UsageSummary } from '@src/webview/UsageSummary';
 
 const day: UsageBreakdown = dayOfWork.windows.day;
 const twoClis: UsageBreakdown = bothClis.windows.day;
+const allClis: UsageBreakdown = threeClis.windows.day;
 
 // The surface's header: the cost, the (i) that takes it apart, the `...` holding which sessions are
 // counted, and the window the figure is a total of. It sits above the tabs, so both tabs are read
@@ -36,6 +37,11 @@ export const OneCli: Story = {};
 // Both CLIs: one figure each, in its own unit, with the `...` still pinned to the corner beside
 // them. There is no combined number — dollars and AIU don't add.
 export const BothClis: Story = { args: { breakdown: twoClis } };
+
+// Three CLIs, and the third has no unit at all. A dash rather than `0 AIU`: Codex bills against a
+// rate-limit window, so a zero beside two real figures would read as a claim that it was free. Its
+// turns are still in the window — they just aren't money.
+export const UnpricedCli: Story = { args: { breakdown: allClis } };
 
 // A week rather than a day. Only the caption under the figure says so — the header above it doesn't
 // name the window, so this row is the whole answer to "a total of what?".

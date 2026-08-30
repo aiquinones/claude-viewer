@@ -1,6 +1,7 @@
 // One session's requests, ready to draw. Pure — the chart reads values off this and does no
 // arithmetic of its own beyond fitting them to a box.
 
+import { hasCost } from '../../../model/usage/cost-unit';
 import { usdPartsFor, sumUsdParts, UsdParts } from '../../../model/usage/pricing';
 import { ContextPoint, SkillInvocation, UsageTurn } from '../../../model/usage/types';
 
@@ -17,21 +18,28 @@ export interface SeriesPoint {
   skill?: string;
 }
 
-// What each request cost.
+// What each request cost. A costless CLI yields no points at all rather than a row of zeros: a
+// curve along the floor is a claim that every request was free, where an empty series lets the
+// section say why there is no figure.
 export const toCostSeries = (turns: UsageTurn[]): SeriesPoint[] =>
-  turns.map((turn) => ({
-    id: turn.id,
-    at: turn.at,
-    model: turn.model,
-    ...(turn.skill ? { skill: turn.skill } : {}),
-    value: turnValue(turn)
-  }));
+  turns
+    .filter((turn) => hasCost(turn.tool))
+    .map((turn) => ({
+      id: turn.id,
+      at: turn.at,
+      model: turn.model,
+      ...(turn.skill ? { skill: turn.skill } : {}),
+      value: turnValue(turn)
+    }));
 
 // What one request cost. Dollars on a Claude turn and nano-AIU on a Copilot one, and a session ran
 // under one CLI — so the chart is one unit, and the heading says which. Exported because the stage
 // radar sums the same number over a span of turns: two readings of one session that disagreed about
 // what a turn cost would be worse than either.
 export const turnValue = (turn: UsageTurn): number => {
+  // Codex states no per-token figure anywhere, so there is no number to fall through to. Reaching
+  // the Claude branch below would price it at zero off a missing rate table.
+  if (!hasCost(turn.tool)) return 0;
   if (turn.tool === 'copilot') return turn.nanoAiu ?? 0;
 
   const parts: UsdParts | undefined = usdPartsFor({ model: turn.model, tokens: turn.tokens });

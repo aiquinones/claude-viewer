@@ -1,4 +1,5 @@
 import { TokenEstimator } from '../../model/estimate-tokens';
+import { AgentTool } from '../../model/types';
 import { formatTokens, plural } from '../format-size';
 import { EstimatorNote } from './EstimatorNote';
 import { SkillLoad, unsizedCount, weightedTotal } from './skill-loads';
@@ -6,6 +7,9 @@ import { SkillLoadRow } from './SkillLoadRow';
 
 interface SkillLoadListProps {
   loads: SkillLoad[];
+  // Which CLI wrote the session. Only for the empty case: two of the three record a skill load and
+  // one records nothing, so an empty list means different things and can't say one sentence.
+  tool: AgentTool;
   // What the sizes are measured with, what the session would have measured them with, and why. The
   // three travel together because the card that explains one needs all of them.
   estimator: TokenEstimator;
@@ -20,6 +24,7 @@ interface SkillLoadListProps {
 // 1,800-token skill is 5,400 tokens spent on one file.
 export const SkillLoadList = ({
   loads,
+  tool,
   estimator,
   sessionEstimator,
   reason,
@@ -28,9 +33,7 @@ export const SkillLoadList = ({
 }: SkillLoadListProps) => {
   if (loads.length === 0) {
     return (
-      <p className="px-1 py-6 text-center text-sm text-muted-foreground">
-        No skills were loaded in this session.
-      </p>
+      <p className="px-1 py-6 text-center text-sm text-muted-foreground">{emptyLine(tool)}</p>
     );
   }
 
@@ -100,3 +103,11 @@ const sizeTitle = (from: SkillLoad['sizeFrom']): string | undefined => {
   if (from === 'unknown') return 'Not installed here, and the log did not record its size';
   return undefined;
 };
+
+// Claude and Copilot both write an invocation down, so an empty list there is a session that loaded
+// nothing. Codex writes none of any kind — not a tool call, not an item type — so the same empty
+// list is a gap in the log, and saying no skills ran would be a claim its data can't support.
+const emptyLine = (tool: AgentTool): string =>
+  tool === 'codex'
+    ? 'Codex records no skill loads in its logs, so there is nothing to show here.'
+    : 'No skills were loaded in this session.';

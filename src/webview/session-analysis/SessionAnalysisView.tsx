@@ -10,15 +10,13 @@ import {
 } from '../../model/usage/types';
 import { Loading } from '../loading/Loading';
 import { useSettings } from '../settings/SettingsContext';
-import { UsageInfo } from '../UsageInfo';
-import { plural } from '../format-size';
 import { ContextSection } from './ContextSection';
 import { CostSection } from './CostSection';
 import { StageRadars } from './radar/StageRadars';
 import { SessionBreadcrumb } from './SessionBreadcrumb';
+import { SessionHeadline } from './SessionHeadline';
 import { SessionOrigin } from './session-target';
 import { estimatorReason, sessionEstimator } from './session-estimator';
-import { formatCost } from './session-format';
 import { SkillLoadList } from './SkillLoadList';
 import { toSkillLoads, SkillLoad } from './skill-loads';
 import { useSessionDetail } from './useSessionDetail';
@@ -131,7 +129,7 @@ const Body = ({ detail, session, skills, onOpenSkill }: BodyProps) => {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto overflow-x-clip">
       <div className="flex flex-col gap-5 px-4 py-4">
-        <Headline detail={detail} summary={summary} />
+        <SessionHeadline detail={detail} summary={summary} />
 
         <CostSection detail={detail} />
 
@@ -141,6 +139,7 @@ const Body = ({ detail, session, skills, onOpenSkill }: BodyProps) => {
 
         <SkillLoadList
           loads={loads}
+          tool={detail.tool}
           estimator={estimator}
           sessionEstimator={derived}
           reason={estimatorReason({ tool: detail.tool, models: summary.models })}
@@ -151,26 +150,3 @@ const Body = ({ detail, session, skills, onOpenSkill }: BodyProps) => {
     </div>
   );
 };
-
-interface HeadlineProps {
-  detail: SessionDetail;
-  summary: UsageSummaryData;
-}
-
-// The session's own total. No `...` beside it: the scope is meaningless for one session, and cost is
-// the only figure now — so there is nothing left to ask here.
-const Headline = ({ detail, summary }: HeadlineProps) => (
-  <section className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
-    <span className="text-2xl font-semibold tabular-nums">
-      {formatCost({ value: costOf(summary, detail), tool: detail.tool })}
-    </span>
-    <span className="text-xs text-muted-foreground">
-      {/* The (i) sits inside the caption rather than beside it, so a panel too narrow for the line
-          wraps the words and keeps the icon on "cost" instead of stranding it. */}
-      cost <UsageInfo breakdown={summary} /> · {plural(summary.total.turns, 'request')}
-    </span>
-  </section>
-);
-
-const costOf = (summary: UsageSummaryData, detail: SessionDetail): number =>
-  detail.tool === 'claude' ? summary.total.usd : summary.total.nanoAiu;

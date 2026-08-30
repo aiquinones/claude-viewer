@@ -3,6 +3,7 @@
 // answer rather than a separate question.
 
 import { scanClaudeUsage } from './claude/scan';
+import { scanCodexUsage } from './codex/scan';
 import { scanCopilotUsage } from './copilot/scan';
 import { pruneUsageCache, UsageCache } from './incremental';
 import { UsageTurn } from './types';
@@ -18,12 +19,13 @@ export const loadUsageTurns = async ({
   since,
   cache
 }: LoadUsageTurnsArgs): Promise<UsageTurn[]> => {
-  const [claude, copilot]: UsageTurn[][] = await Promise.all([
+  const [claude, codex, copilot]: UsageTurn[][] = await Promise.all([
     scanClaudeUsage({ since, cache }),
+    scanCodexUsage({ since, cache }),
     scanCopilotUsage({ since })
   ]);
 
   pruneUsageCache(cache, since);
 
-  return [...claude, ...copilot].filter((turn) => turn.at > since);
+  return [...claude, ...codex, ...copilot].filter((turn) => turn.at > since);
 };

@@ -1,16 +1,26 @@
-// Both CLIs' whole corpus, as one list of sessions. The same shape as `usage/load.ts` and for the
+// Every CLI's whole corpus, as one list of sessions. The same shape as `usage/load.ts` and for the
 // same reason: which CLI a session ran under is a field on the answer, not a separate question.
 
 import { loadRetention } from '../../retention/load';
 import { Retention } from '../../retention/types';
+import { UsageCache } from '../incremental';
 import { UsageScope, UsageHistory, SessionUsage } from '../types';
-import { scanClaudeHistory, HistoryCache } from './claude';
+import { scanClaudeHistory, ClaudeHistoryCache } from './claude';
+import { scanCodexHistory } from './codex';
 import { scanCopilotHistory } from './copilot';
 import { foldToSession, SessionFold } from './fold';
 
-export type { HistoryCache } from './claude';
+export type { ClaudeHistoryCache } from './claude';
 
-export const newHistoryCache = (): HistoryCache => new Map();
+// What a pass resumes from, per CLI. Two shapes rather than one: Claude's folds as it reads and
+// keeps four numbers per session, where Codex keeps its turns — the corpora are different sizes and
+// the two scans made different trades. Copilot has no entry because it re-reads its logs whole.
+export interface HistoryCache {
+  claude: ClaudeHistoryCache;
+  codex: UsageCache;
+}
+
+export const newHistoryCache = (): HistoryCache => ({ claude: new Map(), codex: new Map() });
 
 interface ScanUsageHistoryArgs {
   cache: HistoryCache;
@@ -25,13 +35,19 @@ export const scanUsageHistory = async ({
   now,
   workspaceRoot
 }: ScanUsageHistoryArgs): Promise<UsageHistory> => {
-  const [claude, copilot, retention]: [SessionFold[], SessionFold[], Retention] = await Promise.all([
-    scanClaudeHistory(cache),
+  const [claude, codex, copilot, retention]: [
+    SessionFold[],
+    SessionFold[],
+    SessionFold[],
+    Retention
+  ] = await Promise.all([
+    scanClaudeHistory(cache.claude),
+    scanCodexHistory(cache.codex),
     scanCopilotHistory(),
     loadRetention(workspaceRoot)
   ]);
 
-  const sessions: SessionUsage[] = [...claude, ...copilot]
+  const sessions: SessionUsage[] = [...claude, ...codex, ...copilot]
     .map(foldToSession)
     // A session that produced no turns has nothing to draw and nothing to search — it's a directory
     // that exists, which the Active Agents surface is the place to see.

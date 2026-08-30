@@ -8,10 +8,12 @@ import { join } from 'node:path';
 import { copilotEventsPath, copilotSessionStateDir } from '../../../config/paths';
 import { readTextFile } from '../../../config/read';
 import { ConfigError, Result } from '../../../config/result';
+import { CodexThread, readAllCodexThreads } from '../../sessions/codex/threads-db';
 import { readCopilotContextSeries } from '../../sessions/copilot/usage-db';
 import { AgentTool } from '../../types';
 import { parseClaudeTurns } from '../claude/scan';
 import { parseClaudeInvocations } from '../claude/invocations';
+import { parseCodexTurns } from '../codex/scan';
 import { parseCopilotInvocations } from '../copilot/invocations';
 import { scanCopilotUsage } from '../copilot/scan';
 import { ContextPoint, SessionDetail, SkillInvocation, UsageTurn } from '../types';
@@ -30,10 +32,11 @@ export const loadSessionDetail = async ({
   sessionId,
   tool,
   transcriptPaths
-}: LoadSessionDetailArgs): Promise<SessionDetail> =>
-  tool === 'claude'
-    ? loadClaudeSession({ sessionId, transcriptPaths })
-    : loadCopilotSession(sessionId);
+}: LoadSessionDetailArgs): Promise<SessionDetail> => {
+  if (tool === 'claude') return loadClaudeSession({ sessionId, transcriptPaths });
+  if (tool === 'codex') return loadCodexSession(sessionId);
+  return loadCopilotSession(sessionId);
+};
 
 interface LoadClaudeSessionArgs {
   sessionId: string;
@@ -101,6 +104,40 @@ const loadCopilotSession = async (sessionId: string): Promise<SessionDetail> => 
     turns: all.filter((turn) => turn.sessionId === sessionId),
     invocations: parseCopilotInvocations(events.value),
     contexts
+  });
+};
+
+// One thread, and the database says which file it is — so unlike Claude there is nothing to resolve
+// against a cache, and unlike Copilot there is no scan over every session to narrow afterwards.
+//
+// `invocations` comes back empty and always will. Codex writes no record of a skill being loaded:
+// not a tool call, not an `item_completed` type, nothing. Every `skill` string in these logs is
+// incidental — a shell command, a web search. That is a gap in the data rather than a session that
+// used no skills, which is why the view says so in those words.
+const loadCodexSession = async (sessionId: string): Promise<SessionDetail> => {
+  const threads: Map<string, CodexThread> = await readAllCodexThreads();
+  const thread: CodexThread | undefined = threads.get(sessionId);
+
+  if (!thread) {
+    return empty({ sessionId, tool: 'codex', error: 'No thread found for this session.' });
+  }
+
+  const text: Result<string, ConfigError> = await readTextFile(thread.rolloutPath);
+
+  if (!text.ok) {
+    return empty({ sessionId, tool: 'codex', error: "This session's rollout couldn't be read." });
+  }
+
+  const turns: UsageTurn[] = parseCodexTurns({ lines: text.value.split('\n'), thread });
+
+  return finish({
+    sessionId,
+    tool: 'codex',
+    turns,
+    invocations: [],
+    // The same sum Claude's side does, and correct here for the same reason: `scan.ts` converts
+    // Codex's inclusive counters into the disjoint ones before they ever reach this.
+    contexts: contextPointsFromTurns(turns)
   });
 };
 

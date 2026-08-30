@@ -9,6 +9,8 @@ import {
   bareDetail,
   claudeDetail,
   claudeSession,
+  codexDetail,
+  codexSession,
   copilotDetail,
   copilotSession,
   liveClaudeAgent,
@@ -80,6 +82,14 @@ export const Claude: Story = {};
 // It bills in AIU, so the headline is that unit and the (i) beside it has no dollars to take apart.
 export const CopilotDoubleLoad: Story = {
   args: { session: copilotSession, detail: copilotDetail }
+};
+
+// A Codex session, which differs from the other two in both directions. It bills against a
+// rate-limit window rather than per token, so the headline is a dash and the cost chart says why
+// instead of drawing a $0 curve along the floor — while the context chart reads exactly like
+// Claude's. And its skill list says Codex records no skill load, rather than that none ran.
+export const Codex: Story = {
+  args: { session: codexSession, detail: codexDetail }
 };
 
 // The setting says Standard and the session ran Claude's tokenizer, so every size on the page is

@@ -29,13 +29,13 @@ interface FileHistory {
   recentIds: string[];
 }
 
-export type HistoryCache = Map<string, FileHistory>;
+export type ClaudeHistoryCache = Map<string, FileHistory>;
 
 // Files read at once. The windowed scan gets away with `Promise.all` over everything because its
 // mtime filter drops most of the corpus; reading all of it that way peaked at ~300MB resident.
 const FILE_CONCURRENCY: number = 6;
 
-export const scanClaudeHistory = async (cache: HistoryCache): Promise<SessionFold[]> => {
+export const scanClaudeHistory = async (cache: ClaudeHistoryCache): Promise<SessionFold[]> => {
   const root: string = projectsDir();
   const dirs: string[] = await listDirectories(root);
 
@@ -60,12 +60,12 @@ export const scanClaudeHistory = async (cache: HistoryCache): Promise<SessionFol
 // Which transcripts hold a given session, out of what the history scan has already read. A lookup
 // rather than a search — the cache is keyed by path and each entry knows its own sessions — and it
 // returns a list because a resumed session's turns can be spread across two files.
-export const pathsForSession = (cache: HistoryCache, sessionId: string): string[] =>
+export const pathsForSession = (cache: ClaudeHistoryCache, sessionId: string): string[] =>
   [...cache.entries()].filter(([, held]) => held.folds.has(sessionId)).map(([path]) => path);
 
 interface ScanFileArgs {
   path: string;
-  cache: HistoryCache;
+  cache: ClaudeHistoryCache;
 }
 
 const scanFile = async ({ path, cache }: ScanFileArgs): Promise<void> => {
