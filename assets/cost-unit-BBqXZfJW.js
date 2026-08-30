@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";var t,n,r,i;function a(){return(a=e((()=>{t={claude:`usd`,copilot:`aiu`,codex:`none`},n=e=>t[e],r=e=>t[e]!==`none`,i=`Codex bills against a rate-limit window rather than per token, so there is no per-session cost to report.`})))()}export{a as i,n,r,i as t};
