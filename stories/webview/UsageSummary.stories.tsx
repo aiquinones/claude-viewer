@@ -39,12 +39,9 @@ export const OneCli: Story = {};
 export const BothClis: Story = { args: { breakdown: twoClis } };
 
 // Three CLIs, and the third has no unit at all. A dash rather than `0 AIU`: Codex bills against a
-// rate-limit window, and a zero beside two real figures reads as a claim that it was free.
-export const CostWithUnpricedCli: Story = { args: { breakdown: allClis, metric: 'cost' } };
-
-// The same three under the token metric, where all of them do have a figure — which is what makes
-// the dash above about money rather than about the session being empty.
-export const TokensAcrossThreeClis: Story = { args: { breakdown: allClis } };
+// rate-limit window, so a zero beside two real figures would read as a claim that it was free. Its
+// turns are still in the window — they just aren't money.
+export const UnpricedCli: Story = { args: { breakdown: allClis } };
 
 // A week rather than a day. Only the caption under the figure says so — the header above it doesn't
 // name the window, so this row is the whole answer to "a total of what?".

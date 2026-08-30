@@ -6,8 +6,8 @@ import { surfaceAccent } from '@src/webview/surfaces';
 import { SessionHeadline } from '@src/webview/session-analysis/SessionHeadline';
 import { claudeDetail, codexDetail, copilotDetail } from '../../session-detail-fixtures';
 
-// The session page's own total, and the `...` beside it. Its own component because what it prints
-// depends on the CLI as well as the metric: three CLIs, three cost units, and one of them has none.
+// The session page's own total. Its own component because what it prints depends on the CLI: three
+// of them, three answers, and one of those is that there is no answer.
 
 const summaryOf = (detail: SessionDetail): UsageSummaryData =>
   summarizeTurns({ turns: detail.turns });
@@ -17,8 +17,7 @@ const meta: Meta<typeof SessionHeadline> = {
   component: SessionHeadline,
   args: {
     detail: claudeDetail,
-    summary: summaryOf(claudeDetail),
-    metric: 'output-tokens'
+    summary: summaryOf(claudeDetail)
   },
   decorators: [
     (Story) => (
@@ -36,26 +35,19 @@ export default meta;
 
 type Story = StoryObj<typeof SessionHeadline>;
 
-export const Tokens: Story = {};
-
-// Dollars, which is Claude's unit and the only one this repo has a rate table for.
-export const ClaudeCost: Story = { args: { metric: 'cost' } };
+// Dollars, which is Claude's unit and the only one this repo has a rate table for. The (i) beside
+// the caption is where that figure comes apart.
+export const Claude: Story = {};
 
 // AIU, which Copilot writes itself. A different unit rather than a converted one — nothing in either
 // CLI's data defines a rate between them.
-export const CopilotCost: Story = {
-  args: { detail: copilotDetail, summary: summaryOf(copilotDetail), metric: 'cost' }
+export const Copilot: Story = {
+  args: { detail: copilotDetail, summary: summaryOf(copilotDetail) }
 };
 
-// The case the component exists for. Codex bills against a rate-limit window, so there is no
+// The case this component exists for. Codex bills against a rate-limit window, so there is no
 // per-session figure at all — a dash, with the reason in the hover, rather than a `$0` or a `0 AIU`
-// that would read as a session that cost nothing.
+// that would read as a session that cost nothing. The request count beside it is still real.
 export const CodexHasNoCost: Story = {
-  args: { detail: codexDetail, summary: summaryOf(codexDetail), metric: 'cost' }
-};
-
-// The same Codex session under the token metric, where it does have a figure — which is what makes
-// the dash above about money rather than about an empty session.
-export const CodexTokens: Story = {
   args: { detail: codexDetail, summary: summaryOf(codexDetail) }
 };
