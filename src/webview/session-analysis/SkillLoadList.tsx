@@ -96,18 +96,19 @@ export const SkillLoadList = ({
   );
 };
 
-// Where a row's size came from. Only the two unusual answers say anything — the installed file is
-// the rule, and a tooltip repeating the rule on every row is noise.
+// Where a row's size came from. Only the unusual answers say anything — the installed file is the
+// rule, and a tooltip repeating the rule on every row is noise.
 const sizeTitle = (from: SkillLoad['sizeFrom']): string | undefined => {
+  if (from === 'read') return 'Measured from the SKILL.md the session read';
   if (from === 'recorded') return 'Measured from what the session log recorded loading';
   if (from === 'unknown') return 'Not installed here, and the log did not record its size';
   return undefined;
 };
 
-// Claude and Copilot both write an invocation down, so an empty list there is a session that loaded
-// nothing. Codex writes none of any kind — not a tool call, not an item type — so the same empty
-// list is a gap in the log, and saying no skills ran would be a claim its data can't support.
+// All three CLIs leave a record of a load, so an empty list is a session that loaded nothing. Codex
+// still gets its own sentence: its record is the command that read the file rather than an event,
+// so a skill it followed without opening the file is one this list can't see.
 const emptyLine = (tool: AgentTool): string =>
   tool === 'codex'
-    ? 'Codex records no skill loads in its logs, so there is nothing to show here.'
+    ? 'No SKILL.md was read in this session. Codex records a skill load only as the command that opened it.'
     : 'No skills were loaded in this session.';

@@ -87,8 +87,9 @@ export const CopilotDoubleLoad: Story = {
 
 // A Codex session. Its cost curve and its context curve both read exactly like Claude's — the
 // dollars come off OpenAI's rate card rather than Anthropic's, which is a second table and not a
-// second kind of number. Where it still differs is the skill list, which says Codex records no skill
-// load rather than that none ran.
+// second kind of number. Where it still differs is the skill list: its loads are read off the
+// commands that opened the files, which is the only record Codex leaves, and one of them is a skill
+// this panel doesn't list.
 export const Codex: Story = {
   args: { session: codexSession, detail: codexDetail }
 };

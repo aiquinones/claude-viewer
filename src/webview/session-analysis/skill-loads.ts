@@ -6,6 +6,8 @@ import { SkillEntry } from '../../model/types';
 import { SKILL_LOAD_VIA, SkillInvocation, SkillLoadVia } from '../../model/usage/types';
 import { findSkillByName } from '../../model/shadowing';
 
+export type SkillSizeFrom = 'installed' | 'read' | 'recorded' | 'unknown';
+
 // One skill, and everything this session paid for it.
 export interface SkillLoad {
   name: string;
@@ -18,9 +20,11 @@ export interface SkillLoad {
   // Estimated tokens for one load, or undefined when nothing on disk or in the log says how big it
   // is. Undefined is a real answer — the row still lists, because the skill still ran.
   size?: number;
-  // What the size was read off. The installed file is the rule; a Copilot log that recorded what it
-  // loaded is the fallback for a skill this machine doesn't have.
-  sizeFrom: 'installed' | 'recorded' | 'unknown';
+  // What the size was read off. The installed file is the rule, and `read` is the same measurement
+  // by another route — Codex names the SKILL.md it opened, so the file is on this machine even when
+  // the panel doesn't list it. `recorded` is Copilot's body out of its own log, which is the one
+  // answer measured differently from the rest.
+  sizeFrom: SkillSizeFrom;
   // size × loads, and undefined for the same reason size is.
   total?: number;
   // How the loads arrived, in the declared order. Two loads of one skill can be a slash command and
@@ -63,9 +67,9 @@ interface ToLoadArgs {
 const toLoad = ({ name, loads, skills, estimator }: ToLoadArgs): SkillLoad => {
   const skill: SkillEntry | undefined = findSkillByName({ skills, name });
   // The installed file first, so every row that can be is measured the same way and the bars
-  // compare. Copilot's recorded body is what keeps a skill this machine doesn't have on the list.
-  const recorded: number | undefined = loads.find((load) => load.chars !== undefined)?.chars;
-  const chars: number | undefined = skill?.chars ?? recorded;
+  // compare. What the log itself carried is what keeps a skill this panel doesn't list on the list.
+  const logged: SkillInvocation | undefined = loads.find((load) => load.chars !== undefined);
+  const chars: number | undefined = skill?.chars ?? logged?.chars;
 
   const size: number | undefined =
     chars === undefined ? undefined : estimateTokens({ chars, estimator });
@@ -75,18 +79,33 @@ const toLoad = ({ name, loads, skills, estimator }: ToLoadArgs): SkillLoad => {
     loads: loads.length,
     ...(skill ? { skill } : {}),
     ...(size === undefined ? {} : { size, total: size * loads.length }),
-    sizeFrom: skill ? 'installed' : recorded === undefined ? 'unknown' : 'recorded',
+    sizeFrom: sizeFrom({ skill, logged }),
     via: SKILL_LOAD_VIA.filter((via) => loads.some((load) => load.via === via)),
     firstAt: Math.min(...loads.map((load) => load.at))
   };
 };
 
+interface SizeFromArgs {
+  skill: SkillEntry | undefined;
+  // The first load that came with a size, if any. Its `path` is what separates the two routes: a
+  // Codex load names the file it opened, a Copilot one carries the body it was handed.
+  logged: SkillInvocation | undefined;
+}
+
+const sizeFrom = ({ skill, logged }: SizeFromArgs): SkillSizeFrom => {
+  if (skill) return 'installed';
+  if (!logged) return 'unknown';
+  return logged.path === undefined ? 'recorded' : 'read';
+};
+
 // What each route is, said plainly. `event` covers both of Copilot's, since its one event fires for
 // a typed name and for the model asking alike — which is exactly why it fires twice for one command.
+// `read` is Codex's only route: it has no skill tool, so it opens the file like any other.
 const VIA_LABEL: Record<SkillLoadVia, string> = {
   command: 'typed as a slash command',
   tool: 'the model called for it',
-  event: 'announced by the CLI'
+  event: 'announced by the CLI',
+  read: 'the agent read the file'
 };
 
 // How a row's loads arrived, for the count's tooltip. Nothing when there's only one way and one load

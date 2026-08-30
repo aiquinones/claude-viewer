@@ -3,7 +3,7 @@ import { CSSProperties } from 'react';
 import { surfaceAccent } from '@src/webview/surfaces';
 import { SkillLoadList } from '@src/webview/session-analysis/SkillLoadList';
 import { toSkillLoads } from '@src/webview/session-analysis/skill-loads';
-import { claudeDetail, copilotDetail } from '../../session-detail-fixtures';
+import { claudeDetail, codexDetail, copilotDetail } from '../../session-detail-fixtures';
 import { usageSkills } from '../../usage-fixtures';
 
 const claudeLoads = toSkillLoads({
@@ -89,10 +89,27 @@ export const NotInstalled: Story = {
   }
 };
 
+// A Codex session, whose loads are read off the commands that opened the files. `tiny-mock` lives
+// under ~/.codex and isn't a skill this panel lists, so nothing here could size it — except that the
+// command named the file, which is what the `read` provenance on its size means.
+export const Codex: Story = {
+  args: {
+    loads: toSkillLoads({
+      invocations: codexDetail.invocations,
+      skills: usageSkills,
+      estimator: 'standard'
+    }),
+    tool: 'codex',
+    estimator: 'standard',
+    sessionEstimator: 'standard',
+    reason: 'This is a Codex session, which does not run a Claude model.'
+  }
+};
+
 // Nothing ran. Says so rather than drawing an empty box under a heading claiming a total of zero.
 export const None: Story = { args: { loads: [] } };
 
-// The same empty list on a Codex session, which means something else: Codex writes no record of a
-// skill being loaded, so nothing here can tell a session that used none from a log that can't say.
-// Claiming none ran would be a claim the data doesn't support.
+// The same empty list on a Codex session, which is a narrower claim: Codex records a load only as
+// the command that opened the file, so this says no SKILL.md was read rather than that no skill was
+// followed — a skill it obeyed without opening is one this list can't see.
 export const NoneOnCodex: Story = { args: { loads: [], tool: 'codex' } };

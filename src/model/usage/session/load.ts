@@ -13,11 +13,13 @@ import { readCopilotContextSeries } from '../../sessions/copilot/usage-db';
 import { AgentTool } from '../../types';
 import { parseClaudeTurns } from '../claude/scan';
 import { parseClaudeInvocations } from '../claude/invocations';
+import { parseCodexInvocations } from '../codex/invocations';
 import { parseCodexTurns } from '../codex/scan';
 import { parseCopilotInvocations } from '../copilot/invocations';
 import { scanCopilotUsage } from '../copilot/scan';
 import { ContextPoint, SessionDetail, SkillInvocation, UsageTurn } from '../types';
 import { contextPointsFromTurns } from './contexts';
+import { sizeCodexLoads } from './skill-sizes';
 
 interface LoadSessionDetailArgs {
   sessionId: string;
@@ -110,10 +112,10 @@ const loadCopilotSession = async (sessionId: string): Promise<SessionDetail> => 
 // One thread, and the database says which file it is — so unlike Claude there is nothing to resolve
 // against a cache, and unlike Copilot there is no scan over every session to narrow afterwards.
 //
-// `invocations` comes back empty and always will. Codex writes no record of a skill being loaded:
-// not a tool call, not an `item_completed` type, nothing. Every `skill` string in these logs is
-// incidental — a shell command, a web search. That is a gap in the data rather than a session that
-// used no skills, which is why the view says so in those words.
+// The skill loads are read off the commands the agent ran, since Codex has no skill event and loads
+// a skill by reading its file — `usage/codex/invocations.ts` holds what that costs to get right.
+// The upside of a record that is a path: the size can be measured off the file the session actually
+// read, so a skill this panel doesn't list still gets a number.
 const loadCodexSession = async (sessionId: string): Promise<SessionDetail> => {
   const threads: Map<string, CodexThread> = await readAllCodexThreads();
   const thread: CodexThread | undefined = threads.get(sessionId);
@@ -128,13 +130,14 @@ const loadCodexSession = async (sessionId: string): Promise<SessionDetail> => {
     return empty({ sessionId, tool: 'codex', error: "This session's rollout couldn't be read." });
   }
 
-  const turns: UsageTurn[] = parseCodexTurns({ lines: text.value.split('\n'), thread });
+  const lines: string[] = text.value.split('\n');
+  const turns: UsageTurn[] = parseCodexTurns({ lines, thread });
 
   return finish({
     sessionId,
     tool: 'codex',
     turns,
-    invocations: [],
+    invocations: await sizeCodexLoads({ loads: parseCodexInvocations(lines), cwd: thread.cwd }),
     // The same sum Claude's side does, and correct here for the same reason: `scan.ts` converts
     // Codex's inclusive counters into the disjoint ones before they ever reach this.
     contexts: contextPointsFromTurns(turns)

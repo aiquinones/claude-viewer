@@ -202,11 +202,12 @@ export interface UsageHistory {
   scannedAt: number;
 }
 
-// How a skill's body got into the context. Both CLIs write this down, and neither writes it once
-// per intent — see docs/session-analysis.md.
+// How a skill's body got into the context. None of the three CLIs writes this once per intent —
+// see docs/session-analysis.md. `read` is Codex's and is the odd one: nothing announced the load,
+// the agent ran a command that read the file, and that command is the whole record.
 //
 // Deliberately not annotated: a type here would erase the literals `SkillLoadVia` derives from.
-export const SKILL_LOAD_VIA = ['command', 'tool', 'event'] as const;
+export const SKILL_LOAD_VIA = ['command', 'tool', 'event', 'read'] as const;
 
 export type SkillLoadVia = (typeof SKILL_LOAD_VIA)[number];
 
@@ -221,6 +222,10 @@ export interface SkillInvocation {
   // The chars Copilot recorded loading. Claude's transcript carries no equivalent — its tool result
   // is the string "Launching skill: <name>" and the body goes in somewhere the log doesn't show.
   chars?: number;
+  // The SKILL.md the command named, as written — absolute on most Codex reads, relative to the
+  // thread's cwd on the rest. Codex only: it's the one CLI whose record of a load is a file path,
+  // which is what lets a skill this panel doesn't list still get a size.
+  path?: string;
 }
 
 // How full the context was on one request, and when. An `AgentContext` plus the clock, so a point

@@ -299,8 +299,9 @@ export const missingDetail: SessionDetail = {
 };
 
 // A Codex session. Its counters arrive already split by `usage/codex/scan.ts`, so the context curve
-// is read the same way Claude's is — and `invocations` is empty because Codex records no skill load
-// of any kind, which the page says in those words rather than reporting that none ran.
+// is read the same way Claude's is — and its skill loads are read off the commands that opened the
+// files, since Codex has no skill tool. `tiny-mock` is the case only this CLI produces: a skill the
+// panel doesn't list, sized from the SKILL.md the session itself named.
 const codexTurns: UsageTurn[] = [
   turn({ index: 400, minutesIn: 0, output: 125, tool: 'codex' }),
   turn({ index: 401, minutesIn: 2, output: 67, tool: 'codex' }),
@@ -310,11 +311,35 @@ const codexTurns: UsageTurn[] = [
   turn({ index: 405, minutesIn: 18, output: 372, tool: 'codex', model: 'gpt-5.6-luna' })
 ];
 
+const codexLoads: SkillInvocation[] = [
+  {
+    skill: 'dev-feature',
+    at: START + 3 * MINUTE,
+    via: 'read',
+    path: '/Users/dev/.claude/skills/dev-feature/SKILL.md'
+  },
+  {
+    skill: 'tiny-mock',
+    at: START + 7 * MINUTE,
+    via: 'read',
+    path: '/Users/dev/.codex/skills/tiny-mock/SKILL.md',
+    // Measured off the file the command opened, which is what keeps a Codex-only skill on the list
+    // with a real number instead of a dash.
+    chars: 284
+  },
+  {
+    skill: 'dev-feature',
+    at: START + 12 * MINUTE,
+    via: 'read',
+    path: '/Users/dev/.claude/skills/dev-feature/SKILL.md'
+  }
+];
+
 export const codexDetail: SessionDetail = {
   sessionId: DETAIL_SESSION_ID.codex,
   tool: 'codex',
   turns: codexTurns,
-  invocations: [],
+  invocations: codexLoads,
   contexts: contextPointsFromTurns(codexTurns)
 };
 
