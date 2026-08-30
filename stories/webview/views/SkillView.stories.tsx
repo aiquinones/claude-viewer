@@ -74,3 +74,9 @@ export const RevealedShadowedSkill: Story = {
     reveal: reveal(pluginDeploy)
   }
 };
+
+// The loader hasn't landed. Every SKILL.md on the machine is opened for this, so on a big install
+// it's a real wait — and an empty list here would read as "none found" rather than "not read yet".
+export const StillReading: Story = {
+  args: { snapshot: snapshot({ skills: [], pending: ['skills'] }) }
+};

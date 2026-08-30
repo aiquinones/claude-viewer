@@ -21,7 +21,11 @@ export const registerTree = ({ context }: RegisterTreeArgs): vscode.Disposable[]
 
   return [
     view,
-    onDidChangeSnapshot(() => provider.refresh()),
+    // Only once the read is done. The parts land separately, and the tree draws skills alone — so
+    // redrawing on the shell would blank the sidebar and refill it on every save.
+    onDidChangeSnapshot((snapshot) => {
+      if (snapshot.pending.length === 0) provider.refresh();
+    }),
     vscode.commands.registerCommand(REFRESH_COMMAND, () => void refreshSnapshot()),
     vscode.commands.registerCommand(REVEAL_NODE_COMMAND, (path: string) =>
       revealNode({ context, path })

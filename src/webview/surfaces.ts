@@ -11,6 +11,7 @@ import {
   SystemPromptFile
 } from '../model/types';
 import { UsageReport } from '../model/usage/types';
+import { isPending, READING_DETAIL } from './config-pending';
 import { formatUsageTokens } from './usage-format';
 import { formatTokens, plural } from './format-size';
 import { alwaysLoads, totals } from './prompt-totals';
@@ -90,6 +91,9 @@ interface DetailForSurfaceArgs {
 
 // The line under a card's blurb: whatever that surface counts. Switching on the id means adding a
 // surface without a count here is a type error rather than a blank card.
+//
+// Three of them read a part of the snapshot that arrives on its own, so each says it's still
+// reading rather than counting an empty list — the same answer the usage card has always given.
 export const getDetailForSurface = ({
   surface,
   snapshot,
@@ -99,17 +103,24 @@ export const getDetailForSurface = ({
 }: DetailForSurfaceArgs): string => {
   switch (surface.id) {
     case 'skills':
-      return skillsDetail({ skills: snapshot.skills, estimate });
+      return isPending({ snapshot, part: 'skills' })
+        ? READING_DETAIL
+        : skillsDetail({ skills: snapshot.skills, estimate });
     case 'system-prompt':
-      return promptDetail({ files: snapshot.systemPrompt, estimate });
+      return isPending({ snapshot, part: 'systemPrompt' })
+        ? READING_DETAIL
+        : promptDetail({ files: snapshot.systemPrompt, estimate });
     case 'active-agents':
       return agentsDetail(agents);
     case 'usage':
       return usageDetail(usage);
     case 'memory':
-      return memoryDetail({ memory: snapshot.memory, estimate });
+      return isPending({ snapshot, part: 'memory' })
+        ? READING_DETAIL
+        : memoryDetail({ memory: snapshot.memory, estimate });
   }
 };
+
 
 interface MemoryDetailArgs {
   memory: MemorySet | undefined;

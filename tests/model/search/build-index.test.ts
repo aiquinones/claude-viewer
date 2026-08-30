@@ -23,7 +23,8 @@ const snapshotOf = (skills: SkillEntry[]): ConfigSnapshot => ({
   skills,
   systemPrompt: [],
   memory: undefined,
-  loadedAt: 0
+  loadedAt: 0,
+  pending: []
 });
 
 const VIEWS: SearchView[] = [

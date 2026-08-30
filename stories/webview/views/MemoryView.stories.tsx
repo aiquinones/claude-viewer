@@ -70,3 +70,11 @@ export const ClickTheIndexToRender: Story = {
 export const ClickTheCopilotTab: Story = {
   args: { snapshot: snapshot({ skills: allSkills, memory: memorySet }) }
 };
+
+// The loader hasn't landed. Distinguishing this from no-folder-open is the whole reason a snapshot
+// says which parts are still out: `memory` is undefined in both cases.
+export const StillReading: Story = {
+  args: {
+    snapshot: { ...snapshot({ skills: [], memory: null }), pending: ['memory'] }
+  }
+};

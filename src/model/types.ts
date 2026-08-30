@@ -339,6 +339,12 @@ export interface MemorySet {
   memories: MemoryEntry[];
 }
 
+// The parts of a snapshot, which are also the three loaders that fill them in. Deliberately not
+// annotated: SnapshotPart derives from these literals, and each one names its own field below.
+export const SNAPSHOT_PARTS = ['skills', 'systemPrompt', 'memory'] as const;
+
+export type SnapshotPart = (typeof SNAPSHOT_PARTS)[number];
+
 export interface ConfigSnapshot {
   workspaceRoot: string | undefined;
   skills: SkillEntry[];
@@ -348,6 +354,10 @@ export interface ConfigSnapshot {
   // there is nothing to look in rather than nothing to show.
   memory: MemorySet | undefined;
   loadedAt: number;
+  // The parts still being read. Empty means every loader has landed — which is the difference
+  // between a surface with nothing in it and one nothing has looked at yet, and the reason each
+  // part is published as it arrives rather than all three at the end.
+  pending: SnapshotPart[];
 }
 
 // One skill in the mention graph — only what a node draws. Everything else about it is on the

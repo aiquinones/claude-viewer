@@ -2,6 +2,8 @@ import { CSSProperties, useEffect, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { ConfigSnapshot, SystemPromptFile } from '../../model/types';
 import { Button } from '@/components/ui/button';
+import { CONFIG_EXPECTED_MS, isPending } from '../config-pending';
+import { Loading } from '../loading/Loading';
 import { PanelActions } from '../PanelActions';
 import { PromptBody } from '../PromptBody';
 import { PromptList } from '../PromptList';
@@ -37,6 +39,9 @@ export const SystemPromptView = ({
   onBack
 }: SystemPromptViewProps) => {
   const files: SystemPromptFile[] = snapshot.systemPrompt;
+  // This surface's own loader walks the workspace for nested CLAUDE.md files, which is the slowest
+  // read of a launch — so it's the one most likely to be opened before it has landed.
+  const reading: boolean = isPending({ snapshot, part: 'systemPrompt' });
   // The headline counts only what loads every time — a number you can act on beats a worst case.
   const always = totals(alwaysLoads(files));
 
@@ -77,9 +82,15 @@ export const SystemPromptView = ({
         <div className="mr-auto flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-semibold">System Prompt</span>
           <span className="truncate text-xs text-muted-foreground">
-            {plural(always.files, 'file')} · <TokenEstimate chars={always.chars} long /> on every
-            request
-            {!snapshot.workspaceRoot && ' · no folder open, user scope only'}
+            {reading ? (
+              'reading the CLAUDE.md files…'
+            ) : (
+              <>
+                {plural(always.files, 'file')} · <TokenEstimate chars={always.chars} long /> on
+                every request
+                {!snapshot.workspaceRoot && ' · no folder open, user scope only'}
+              </>
+            )}
           </span>
         </div>
         {/* The way back up, and only once you're far enough down to have lost the list. */}
@@ -90,7 +101,9 @@ export const SystemPromptView = ({
         />
       </header>
 
-      {files.length === 0 ? (
+      {reading ? (
+        <Reading />
+      ) : files.length === 0 ? (
         <Empty />
       ) : (
         // This pane, not its children, is the scroll container the body's sticky headings resolve
@@ -124,6 +137,14 @@ export const SystemPromptView = ({
     </div>
   );
 };
+
+// The loader is still out. Says which read is happening rather than a bare spinner — this one can
+// take seconds on a big repo, and a wait you understand is a shorter wait.
+const Reading = () => (
+  <div className="flex flex-1 items-center justify-center p-5">
+    <Loading label="Reading CLAUDE.md files…" expectedMs={CONFIG_EXPECTED_MS} />
+  </div>
+);
 
 const Empty = () => (
   <div className="flex flex-1 items-center justify-center p-5 text-center text-sm text-muted-foreground">

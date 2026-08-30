@@ -68,3 +68,18 @@ export const LongWorkspacePath: Story = {
     })
   }
 };
+
+// A cold launch, one frame in: the page is drawn and its three config cards are still reading. The
+// usage card has always looked like this — the other three are new.
+export const StillReading: Story = {
+  args: {
+    agents: [],
+    usage: undefined,
+    snapshot: snapshot({
+      skills: [],
+      systemPrompt: [],
+      memory: null,
+      pending: ['skills', 'systemPrompt', 'memory']
+    })
+  }
+};

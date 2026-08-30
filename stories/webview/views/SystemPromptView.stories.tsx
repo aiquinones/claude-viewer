@@ -59,3 +59,9 @@ export const BrokenImports: Story = {
 export const ClickARowToRender: Story = {
   args: { snapshot: snapshot({ skills: allSkills, systemPrompt: allPromptFiles }) }
 };
+
+// The slowest read of a launch, since it walks the workspace looking for nested CLAUDE.md files —
+// so this is the surface most likely to be opened before its loader is back.
+export const StillReading: Story = {
+  args: { snapshot: snapshot({ skills: [], systemPrompt: [], pending: ['systemPrompt'] }) }
+};

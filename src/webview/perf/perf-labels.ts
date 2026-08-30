@@ -10,7 +10,7 @@ export const PHASE_LABELS: Record<PerfPhase, string> = {
   'system-prompt': 'System prompt',
   memory: 'Memory',
   agents: 'Active agents',
-  paint: 'Snapshot + first paint',
+  paint: 'First paint',
   usage: 'Usage scan'
 };
 
@@ -19,12 +19,12 @@ export const PHASE_LABELS: Record<PerfPhase, string> = {
 export const PHASE_NOTES: Record<PerfPhase, string> = {
   activate: 'Registering the commands and starting the file watchers.',
   boot: 'Panel shell, bundle and first mount. Before any config is read.',
-  snapshot: 'Skills, the system prompt and memory, read concurrently.',
+  snapshot: 'Skills, the system prompt and memory, read concurrently and published as each lands.',
   skills: 'One SKILL.md per skill, across the project, user and plugin scopes.',
   'system-prompt': 'The CLAUDE.md stack and every file it imports — a walk of the workspace.',
   memory: 'The memory directory for the open folder.',
   agents: "Each live agent's session file and the end of its transcript.",
-  paint: 'Waiting on the host to finish reading, then drawing the page.',
+  paint: 'Drawing the landing page. It no longer waits on the config — each surface fills in after.',
   usage: 'Every session log on the machine. Runs after the page is already up.'
 };
 

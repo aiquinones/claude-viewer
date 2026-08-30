@@ -41,7 +41,8 @@ import {
   cachedSnapshot,
   currentSnapshot,
   onDidChangeSnapshot,
-  refreshSnapshot
+  refreshSnapshot,
+  snapshotSoFar
 } from './config-store';
 import {
   currentSettings,
@@ -164,8 +165,12 @@ export const openPanel = ({ context, target }: OpenPanelArgs): void => {
   });
   panel.webview.onDidReceiveMessage(_onMessage);
 
-  // The store owns the watchers; the panel just listens while it's open.
-  snapshotSubscription = onDidChangeSnapshot((snapshot) => void _post(snapshot));
+  // The store owns the watchers; the panel just listens while it's open. Each part of the config
+  // lands on this as its loader finishes, so the report rides along until the last one is in.
+  snapshotSubscription = onDidChangeSnapshot((snapshot) => {
+    void _post(snapshot);
+    void _postPerf();
+  });
   // Its own channel: a budget changing shouldn't re-walk the disk for a snapshot nothing asked for.
   // The scope setting decides which turns the usage surface counts, so a change re-aggregates what's
   // already in hand — no disk, and the store posts the result on its own message.
@@ -340,7 +345,16 @@ const _onReady = async (): Promise<void> => {
   webviewReady = true;
   await _postSettings(currentSettings());
   await _postAgentColors(currentAgentColors());
-  await _post(await currentSnapshot());
+
+  // Whatever is in hand right now, which on a cold panel is the shell: the folder, and three
+  // surfaces that say they're still reading. The parts arrive on the snapshot subscription above.
+  await _post(snapshotSoFar());
+
+  // Un-awaited, for the reason the usage scan below it is. Reading every SKILL.md and walking the
+  // workspace for nested CLAUDE.md files takes seconds on a large repo, and none of it is what the
+  // landing page needs to be drawn.
+  void currentSnapshot();
+
   await _postAgents(await currentAgents());
 
   // Un-awaited: this one reads every transcript on the machine, so nothing on the ready path waits
@@ -348,8 +362,8 @@ const _onReady = async (): Promise<void> => {
   // starts a first scan — the landing card sat on "Reading session logs…" while nothing read.
   void currentUsage();
 
-  // After the two reads above, so the report names what they cost. The usage scan is still out and
-  // the report says so; it's posted again when that lands.
+  // The first report of the launch, with most of it still outstanding. It's posted again on every
+  // stage that lands, and `running` is what says which ones haven't.
   await _postPerf();
 
   const waiting: PanelTarget | undefined = pendingTarget;
@@ -374,8 +388,12 @@ const _post = async (snapshot: ConfigSnapshot): Promise<void> => {
   await panel?.webview.postMessage({ type: 'snapshot', snapshot });
 };
 
-// What the launch cost, composed from the recorder's log. Posted twice — once when the page can be
-// drawn, once when the usage scan behind it finishes.
+// What the launch cost, composed from the recorder's log. Posted on every stage that lands, since
+// each one changes the picture — and then on every refresh after that, which costs a few hundred
+// bytes and says the same thing. Deliberately not guarded: the recorder only records a stage's
+// first run, so a settled report is stable, and knowing whether a launch is over means telling
+// "no stage has started yet" apart from "every stage has finished" — two flags to save a message
+// the usage poll has always re-sent anyway.
 const _postPerf = async (): Promise<void> => {
   if (!webviewReady) return;
   const report: PerfReport = buildReport({ log: perfLog(), openedAt });
