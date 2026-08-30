@@ -18,7 +18,7 @@ export const perfReportText = (report: PerfReport): string => {
 
   const lines: (string | undefined)[] = [
     `Claude Viewer launch — ready in ${report.readyMs === undefined ? '?' : formatMs(report.readyMs)}`,
-    report.scanning ? '(the usage scan had not finished)' : undefined,
+    stillRunning(report),
     '',
     ...phases,
     '',
@@ -29,4 +29,13 @@ export const perfReportText = (report: PerfReport): string => {
   ];
 
   return lines.filter((line): line is string => line !== undefined).join('\n');
+};
+
+// The stages that hadn't landed when this was copied. Worth carrying into an issue: a missing row
+// and a stage that took no time look the same in the list above.
+const stillRunning = (report: PerfReport): string | undefined => {
+  if (report.running.length === 0) return undefined;
+
+  const names: string = report.running.map((phase) => PHASE_LABELS[phase]).join(', ');
+  return `(still running: ${names})`;
 };

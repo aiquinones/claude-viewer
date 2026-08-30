@@ -24,11 +24,40 @@ const readAfterTick = async (path: string): Promise<void> => {
   recorder.recordRead({ path, kind: 'file', bytes: 100, ms: 1 });
 };
 
+describe('perfLog().running', () => {
+  it('names the stages that have been entered and have not returned', async () => {
+    // What the perf card draws a "still running" line from. A stage in flight has pushed no span,
+    // so the rows the card already has can't tell a slow stage from one that never ran.
+    let insideSkills: string[] = [];
+    let insideBoth: string[] = [];
+
+    await recorder.perfPhase('snapshot', async () => {
+      await recorder.perfPhase('skills', async () => {
+        insideBoth = recorder.perfLog().running;
+      });
+      insideSkills = recorder.perfLog().running;
+    });
+
+    expect(insideBoth).toEqual(['snapshot', 'skills']);
+    // `skills` has returned by here, so it's a span rather than a running stage.
+    expect(insideSkills).toEqual(['snapshot']);
+    expect(recorder.perfLog().running).toEqual([]);
+  });
+
+  it('clears a stage that threw, so a failed read is not reported as still running forever', async () => {
+    await expect(
+      recorder.perfPhase('memory', () => Promise.reject(new Error('gone')))
+    ).rejects.toThrow('gone');
+
+    expect(recorder.perfLog().running).toEqual([]);
+  });
+});
+
 describe('perfPhase', () => {
   it('credits concurrent stages separately', async () => {
-    // The reason attribution goes through AsyncLocalStorage: `buildSnapshot` runs its loaders in
-    // one Promise.all, so a "current phase" variable would give both stages' reads to whichever
-    // one happened to touch it last.
+    // The reason attribution goes through AsyncLocalStorage: the snapshot stage runs its loaders
+    // concurrently, so a "current phase" variable would give both stages' reads to whichever one
+    // happened to touch it last.
     await Promise.all([
       recorder.perfPhase('skills', async () => {
         await readAfterTick('/skills/one.md');

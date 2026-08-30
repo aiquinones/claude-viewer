@@ -1,18 +1,20 @@
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
-import { PerfPhaseReport } from '../../model/perf/types';
+import { PerfPhase, PerfPhaseReport } from '../../model/perf/types';
 import { formatMs } from './format-ms';
 import { PHASE_LABELS, PHASE_NOTES } from './perf-labels';
 
 interface PerfPhasesProps {
   phases: PerfPhaseReport[];
-  // The usage scan hasn't landed yet, so its row is missing rather than zero.
-  scanning: boolean;
+  // Stages that haven't landed yet, so their rows are missing rather than zero. The config loaders
+  // and the usage scan all start un-awaited, so a launch is normally read with several of these
+  // outstanding and the card fills in as each one lands.
+  running: PerfPhase[];
 }
 
 // The stages of the launch, longest bar first in magnitude rather than in order — the list itself
 // stays in the order things happened, which is what makes a slow one findable.
-export const PerfPhases = ({ phases, scanning }: PerfPhasesProps) => {
+export const PerfPhases = ({ phases, running }: PerfPhasesProps) => {
   const [configReadOpen, setConfigReadOpen] = useState<boolean>(false);
   const longest: number = Math.max(...phases.map((phase) => phase.ms), 1);
 
@@ -34,12 +36,15 @@ export const PerfPhases = ({ phases, scanning }: PerfPhasesProps) => {
         );
       })}
 
-      {scanning && (
-        <div className="flex items-center gap-2 pl-1 pt-0.5 text-[11px] text-muted-foreground">
+      {running.map((phase) => (
+        <div
+          key={phase}
+          className="flex items-center gap-2 pl-1 pt-0.5 text-[11px] text-muted-foreground"
+        >
           <span className="size-1.5 animate-pulse rounded-full bg-muted-foreground" />
-          Usage scan still running
+          {PHASE_LABELS[phase]} still running
         </div>
-      )}
+      ))}
     </div>
   );
 };

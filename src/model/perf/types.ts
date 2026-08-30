@@ -56,6 +56,9 @@ export interface PerfLog {
   spans: PerfSpan[];
   totals: Map<PerfPhase, ReadTotals>;
   slowest: PerfRead[];
+  // Stages entered and not yet returned from. A report can be built while a launch is still going,
+  // and these are the rows that aren't in `spans` yet because they haven't finished.
+  running: PerfPhase[];
 }
 
 // One stage: how long it ran, and what the reads inside it cost.
@@ -79,7 +82,8 @@ export interface PerfReport {
   ioMs: number;
   // The slowest reads of the launch, worst first. Where a slow start is worth looking.
   slowest: PerfRead[];
-  // The usage scan starts un-awaited and lands seconds after the page is up, so a report posted
-  // before it finishes is complete apart from that one row.
-  scanning: boolean;
+  // The stages still going when this was built. The config loaders and the usage scan all start
+  // un-awaited and land after the page is up, so a report is normally posted while several of
+  // these are outstanding, and posted again as each one finishes.
+  running: PerfPhase[];
 }

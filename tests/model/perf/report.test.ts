@@ -46,7 +46,7 @@ const read = (path: string, ms: number): PerfRead => ({
   phase: 'skills'
 });
 
-const emptyLog: PerfLog = { spans: [], totals: new Map(), slowest: [] };
+const emptyLog: PerfLog = { spans: [], totals: new Map(), slowest: [], running: [] };
 
 describe('buildReport', () => {
   it('sums the top-level stages only, so a nested one is not counted twice', () => {
@@ -58,7 +58,8 @@ describe('buildReport', () => {
         ['snapshot', totals({ files: 40, bytes: 4_000, ioMs: 25 })],
         ['skills', totals({ files: 38, bytes: 3_800, ioMs: 22 })]
       ]),
-      slowest: []
+      slowest: [],
+      running: []
     };
 
     const report: PerfReport = buildReport({ log, openedAt: 500 });
@@ -75,7 +76,8 @@ describe('buildReport', () => {
         ['snapshot', totals({ files: 40, directories: 6, bytes: 400 })],
         ['agents', totals({ files: 3, directories: 2, bytes: 60 })]
       ]),
-      slowest: []
+      slowest: [],
+      running: []
     };
 
     const report: PerfReport = buildReport({ log, openedAt: 0 });
@@ -85,12 +87,19 @@ describe('buildReport', () => {
     expect(report.bytes).toBe(460);
   });
 
-  it('is still scanning until the usage stage has run', () => {
-    const running: PerfReport = buildReport({
-      log: { ...emptyLog, spans: [span({ phase: 'snapshot', ms: 30 })] },
+  it('carries the stages that had not landed', () => {
+    // Every part of the config and the usage scan start un-awaited, so the first report of a launch
+    // normally names several. A stage that's running has no span yet, which is why the card can't
+    // work this out from the rows it draws.
+    const mid: PerfReport = buildReport({
+      log: {
+        ...emptyLog,
+        spans: [span({ phase: 'activate', ms: 8 })],
+        running: ['snapshot', 'skills', 'usage']
+      },
       openedAt: 0
     });
-    expect(running.scanning).toBe(true);
+    expect(mid.running).toEqual(['snapshot', 'skills', 'usage']);
 
     const done: PerfReport = buildReport({
       log: {
@@ -99,7 +108,7 @@ describe('buildReport', () => {
       },
       openedAt: 0
     });
-    expect(done.scanning).toBe(false);
+    expect(done.running).toEqual([]);
   });
 
   it('gives a stage with no reads a row of zeros rather than dropping it', () => {

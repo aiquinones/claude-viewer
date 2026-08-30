@@ -65,7 +65,7 @@ const Card = ({ report, workspaceRoot }: CardProps) => (
       <CopyButton report={report} />
     </div>
 
-    <PerfPhases phases={report.phases} scanning={report.scanning} />
+    <PerfPhases phases={report.phases} running={report.running} />
     <PerfReads report={report} workspaceRoot={workspaceRoot} />
   </div>
 );
