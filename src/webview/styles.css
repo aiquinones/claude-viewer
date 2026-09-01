@@ -99,18 +99,16 @@ body {
   --agent-copilot: color-mix(in srgb, var(--chart-purple) 70%, var(--muted-foreground));
   --agent-codex: var(--foreground);
 
-  /* What a session announced it produced. Unlike the agent marks above these are allowed their
-     brand: a chip is a thing you go and click, so the color is doing wayfinding rather than
-     labelling a row. Storybook's own #FF4785 is unreadable at both ends — too dark on the dark
-     page, too light on the light one — so the base mixes it toward whichever foreground won and
-     each palette states its own. The other three borrow the chart palette, which the palettes
-     already tune. */
+  /* The mark on a chip a session announced it produced. Unlike the agent marks above these are
+     allowed their brand: a chip is a thing you go and click, so the color is doing wayfinding
+     rather than labelling a row — and it colors the icon alone, never the title beside it.
+     Storybook's own #FF4785 is unreadable at both ends — too dark on the dark page, too light on
+     the light one — so the base mixes it toward whichever foreground won and each palette states
+     its own. The other three borrow the chart palette, which the palettes already tune. */
   --deliverable-storybook: color-mix(in oklab, #ff4785 76%, var(--foreground));
   --deliverable-pr: var(--chart-green);
   --deliverable-file: var(--chart-blue);
-  /* The solid muted foreground, not the plain one: in `inherit` mode that one is mixed with
-     transparent, and a chip painting its own ground can't use a color you can see through. */
-  --deliverable-link: var(--muted-foreground-solid);
+  --deliverable-link: var(--muted-foreground);
 
   /* Spotlight: the characters a query matched, and the scrim behind the box. Mixing the scrim out
      of the editor background darkens a dark theme and lightens a light one on its own. */

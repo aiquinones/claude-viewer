@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { DELIVERABLE_KINDS, Deliverable } from '@src/model/types';
 import { DeliverableList } from '@src/webview/deliverables/DeliverableList';
-import { CHIP_VARIANTS } from '@src/webview/deliverables/chip-variants';
 import { deliverables } from '../../agent-fixtures';
 
 // What a session announced it produced. A `url` chip is an `<a>` and a `path` chip is a `<button>`,
@@ -10,9 +9,6 @@ const meta: Meta<typeof DeliverableList> = {
   title: 'Agents/DeliverableList',
   component: DeliverableList,
   args: { onOpen: () => undefined },
-  // The six looks as a control, so one can be tried against any of the cases below. They're drawn
-  // side by side under `Deliverable chip styles`, which is where a choice is actually made.
-  argTypes: { variant: { control: 'inline-radio', options: CHIP_VARIANTS } },
   decorators: [
     (Story) => (
       <div className="w-[420px] p-6">

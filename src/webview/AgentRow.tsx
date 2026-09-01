@@ -7,7 +7,6 @@ import { AgentFlags } from './AgentFlags';
 import { AgentMenu } from './agent-menu/AgentMenu';
 import { useAgentMenu } from './agent-menu/useAgentMenu';
 import { AgentRowProps } from './agent-row-props';
-import { ChipVariant } from './deliverables/chip-variants';
 import { RowColor, useRowColor } from './agent-color/useRowColor';
 import { AgentRowFooter } from './AgentRowFooter';
 import { AgentStage } from './AgentStage';
@@ -36,12 +35,6 @@ import { isLinkClick } from './link-click';
 //
 // Which means the wrapper has to let a link through — `isLinkClick` — rather than the link stopping
 // its own bubble, or the PR opens the transcript instead of the browser.
-// On top of what every row is handed. Not in `AgentRowProps`, because that shape is what the two
-// row components share and the robot row draws no chips — see `chip-variants.ts`.
-interface AgentRowStyleProps extends AgentRowProps {
-  deliverableVariant?: ChipVariant;
-}
-
 export const AgentRow = ({
   agent,
   now,
@@ -51,9 +44,8 @@ export const AgentRow = ({
   onOpenLog,
   onOpenDeliverable,
   onCopySessionId,
-  onKill,
-  deliverableVariant
-}: AgentRowStyleProps) => {
+  onKill
+}: AgentRowProps) => {
   const activity: AgentActivity = activityOf({ agent, now });
   const row: RowColor = useRowColor(agent.sessionId);
   const menu = useAgentMenu();
@@ -146,11 +138,7 @@ export const AgentRow = ({
           text column rather than two. */}
       <AgentContext context={agent.context} className="px-3 pb-2 pl-6" />
 
-      <AgentRowFooter
-        agent={agent}
-        onOpenDeliverable={onOpenDeliverable}
-        deliverableVariant={deliverableVariant}
-      />
+      <AgentRowFooter agent={agent} onOpenDeliverable={onOpenDeliverable} />
 
       {menu.anchor && (
         <AgentMenu

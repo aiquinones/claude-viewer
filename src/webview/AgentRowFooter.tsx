@@ -2,15 +2,12 @@ import { useState } from 'react';
 import { GitPullRequest } from 'lucide-react';
 import { AgentPullRequest, AgentSession, Deliverable, Subagent } from '../model/types';
 import { DeliverableList } from './deliverables/DeliverableList';
-import { ChipVariant } from './deliverables/chip-variants';
 import { SubagentList } from './agent-subagents/SubagentList';
 import { SubagentToggle } from './agent-subagents/SubagentToggle';
 
 interface AgentRowFooterProps {
   agent: AgentSession;
   onOpenDeliverable: (deliverable: Deliverable) => void;
-  // Which chip look to draw. Only the comparison story passes it — see `chip-variants.ts`.
-  deliverableVariant?: ChipVariant;
 }
 
 // What hangs under a dense row: the sub-agents it has out, the PR this session opened, and whatever
@@ -26,11 +23,7 @@ interface AgentRowFooterProps {
 // toggle. It survives the poll — `AgentList` keys rows by session id, so the row isn't remounted.
 //
 // Robots mode doesn't use it — a PR is a squircle there.
-export const AgentRowFooter = ({
-  agent,
-  onOpenDeliverable,
-  deliverableVariant
-}: AgentRowFooterProps) => {
+export const AgentRowFooter = ({ agent, onOpenDeliverable }: AgentRowFooterProps) => {
   const [open, setOpen] = useState(false);
   const subagents: Subagent[] = agent.subagents ?? [];
   const deliverables: Deliverable[] = agent.deliverables ?? [];
@@ -51,11 +44,7 @@ export const AgentRowFooter = ({
         {/* After the PR, which is the one deliverable the panel finds on its own — so a session
             that declared nothing still reads the same as it always did. */}
         {deliverables.length > 0 && (
-          <DeliverableList
-            deliverables={deliverables}
-            onOpen={onOpenDeliverable}
-            variant={deliverableVariant}
-          />
+          <DeliverableList deliverables={deliverables} onOpen={onOpenDeliverable} />
         )}
       </div>
       {open && subagents.length > 0 && <SubagentList subagents={subagents} />}
