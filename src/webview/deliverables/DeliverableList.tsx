@@ -13,7 +13,7 @@ interface DeliverableListProps {
 // Keyed on kind and title because that pair is what the loader dedupes on — two chips can't share
 // it, and a chip keeps its identity across the poll when its target changes.
 export const DeliverableList = ({ deliverables, onOpen }: DeliverableListProps) => (
-  <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+  <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
     {deliverables.map((deliverable) => (
       <DeliverableChip
         key={`${deliverable.kind}:${deliverable.title}`}

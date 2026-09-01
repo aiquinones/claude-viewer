@@ -99,6 +99,17 @@ body {
   --agent-copilot: color-mix(in srgb, var(--chart-purple) 70%, var(--muted-foreground));
   --agent-codex: var(--foreground);
 
+  /* The mark on a chip a session announced it produced. Unlike the agent marks above these are
+     allowed their brand: a chip is a thing you go and click, so the color is doing wayfinding
+     rather than labelling a row — and it colors the icon alone, never the title beside it.
+     Storybook's own #FF4785 is unreadable at both ends — too dark on the dark page, too light on
+     the light one — so the base mixes it toward whichever foreground won and each palette states
+     its own. The other three borrow the chart palette, which the palettes already tune. */
+  --deliverable-storybook: color-mix(in oklab, #ff4785 76%, var(--foreground));
+  --deliverable-pr: var(--chart-green);
+  --deliverable-file: var(--chart-blue);
+  --deliverable-link: var(--muted-foreground);
+
   /* Spotlight: the characters a query matched, and the scrim behind the box. Mixing the scrim out
      of the editor background darkens a dark theme and lightens a light one on its own. */
   --match: var(--vscode-list-highlightForeground, var(--chart-blue));
@@ -164,6 +175,7 @@ body[data-panel-theme='auto']:not(.vscode-light):not(.vscode-high-contrast-light
   --selected: oklch(0.34 0.06 258); /* #243857 */
   --selected-foreground: oklch(0.96 0.006 265); /* #f0f2f6 */
   --match: oklch(0.82 0.13 195); /* #36dede — 10.9:1 */
+  --deliverable-storybook: oklch(0.72 0.19 5); /* #ff77a4 — 8.0:1 */
 
   --warn: oklch(0.8 0.13 80); /* #e9b452 — 9.6:1 */
   --error: oklch(0.66 0.18 22); /* #ec5a5e — 5.4:1 */
@@ -212,6 +224,7 @@ body[data-panel-theme='auto'].vscode-high-contrast-light {
   --selected: oklch(0.88 0.04 258); /* #d3ddf3 */
   --selected-foreground: oklch(0.26 0.015 265);
   --match: oklch(0.55 0.12 200); /* #00858d */
+  --deliverable-storybook: oklch(0.55 0.21 8); /* #d31d5e — 5.2:1 */
 
   --warn: oklch(0.62 0.13 70); /* #b77610 */
   --error: oklch(0.55 0.19 25); /* #c92f33 — 5.1:1 */
@@ -271,6 +284,10 @@ body:is(.vscode-light, .vscode-high-contrast-light):not([data-panel-theme='dark'
   --color-agent-claude: var(--agent-claude);
   --color-agent-copilot: var(--agent-copilot);
   --color-agent-codex: var(--agent-codex);
+  --color-deliverable-storybook: var(--deliverable-storybook);
+  --color-deliverable-pr: var(--deliverable-pr);
+  --color-deliverable-file: var(--deliverable-file);
+  --color-deliverable-link: var(--deliverable-link);
   --color-match: var(--match);
   --color-scrim: var(--scrim);
   --color-chart-blue: var(--chart-blue);
