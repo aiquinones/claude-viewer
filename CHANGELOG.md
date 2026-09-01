@@ -2,6 +2,45 @@
 
 Notable changes to Claude Viewer, newest first.
 
+## 0.28.0 - 2026-08-31
+
+### Added
+
+- **Codex sessions appear on the usage surface.** They were on Active Agents only — no totals, no
+  squares on the grid, no row in the list, and both paths into a session page dead-ended. Codex
+  states what each request cost per line, so the scan is incremental like Claude's.
+- **A Codex session is priced from what it consumed.** The dash was never missing data, it was a
+  missing rate table; OpenAI's card now sits beside Anthropic's. The dash still appears for a model
+  with no published rates, on either CLI — which also fixes a Claude session on an unknown model
+  drawing a cost curve flat along zero.
+- **Codex skill loads are listed.** Codex has no skill tool — it loads a skill by reading its
+  SKILL.md, and that read is the record. Fills the Skills used list and the agent row's skill trail.
+- **A session can announce what it produced.** An agent echoes a marker and a JSON payload; the
+  panel reads it off the Bash call in the transcript and draws a clickable chip under that agent's
+  row, beside the PR link — a storybook, a link, a file, or a PR. Read from Claude, Copilot and
+  Codex transcripts alike. The instructions an agent reads ship with the extension.
+- **View Docs**, a command listing the docs this extension writes. Picking one rewrites it to what
+  this version ships, opens it, and puts its `@` import line on the clipboard. Replaces
+  Set up deliverables.
+
+### Changed
+
+- **The panel draws before the config is read.** The launch used to wait on every SKILL.md and every
+  CLAUDE.md before drawing anything, so a large setup sat on one spinner for the whole read. The
+  three loaders publish separately now: the landing cards say "Reading config…" rather than
+  "None found", and each surface waits behind its own loader instead of behind all three.
+- **The performance card names every stage still running**, not just the usage scan.
+
+### Fixed
+
+- **The usage views no longer report a zero that isn't a reading.** Codex bills against a
+  rate-limit window and states no per-token figure, and three places asked a question with two
+  answers and three CLIs — drawing a `0 AIU` headline, a `0 AIU` session total, and a cost curve
+  along the floor. Each one claimed the work was free. They draw a dash with the reason in the
+  hover instead.
+- **The skill list no longer claims a Codex session loaded no skills** when the CLI records no skill
+  load of any kind.
+
 ## 0.26.1 - 2026-08-27
 
 ### Changed
