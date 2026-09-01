@@ -182,6 +182,11 @@
         "category": "Claude Viewer"
       },
       {
+        "command": "claudeViewer.setupDeliverables",
+        "title": "Set up deliverables",
+        "category": "Claude Viewer"
+      },
+      {
         "command": "claudeViewer.openUsage",
         "title": "Open Usage",
         "category": "Claude Viewer"

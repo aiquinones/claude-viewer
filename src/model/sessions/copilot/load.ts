@@ -1,6 +1,6 @@
 import { copilotEventsPath } from '../../../config/paths';
 import { AgentSession, Subagent } from '../../types';
-import { SkillTrailCache, readSkillTrail } from '../skill-trail';
+import { ScanFindings, SessionScanCache, readSessionScan } from '../session-scan';
 import { CopilotEventSummary, readEvents } from './events';
 import { LiveCopilotSession, liveCopilotSessions } from './live';
 import { CopilotPrCache, pruneCopilotPrCache, readCopilotPullRequest } from './pull-request';
@@ -16,7 +16,7 @@ import { CopilotContexts, readCopilotContexts } from './usage-db';
 // that to one full read per session.
 export const loadCopilotSessions = async ({
   pullRequests,
-  skillTrails
+  sessionScans
 }: LoadCopilotSessionsArgs): Promise<AgentSession[]> => {
   const sessions: LiveCopilotSession[] = await liveCopilotSessions();
 
@@ -25,7 +25,7 @@ export const loadCopilotSessions = async ({
   );
 
   const entries: AgentSession[] = await Promise.all(
-    sessions.map((session) => toEntry({ session, contexts, pullRequests, skillTrails }))
+    sessions.map((session) => toEntry({ session, contexts, pullRequests, sessionScans }))
   );
 
   pruneCopilotPrCache(
@@ -38,9 +38,9 @@ export const loadCopilotSessions = async ({
 
 interface LoadCopilotSessionsArgs {
   pullRequests: CopilotPrCache;
-  // Shared with the Claude loader and pruned in `sessions/load.ts`, since neither loader can see
-  // the other's paths.
-  skillTrails: SkillTrailCache;
+  // Shared with the other two loaders and pruned in `sessions/load.ts`, since no loader can see
+  // another's paths.
+  sessionScans: SessionScanCache;
 }
 
 interface ToEntryArgs extends LoadCopilotSessionsArgs {
@@ -52,14 +52,16 @@ const toEntry = async ({
   session,
   contexts,
   pullRequests,
-  skillTrails
+  sessionScans
 }: ToEntryArgs): Promise<AgentSession> => {
   const path: string = copilotEventsPath(session.dir);
   const summary: CopilotEventSummary = await readEvents(path);
-  const skillTrail: string[] = await readSkillTrail({
+  // Skills only. Copilot writes its tool calls to the log as well, so the deliverable rule has a
+  // line shape to read here too — it just hasn't been written. Claude first.
+  const scan: ScanFindings = await readSessionScan({
     path,
-    cache: skillTrails,
-    parse: copilotSkillsIn
+    cache: sessionScans,
+    parse: (lines) => ({ skills: copilotSkillsIn(lines), deliverables: [] })
   });
   const startedAt: number = timestamp(session.workspace.created_at);
   const read: CopilotContexts | undefined = contexts.get(session.sessionId);
@@ -80,7 +82,7 @@ const toEntry = async ({
     pendingTool: summary.pendingTool,
     context: read?.session,
     // Absent rather than empty, the way every other field a session may not have is.
-    skillTrail: skillTrail.length > 0 ? skillTrail : undefined,
+    skillTrail: scan.skills.length > 0 ? scan.skills : undefined,
     // Absent rather than empty, the way every other field only one CLI writes is.
     subagents: withContexts({ subagents: summary.subagents, read }),
     // A session that has written no events yet is as old as its workspace file says.

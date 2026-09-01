@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { GitPullRequest } from 'lucide-react';
-import { AgentPullRequest, AgentSession, Subagent } from '../model/types';
+import { AgentPullRequest, AgentSession, Deliverable, Subagent } from '../model/types';
+import { DeliverableList } from './deliverables/DeliverableList';
 import { SubagentList } from './agent-subagents/SubagentList';
 import { SubagentToggle } from './agent-subagents/SubagentToggle';
 
 interface AgentRowFooterProps {
   agent: AgentSession;
+  onOpenDeliverable: (deliverable: Deliverable) => void;
 }
 
-// What hangs under a dense row: the sub-agents it has out, and the PR this session opened. Outside
+// What hangs under a dense row: the sub-agents it has out, the PR this session opened, and whatever
+// it announced it produced. Outside
 // the row's button because a `<button>` can hold neither an `<a>` nor another button — which is the
 // whole reason this is its own line rather than two more things on the row.
 //
@@ -20,11 +23,12 @@ interface AgentRowFooterProps {
 // toggle. It survives the poll — `AgentList` keys rows by session id, so the row isn't remounted.
 //
 // Robots mode doesn't use it — a PR is a squircle there.
-export const AgentRowFooter = ({ agent }: AgentRowFooterProps) => {
+export const AgentRowFooter = ({ agent, onOpenDeliverable }: AgentRowFooterProps) => {
   const [open, setOpen] = useState(false);
   const subagents: Subagent[] = agent.subagents ?? [];
+  const deliverables: Deliverable[] = agent.deliverables ?? [];
 
-  if (subagents.length === 0 && !agent.pullRequest) return null;
+  if (subagents.length === 0 && !agent.pullRequest && deliverables.length === 0) return null;
 
   return (
     <div className="flex min-w-0 flex-col gap-2 px-3 pb-2 pl-6">
@@ -37,6 +41,11 @@ export const AgentRowFooter = ({ agent }: AgentRowFooterProps) => {
           />
         )}
         {agent.pullRequest && <PullRequestLink pullRequest={agent.pullRequest} />}
+        {/* After the PR, which is the one deliverable the panel finds on its own — so a session
+            that declared nothing still reads the same as it always did. */}
+        {deliverables.length > 0 && (
+          <DeliverableList deliverables={deliverables} onOpen={onOpenDeliverable} />
+        )}
       </div>
       {open && subagents.length > 0 && <SubagentList subagents={subagents} />}
     </div>

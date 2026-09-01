@@ -4,7 +4,7 @@
 //
 // It fires twice for one `/skill`: the CLI injects the body because you typed the name, and the
 // model then calls the tool to fetch what it has already been given. Both loads are the same stage,
-// and `readSkillTrail` collapses the run.
+// and `readSessionScan` collapses the run.
 
 import { CopilotEvent, parseEvent } from './event-schema';
 

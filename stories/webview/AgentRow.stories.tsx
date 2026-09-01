@@ -12,6 +12,7 @@ import {
   copilotWorkingAgent,
   elsewhereAgent,
   idleAgent,
+  deliverableAgent,
   longTitleAgent,
   noTranscriptAgent,
   resumedAgent,
@@ -32,6 +33,7 @@ const meta: Meta<typeof AgentRow> = {
     onOpen: () => undefined,
     onAnalyze: () => undefined,
     onOpenLog: () => undefined,
+    onOpenDeliverable: () => undefined,
     onCopySessionId: () => undefined,
     onKill: () => undefined
   },
@@ -120,6 +122,10 @@ export const CodexWorking: Story = { args: { agent: codexWorkingAgent } };
 // Idle, and in a worktree — which is what makes the folder print, since a row only says where it is
 // when that isn't the workspace root.
 export const CodexIdle: Story = { args: { agent: codexIdleAgent } };
+
+// A session that announced what it produced. The chips sit under the row beside the PR link, which
+// is the one deliverable the panel finds on its own — so a row that declared nothing is unchanged.
+export const Deliverables: Story = { args: { agent: deliverableAgent } };
 
 // The context bar across its three levels, stacked so the colours can be compared. The other two
 // CLIs' rows are in it deliberately: their numbers come from different files and, for Copilot and

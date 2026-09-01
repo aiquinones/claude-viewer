@@ -1,4 +1,4 @@
-import { AgentSession, Subagent } from '@src/model/types';
+import { AgentSession, Deliverable, Subagent } from '@src/model/types';
 import { WORKSPACE } from './fixtures';
 
 // Synthetic only, like every other fixture here — working on this extension means reading your own
@@ -94,6 +94,45 @@ export const waitingAgent: AgentSession = makeAgent({
   skillTrail: ['dev-feature', 'create-pr'],
   // Past the warn threshold and a fifth of the way along its window — the case the ticks exist for.
   context: { tokens: 214_000, model: 'claude-opus-5' }
+});
+
+// One of each kind. The loader resolves a `file` path against the session's cwd and drops anything
+// outside it, so the fixture's path is under WORKSPACE the way a real one always is.
+export const deliverables: Deliverable[] = [
+  { kind: 'storybook', title: 'Storybook', url: 'http://localhost:6006' },
+  { kind: 'file', title: 'Plan', path: `${WORKSPACE}/docs/upload-retries.md` },
+  { kind: 'link', title: 'Preview', url: 'https://preview.example.com/upload-retries' }
+];
+
+// A session that declared things it produced. Its PR is the one the panel found on its own, so this
+// is also the case where both halves of the footer's link row are drawn at once.
+export const deliverableAgent: AgentSession = makeAgent({
+  sessionId: 'c1f0a2d4-5e6b-47c8-9a01-2b3c4d5e6f70',
+  cwd: WORKSPACE,
+  title: 'Rebuild the upload queue view',
+  tail: 'working',
+  pendingTool: 'Bash',
+  lastActivityAt: ago(9_000),
+  pullRequest: { number: 418, url: 'https://github.com/example/example-app/pull/418' },
+  deliverables,
+  skillTrail: ['dev-feature'],
+  context: { tokens: 88_400, model: 'claude-opus-5' }
+});
+
+// A title long enough to hit the chip's own cap. An agent writes these and nothing bounds what it
+// writes, which is the case the truncate exists for.
+export const longDeliverableAgent: AgentSession = makeAgent({
+  sessionId: 'd2e1b3c5-6f70-4819-ab12-3c4d5e6f7081',
+  cwd: WORKSPACE,
+  title: 'Wire the settings pane',
+  tail: 'settled',
+  deliverables: [
+    {
+      kind: 'link',
+      title: 'The staging deployment of the settings pane, rebuilt from this branch',
+      url: 'https://staging.example.com/settings'
+    }
+  ]
 });
 
 // The common case: the last turn ended in text, and the agent is waiting for a human.

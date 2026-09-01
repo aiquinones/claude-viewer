@@ -1,4 +1,4 @@
-import { AgentSession } from '../model/types';
+import { AgentSession, Deliverable } from '../model/types';
 
 // What every row on the Active Agents surface is handed. `AgentList` picks between the two row
 // components by mode and gives both the same thing, so the shape lives here rather than being
@@ -14,6 +14,9 @@ export interface AgentRowProps {
   // whole session because the resolution needs the tool as well as the id.
   onAnalyze: (agent: AgentSession) => void;
   onOpenLog: (agent: AgentSession) => void;
+  // Opens something the session said it produced. Only a `file` deliverable reaches this — one with
+  // a url is an `<a href>` and never asks anyone.
+  onOpenDeliverable: (deliverable: Deliverable) => void;
   // The commands behind a right-click. Both go through the host: it holds the clipboard, and it
   // owns the pid the webview deliberately never names.
   onCopySessionId: (agent: AgentSession) => void;

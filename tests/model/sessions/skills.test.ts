@@ -76,7 +76,7 @@ describe('copilotSkillsIn', () => {
 
   // One `/skill` writes two of these — the CLI injects the body because you typed the name, and the
   // model then calls the tool to fetch what it already has. Both are real loads; collapsing the run
-  // into one stage is `readSkillTrail`'s job, not this one's.
+  // into one stage is `readSessionScan`'s job, not this one's.
   it('reports the double load rather than collapsing it', () => {
     expect(copilotSkillsIn([skillEvent('dev-feature'), skillEvent('dev-feature')])).toEqual([
       'dev-feature',

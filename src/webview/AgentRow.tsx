@@ -42,6 +42,7 @@ export const AgentRow = ({
   onOpen,
   onAnalyze,
   onOpenLog,
+  onOpenDeliverable,
   onCopySessionId,
   onKill
 }: AgentRowProps) => {
@@ -137,7 +138,7 @@ export const AgentRow = ({
           text column rather than two. */}
       <AgentContext context={agent.context} className="px-3 pb-2 pl-6" />
 
-      <AgentRowFooter agent={agent} />
+      <AgentRowFooter agent={agent} onOpenDeliverable={onOpenDeliverable} />
 
       {menu.anchor && (
         <AgentMenu

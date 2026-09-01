@@ -1,4 +1,4 @@
-import { AgentSession } from '../model/types';
+import { AgentSession, Deliverable } from '../model/types';
 import { AgentRobotRow } from './AgentRobotRow';
 import { AgentRow } from './AgentRow';
 import { AgentViewMode } from './agent-view-modes';
@@ -20,6 +20,7 @@ interface AgentListProps {
   onOpen: (agent: AgentSession) => void;
   onAnalyze: (agent: AgentSession) => void;
   onOpenLog: (agent: AgentSession) => void;
+  onOpenDeliverable: (deliverable: Deliverable) => void;
   onCopySessionId: (agent: AgentSession) => void;
   onKill: (agent: AgentSession) => void;
 }
@@ -40,6 +41,7 @@ export const AgentList = ({
   onOpen,
   onAnalyze,
   onOpenLog,
+  onOpenDeliverable,
   onCopySessionId,
   onKill
 }: AgentListProps) => {
@@ -69,6 +71,7 @@ export const AgentList = ({
             onOpen={onOpen}
             onAnalyze={onAnalyze}
             onOpenLog={onOpenLog}
+            onOpenDeliverable={onOpenDeliverable}
             onCopySessionId={onCopySessionId}
             onKill={onKill}
           />
