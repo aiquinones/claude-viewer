@@ -182,8 +182,8 @@
         "category": "Claude Viewer"
       },
       {
-        "command": "claudeViewer.setupDeliverables",
-        "title": "Set up deliverables",
+        "command": "claudeViewer.viewDocs",
+        "title": "View Docs",
         "category": "Claude Viewer"
       },
       {
