@@ -1241,6 +1241,63 @@ body:is(.vscode-light, .vscode-high-contrast-light):not([data-panel-theme='dark'
   outline: none;
 }
 
+/* ── Notification toasts ───────────────────────────────────────────────────────────────────────
+   The stack in the bottom-right corner. Three animations: the card arrives, its bar fills, and the
+   row it sits in collapses when it leaves. */
+
+/* Grid rows rather than a flex gap on the stack, so a card on its way out takes its own spacing
+   with it and the cards above slide the whole distance instead of stopping short. `0fr` interpolates
+   only against another `fr`, which is why the resting state is `1fr` and not `auto`. */
+.toast-slot {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 200ms ease-out, opacity 200ms ease-out;
+}
+
+.toast-slot--leaving {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.toast-enter {
+  animation: toast-in 180ms ease-out;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; translate: 0.75rem 0; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+/* How long the card has left. Linear on purpose — a bar that eases is lying about the clock. The
+   duration is set per card, so the animation only names the shape. */
+.toast-timer {
+  animation-name: toast-timer;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  background: var(--surface-accent, var(--primary));
+}
+
+/* Held while the pointer is over the stack, in step with the countdown the queue stops. */
+.toast-stack--paused .toast-timer {
+  animation-play-state: paused;
+}
+
+@keyframes toast-timer {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+/* The bar stays: it's the clock, not decoration. What goes is the arrival and the collapse. */
+@media (prefers-reduced-motion: reduce) {
+  .toast-slot {
+    transition: none;
+  }
+
+  .toast-enter {
+    animation: none;
+  }
+}
+
 @layer base {
   body {
     font-family: var(--vscode-font-family);

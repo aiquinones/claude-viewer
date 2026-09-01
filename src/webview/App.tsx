@@ -16,6 +16,9 @@ import { Spotlight } from './spotlight/Spotlight';
 import { kindForSurface, searchViews, surfaceForDoc } from './spotlight/surface-kind';
 import { useSpotlight } from './spotlight/useSpotlight';
 import { asSurfaceId, SurfaceId } from './surfaces';
+import { Toaster } from './toasts/Toaster';
+import { useIdleToasts } from './toasts/useIdleToasts';
+import { ToastQueue, useToasts } from './toasts/useToasts';
 import { useSnapshot } from './useSnapshot';
 import { ViewSlider } from './ViewSlider';
 import { AgentsView } from './views/AgentsView';
@@ -82,6 +85,11 @@ export const App = () => {
   const [isPerfDismissed, setIsPerfDismissed] = useState<boolean>(false);
   // Opened from any number in the panel, so it lives here rather than on a surface.
   const { estimatorOpenedAt, openEstimator, dismissEstimator } = useEstimatorDialog();
+  // The notification stack, and the one thing pushing into it so far. Here rather than on the
+  // agents surface: an agent finishing is worth hearing about from wherever you happen to be, and
+  // a queue that lives on a surface is one that only fires while you're looking at it.
+  const toasts: ToastQueue = useToasts();
+  useIdleToasts({ agents, push: toasts.push });
 
   // Applying writes the setting and closes. The number on screen moves when the host posts the
   // settings back, not here — nothing in the webview guesses at what was written.
@@ -244,6 +252,10 @@ export const App = () => {
             onDismiss={() => setIsPerfDismissed(true)}
           />
         )}
+
+        {/* Outside the slider like the overlay above, and for the same reason: a card that arrived
+            while you were reading something shouldn't slide away with the pane. */}
+        <Toaster queue={toasts} onOpenAgent={openAgent} />
 
         {/* Keyed on the open, so hitting the chord again gives an empty box back. */}
         {spotlightOpenedAt !== undefined && (
