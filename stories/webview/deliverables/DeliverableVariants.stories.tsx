@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { DELIVERABLE_KINDS, Deliverable, DeliverableKind } from '@src/model/types';
-import { AgentRowFooter } from '@src/webview/AgentRowFooter';
+import { DEFAULT_SETTINGS } from '@src/model/settings/settings';
+import { AgentRow } from '@src/webview/AgentRow';
+import { SettingsProvider } from '@src/webview/settings/SettingsContext';
 import { DeliverableList } from '@src/webview/deliverables/DeliverableList';
 import {
   CHIP_VARIANTS,
@@ -8,6 +10,12 @@ import {
   chipVariantStyle
 } from '@src/webview/deliverables/chip-variants';
 import { deliverableAgent, deliverables } from '../../agent-fixtures';
+import { WORKSPACE } from '../../fixtures';
+import { stageNames } from '../../session-detail-fixtures';
+
+// Pinned rather than a clock: the row ages against what it's handed, and a comparison page that
+// re-renders with a different age in each block is comparing two things at once.
+const NOW: number = Date.now();
 
 // Six looks for the deliverable chip, drawn together so one can be picked. This page is the whole
 // point of the branch — everything under `Agents/DeliverableList` still shows the shipped default.
@@ -73,19 +81,35 @@ export const RealDeclarations: StoryObj = {
   )
 };
 
-// In place: the footer of a real agent row, where a chip sits next to the PR link the panel found
-// on its own and the subagent toggle. A look that reads well alone can still fight those two.
+// In place: the whole agent row, not just its footer. The chips land under a title, a folder, an
+// activity badge, a context bar and a stage — which is the only place you can see whether a look
+// competes with the row it hangs off. The PR link and the subagent toggle sit beside them.
 export const InTheRow: StoryObj = {
+  decorators: [
+    // The row prints a stage from the stored names, the same way `AgentRow`'s own stories do.
+    (Story) => (
+      <SettingsProvider settings={{ ...DEFAULT_SETTINGS, stages: { names: stageNames } }}>
+        <Story />
+      </SettingsProvider>
+    )
+  ],
   render: () => (
-    <div className="flex w-full max-w-[560px] flex-col gap-4 bg-background py-4">
+    <div className="flex w-full max-w-2xl flex-col gap-3 bg-background p-2">
       {CHIP_VARIANTS.map((variant) => (
         <div key={variant} className="flex flex-col gap-1 border-b border-border pb-3 last:border-0">
-          <span className="px-3 pl-6 text-xs text-muted-foreground">
+          <span className="px-3 text-xs text-muted-foreground">
             {chipVariantStyle(variant).label}
           </span>
-          <AgentRowFooter
+          <AgentRow
             agent={deliverableAgent}
+            now={NOW}
+            workspaceRoot={WORKSPACE}
+            onOpen={() => undefined}
+            onAnalyze={() => undefined}
+            onOpenLog={() => undefined}
             onOpenDeliverable={() => undefined}
+            onCopySessionId={() => undefined}
+            onKill={() => undefined}
             deliverableVariant={variant}
           />
         </div>
