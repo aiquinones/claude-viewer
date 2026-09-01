@@ -1,6 +1,7 @@
 import { copilotEventsPath } from '../../../config/paths';
 import { AgentSession, Subagent } from '../../types';
 import { ScanFindings, SessionScanCache, readSessionScan } from '../session-scan';
+import { copilotDeliverablesIn } from './deliverables';
 import { CopilotEventSummary, readEvents } from './events';
 import { LiveCopilotSession, liveCopilotSessions } from './live';
 import { CopilotPrCache, pruneCopilotPrCache, readCopilotPullRequest } from './pull-request';
@@ -56,12 +57,13 @@ const toEntry = async ({
 }: ToEntryArgs): Promise<AgentSession> => {
   const path: string = copilotEventsPath(session.dir);
   const summary: CopilotEventSummary = await readEvents(path);
-  // Skills only. Copilot writes its tool calls to the log as well, so the deliverable rule has a
-  // line shape to read here too — it just hasn't been written. Claude first.
   const scan: ScanFindings = await readSessionScan({
     path,
     cache: sessionScans,
-    parse: (lines) => ({ skills: copilotSkillsIn(lines), deliverables: [] })
+    parse: (lines) => ({
+      skills: copilotSkillsIn(lines),
+      deliverables: copilotDeliverablesIn({ lines, cwd: session.workspace.cwd })
+    })
   });
   const startedAt: number = timestamp(session.workspace.created_at);
   const read: CopilotContexts | undefined = contexts.get(session.sessionId);
@@ -83,6 +85,7 @@ const toEntry = async ({
     context: read?.session,
     // Absent rather than empty, the way every other field a session may not have is.
     skillTrail: scan.skills.length > 0 ? scan.skills : undefined,
+    deliverables: scan.deliverables.length > 0 ? scan.deliverables : undefined,
     // Absent rather than empty, the way every other field only one CLI writes is.
     subagents: withContexts({ subagents: summary.subagents, read }),
     // A session that has written no events yet is as old as its workspace file says.

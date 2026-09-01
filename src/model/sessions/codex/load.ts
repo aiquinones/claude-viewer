@@ -1,5 +1,6 @@
 import { AgentSession } from '../../types';
 import { ScanFindings, SessionScanCache, readSessionScan } from '../session-scan';
+import { codexDeliverablesIn } from './deliverables';
 import { liveCodexThreadIds } from './live';
 import { CodexRolloutSummary, readRollout } from './rollout';
 import { codexSkillsIn } from './skills';
@@ -40,12 +41,13 @@ interface ToEntryArgs {
 const toEntry = async ({ thread, sessionScans }: ToEntryArgs): Promise<AgentSession> => {
   const summary: CodexRolloutSummary = await readRollout(thread.rolloutPath);
 
-  // Skills only. A Codex log records its shell calls too, so the deliverable rule has a line shape
-  // to read here — it just hasn't been written. Claude first.
   const scan: ScanFindings = await readSessionScan({
     path: thread.rolloutPath,
     cache: sessionScans,
-    parse: (lines) => ({ skills: codexSkillsIn(lines), deliverables: [] })
+    parse: (lines) => ({
+      skills: codexSkillsIn(lines),
+      deliverables: codexDeliverablesIn({ lines, cwd: thread.cwd })
+    })
   });
 
   return {
@@ -67,6 +69,7 @@ const toEntry = async ({ thread, sessionScans }: ToEntryArgs): Promise<AgentSess
       : undefined,
     // Absent rather than empty, the way every other field a session may not have is.
     skillTrail: scan.skills.length > 0 ? scan.skills : undefined,
+    deliverables: scan.deliverables.length > 0 ? scan.deliverables : undefined,
     // A thread that has written no rollout line yet is as old as the index says.
     lastActivityAt: summary.lastActivityAt || thread.updatedAt || thread.createdAt,
     startedAt: thread.createdAt,
