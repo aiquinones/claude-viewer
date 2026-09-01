@@ -10,10 +10,9 @@ interface LoadAgentSessionsArgs {
   // so it's found by a full read the first time and by the appended bytes after. Claude repeats its
   // own PR line near the end of the file, so its loader needs nothing.
   copilotPullRequests: CopilotPrCache;
-  // Claude and Copilot: the skills a session has loaded sit all through its log rather than at an
-  // end of it, so the same full-read-then-append rule applies to each. One cache for both, which is
-  // why the pruning happens here — a loader can only see its own tool's paths. Codex isn't in it;
-  // where it writes a skill load, if it does, is still an open question.
+  // All three: the skills a session has loaded sit all through its log rather than at an end of it,
+  // so the same full-read-then-append rule applies to each. One cache for all of them, which is why
+  // the pruning happens here — a loader can only see its own tool's paths.
   skillTrails: SkillTrailCache;
 }
 
@@ -27,8 +26,7 @@ export const loadAgentSessions = async ({
   const [claude, copilot, codex]: AgentSession[][] = await Promise.all([
     loadClaudeSessions(skillTrails),
     loadCopilotSessions({ pullRequests: copilotPullRequests, skillTrails }),
-    // No trail cache: nothing reads a skill load out of a rollout yet, so a Codex row has no stage.
-    loadCodexSessions()
+    loadCodexSessions(skillTrails)
   ]);
 
   const live: AgentSession[] = [...claude, ...copilot, ...codex];

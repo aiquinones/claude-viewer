@@ -330,7 +330,10 @@ export const codexWorkingAgent: AgentSession = makeCodexAgent({
   lastActivityAt: ago(5_000),
   // The one CLI that states its own window, so this reading carries it and the card says `stated`
   // rather than naming the built-in table.
-  context: { tokens: 87_300, model: 'gpt-5.6-terra', window: 258_400 }
+  context: { tokens: 87_300, model: 'gpt-5.6-terra', window: 258_400 },
+  // Read off the commands that opened the files — Codex has no skill event, so a stage on one of
+  // these rows is inferred from a `sed` of a SKILL.md and nothing else.
+  skillTrail: ['dev-feature', 'style-plan']
 });
 
 // Idle, and in a worktree — the second half is what makes the cwd print, since the row only says

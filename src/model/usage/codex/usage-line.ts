@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// The three lines the usage scan reads out of a `rollout-*.jsonl`. A peer of
+// The lines the usage folder reads out of a `rollout-*.jsonl`. A peer of
 // `sessions/codex/rollout-schema.ts` rather than an extension of it: that one is shaped for the tail
 // rule, which reads turn markers and a pending tool, and this one reads counters. The same split
 // Claude's `usage-schema.ts` and `transcript-schema.ts` already have.
@@ -8,6 +8,8 @@ import { z } from 'zod';
 //   * `event_msg/token_count`   — what one request cost. One line per request.
 //   * `turn_context`            — the model the next requests run under. It changes mid-session.
 //   * `session_meta`            — the head of the file, read for the CLI version and nothing else.
+//   * a tool call               — the command the model ran, which is where `invocations.ts` finds
+//                                 a skill being loaded. Codex has no skill event; it reads the file.
 //
 // Everything else passes through. This format drifts between Codex releases and inlines whole
 // system prompts, so an unknown line is skipped rather than fatal.
@@ -42,6 +44,11 @@ const usageLineSchema = z
         model: z.string().optional(),
         // session_meta.
         cli_version: z.string().optional(),
+        // custom_tool_call / function_call — the command the model asked to run, which is where a
+        // Codex skill load is written. The two names are the current and the older shape of one
+        // field; `invocations.ts` reads whichever is there.
+        input: z.string().optional(),
+        arguments: z.string().optional(),
         // token_count. `last_token_usage` is the request just made; `total_token_usage` accumulates
         // over the session and would bill every turn for every turn before it.
         //
