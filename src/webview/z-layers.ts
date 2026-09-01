@@ -31,6 +31,9 @@ const LAYER_ORDER = [
   // Pinned to the panel rather than to anything on the page — the perf overlay. Over every surface,
   // under anything the reader opened on purpose.
   ['floating', 60],
+  // The notification stack. Above the perf overlay, which shares the bottom-right corner and is
+  // the older news of the two; under a dialog, which the reader opened and a toast interrupted.
+  ['toast', 65],
   // The spotlight and the dialogs, over all of it.
   ['overlay', 70]
 ] as const;
