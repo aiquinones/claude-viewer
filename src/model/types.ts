@@ -195,6 +195,30 @@ export interface AgentPullRequest {
   url: string;
 }
 
+// What an agent can announce it produced. Deliberately a short closed list: the kind picks an icon
+// and decides whether the chip opens a browser or an editor, and a kind nobody can draw is a chip
+// that says nothing. An unrecognised one degrades to `link` rather than being dropped — see
+// `sessions/deliverables.ts`.
+//
+// Deliberately not annotated: a type here would widen the literals `DeliverableKind` derives from.
+export const DELIVERABLE_KINDS = ['storybook', 'link', 'file', 'pr'] as const;
+
+export type DeliverableKind = (typeof DELIVERABLE_KINDS)[number];
+
+// Something a session said it produced — a Storybook it started, a plan it wrote, a PR it opened.
+// The only thing in the panel an agent puts there on purpose: everything else on a row is read out
+// of a log that was written for other reasons.
+export interface Deliverable {
+  kind: DeliverableKind;
+  // What the chip says. The kind's own name when the declaration didn't give one.
+  title: string;
+  // Where it goes. Exactly one of the two: a `url` is http or https and nothing else — an agent
+  // writes this, so the scheme is checked at the loader rather than trusted at the `<a>` — and a
+  // `path` is already absolute, resolved against the session's cwd when it was read.
+  url?: string;
+  path?: string;
+}
+
 // One agent process that exists right now, joined to the log it's writing. Unlike every other entry
 // here this describes something live, so the time fields are absolute — the view ages them against
 // its own clock rather than trusting when the snapshot was built.
@@ -233,6 +257,10 @@ export interface AgentSession {
   // The PR this session opened, if it opened one. Claude only — neither other CLI logs an
   // equivalent this surface reads.
   pullRequest?: AgentPullRequest;
+  // What this session has announced it produced, oldest first. Claude only so far, and absent
+  // rather than empty when nothing was declared — which is every session until someone puts the
+  // instructions in their CLAUDE.md.
+  deliverables?: Deliverable[];
   // The last prompt, already truncated by the CLI that wrote it.
   lastPrompt?: string;
   tail: TranscriptTail;

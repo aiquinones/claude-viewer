@@ -1,5 +1,6 @@
 import { AgentSession } from '../../types';
-import { SkillTrailCache, readSkillTrail } from '../skill-trail';
+import { ScanFindings, SessionScanCache, readSessionScan } from '../session-scan';
+import { codexDeliverablesIn } from './deliverables';
 import { liveCodexThreadIds } from './live';
 import { CodexRolloutSummary, readRollout } from './rollout';
 import { codexSkillsIn } from './skills';
@@ -13,7 +14,9 @@ import { CodexThread, readCodexThreads, threadTitle } from './threads-db';
 // machine, the way Copilot's usage store is. A thread with no row in it is dropped rather than drawn
 // blank: the lock lands before the row does, so a session in its first moments is normal and
 // appearing a poll later is the right outcome.
-export const loadCodexSessions = async (skillTrails: SkillTrailCache): Promise<AgentSession[]> => {
+export const loadCodexSessions = async (
+  sessionScans: SessionScanCache
+): Promise<AgentSession[]> => {
   const threadIds: string[] = await liveCodexThreadIds();
   if (threadIds.length === 0) return [];
 
@@ -27,21 +30,24 @@ export const loadCodexSessions = async (skillTrails: SkillTrailCache): Promise<A
     // context series makes: a sub-agent is a conversation this row isn't about.
     .filter((thread) => !thread.isSubagent);
 
-  return Promise.all(live.map((thread) => toEntry({ thread, skillTrails })));
+  return Promise.all(live.map((thread) => toEntry({ thread, sessionScans })));
 };
 
 interface ToEntryArgs {
   thread: CodexThread;
-  skillTrails: SkillTrailCache;
+  sessionScans: SessionScanCache;
 }
 
-const toEntry = async ({ thread, skillTrails }: ToEntryArgs): Promise<AgentSession> => {
+const toEntry = async ({ thread, sessionScans }: ToEntryArgs): Promise<AgentSession> => {
   const summary: CodexRolloutSummary = await readRollout(thread.rolloutPath);
 
-  const skillTrail: string[] = await readSkillTrail({
+  const scan: ScanFindings = await readSessionScan({
     path: thread.rolloutPath,
-    cache: skillTrails,
-    parse: codexSkillsIn
+    cache: sessionScans,
+    parse: (lines) => ({
+      skills: codexSkillsIn(lines),
+      deliverables: codexDeliverablesIn({ lines, cwd: thread.cwd })
+    })
   });
 
   return {
@@ -62,7 +68,8 @@ const toEntry = async ({ thread, skillTrails }: ToEntryArgs): Promise<AgentSessi
       ? { tokens: summary.contextTokens, model: thread.model, window: summary.contextWindow }
       : undefined,
     // Absent rather than empty, the way every other field a session may not have is.
-    skillTrail: skillTrail.length > 0 ? skillTrail : undefined,
+    skillTrail: scan.skills.length > 0 ? scan.skills : undefined,
+    deliverables: scan.deliverables.length > 0 ? scan.deliverables : undefined,
     // A thread that has written no rollout line yet is as old as the index says.
     lastActivityAt: summary.lastActivityAt || thread.updatedAt || thread.createdAt,
     startedAt: thread.createdAt,

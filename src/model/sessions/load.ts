@@ -3,17 +3,18 @@ import { loadClaudeSessions } from './claude/load';
 import { loadCodexSessions } from './codex/load';
 import { loadCopilotSessions } from './copilot/load';
 import { CopilotPrCache } from './copilot/pull-request';
-import { SkillTrailCache, pruneSkillTrails } from './skill-trail';
+import { SessionScanCache, pruneSessionScans } from './session-scan';
 
 interface LoadAgentSessionsArgs {
   // Copilot only: the PR a session opened is named once, anywhere in a log that reaches megabytes,
   // so it's found by a full read the first time and by the appended bytes after. Claude repeats its
   // own PR line near the end of the file, so its loader needs nothing.
   copilotPullRequests: CopilotPrCache;
-  // All three: the skills a session has loaded sit all through its log rather than at an end of it,
-  // so the same full-read-then-append rule applies to each. One cache for all of them, which is why
-  // the pruning happens here — a loader can only see its own tool's paths.
-  skillTrails: SkillTrailCache;
+  // All three: the skills a session has loaded and the deliverables it declared both sit all
+  // through its log rather than at an end of it, so the same full-read-then-append rule applies to
+  // each. One cache and one pass for both, which is why the pruning happens here — a loader can only
+  // see its own tool's paths.
+  sessionScans: SessionScanCache;
 }
 
 // Every agent running right now, whichever CLI is running it. Each tool has its own loader because
@@ -21,17 +22,17 @@ interface LoadAgentSessionsArgs {
 // answers — what is running, and where — spans all of them.
 export const loadAgentSessions = async ({
   copilotPullRequests,
-  skillTrails
+  sessionScans
 }: LoadAgentSessionsArgs): Promise<AgentSession[]> => {
   const [claude, copilot, codex]: AgentSession[][] = await Promise.all([
-    loadClaudeSessions(skillTrails),
-    loadCopilotSessions({ pullRequests: copilotPullRequests, skillTrails }),
-    loadCodexSessions(skillTrails)
+    loadClaudeSessions(sessionScans),
+    loadCopilotSessions({ pullRequests: copilotPullRequests, sessionScans }),
+    loadCodexSessions(sessionScans)
   ]);
 
   const live: AgentSession[] = [...claude, ...copilot, ...codex];
-  pruneSkillTrails(
-    skillTrails,
+  pruneSessionScans(
+    sessionScans,
     live.map((agent) => agent.transcriptPath)
   );
 

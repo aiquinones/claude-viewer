@@ -182,6 +182,11 @@
         "category": "Claude Viewer"
       },
       {
+        "command": "claudeViewer.viewDocs",
+        "title": "View Docs",
+        "category": "Claude Viewer"
+      },
+      {
         "command": "claudeViewer.openUsage",
         "title": "Open Usage",
         "category": "Claude Viewer"

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { ANALYZE_SESSION_COMMAND, analyzeSession } from './commands/analyze-session/analyze-session';
 import { FIND_SKILL_COMMAND, findSkill } from './commands/find-skill/find-skill';
 import { handleUri } from './commands/handle-uri/handle-uri';
+import { VIEW_DOCS_COMMAND, viewDocs } from './commands/view-docs/view-docs';
 import {
   OPEN_SURFACE_COMMANDS,
   openSurface
@@ -9,6 +10,7 @@ import {
 import { perfMark } from './model/perf/recorder';
 import { initAgentColors } from './host/agent-colors-store';
 import { startWatchingAgents, stopWatchingAgents } from './host/agents-store';
+import { writeViewerDocs } from './host/viewer-docs';
 import { startWatching, stopWatching } from './host/config-store';
 import { LAUNCH_COMMAND, openPanel } from './host/panel';
 import { startWatchingSettings } from './host/settings-store';
@@ -29,6 +31,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
     vscode.commands.registerCommand(LAUNCH_COMMAND, () => openPanel({ context })),
     vscode.commands.registerCommand(FIND_SKILL_COMMAND, () => void findSkill({ context })),
     vscode.commands.registerCommand(ANALYZE_SESSION_COMMAND, () => void analyzeSession({ context })),
+    vscode.commands.registerCommand(VIEW_DOCS_COMMAND, () => void viewDocs({ context })),
     // One body, one registration per surface it opens. Adding a surface to the palette is an entry
     // in that map plus one in package.json.
     ...Object.entries(OPEN_SURFACE_COMMANDS).map(([command, surface]) =>
@@ -43,6 +46,9 @@ export const activate = (context: vscode.ExtensionContext): void => {
   void startWatching();
   // One file per running agent, watched separately from the config it never touches.
   startWatchingAgents();
+  // The docs an agent reads, refreshed to whatever this version ships. Not awaited — nothing in the
+  // launch depends on them, and a slow home directory shouldn't hold up the panel.
+  void writeViewerDocs(context.extensionUri);
 
   // Marked rather than wrapped: VS Code calls this synchronously, so there's no promise to time the
   // reads inside. The watcher setup below it doesn't count toward the launch.

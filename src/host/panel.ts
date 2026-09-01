@@ -326,11 +326,19 @@ const _isKnownMemory = (path: string): boolean =>
 const _hasFrontmatter = (path: string): boolean => _isKnownSkill(path) || _isKnownMemory(path);
 
 // Anything the host itself read — a SKILL.md, a CLAUDE.md, a memory, a live agent's transcript.
+// The paths the webview is allowed to name. Every entry but the last is a file the host itself
+// found on disk; a deliverable's path is the one an *agent* chose, which is why the loader resolves
+// it against that session's cwd and drops anything outside — see `sessions/deliverables.ts`. By the
+// time it reaches here it has already been checked, and this is the list that makes it openable.
 const _isKnownFile = (path: string): boolean =>
   _hasFrontmatter(path) ||
   (cachedSnapshot()?.systemPrompt.some((file) => file.path === path) ?? false) ||
   cachedSnapshot()?.memory?.index.path === path ||
-  cachedAgents().some((agent) => agent.transcriptPath === path);
+  cachedAgents().some(
+    (agent) =>
+      agent.transcriptPath === path ||
+      (agent.deliverables?.some((deliverable) => deliverable.path === path) ?? false)
+  );
 
 // Picking something that has no implementation yet — a surface with no view, a theme with no
 // palette. A notification rather than a line in the panel, so the landing page stays a grid of

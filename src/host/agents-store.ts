@@ -4,7 +4,7 @@ import { perfPhase } from '../model/perf/recorder';
 import { carryForward } from '../model/sessions/carry-forward';
 import { CopilotPrCache, newCopilotPrCache } from '../model/sessions/copilot/pull-request';
 import { loadAgentSessions } from '../model/sessions/load';
-import { SkillTrailCache, newSkillTrailCache } from '../model/sessions/skill-trail';
+import { SessionScanCache, newSessionScanCache } from '../model/sessions/session-scan';
 import { AgentSession } from '../model/types';
 
 // Live agents are read on their own channel rather than as a field on the snapshot, for the reason
@@ -49,7 +49,7 @@ const copilotPullRequests: CopilotPrCache = newCopilotPrCache();
 
 // Held across passes for the same reason: a session's skill loads are spread through its whole log,
 // so the first pass walks the file and every pass after reads only what was appended.
-const skillTrails: SkillTrailCache = newSkillTrailCache();
+const sessionScans: SessionScanCache = newSessionScanCache();
 
 const changeEmitter: vscode.EventEmitter<AgentSession[]> = new vscode.EventEmitter();
 
@@ -62,7 +62,7 @@ export const cachedAgents = (): AgentSession[] => agents ?? [];
 
 export const refreshAgents = async (): Promise<AgentSession[]> => {
   const loaded: AgentSession[] = await perfPhase('agents', () =>
-    loadAgentSessions({ copilotPullRequests, skillTrails })
+    loadAgentSessions({ copilotPullRequests, sessionScans })
   );
   // The third thing held across passes, and the only one that isn't a cache of work: a row's PR
   // link, context reading and last prompt live further back in the log than the window each pass

@@ -129,6 +129,9 @@ export const AgentsView = ({
                 onAnalyzeSession({ sessionId: agent.sessionId, tool: agent.tool })
               }
               onOpenLog={(agent) => onOpenFile(agent.transcriptPath)}
+              onOpenDeliverable={(deliverable) => {
+                if (deliverable.path) onOpenFile(deliverable.path);
+              }}
               onCopySessionId={(agent) => onCopySessionId(agent.sessionId)}
               onKill={(agent) => onKillAgent(agent.sessionId)}
             />
@@ -145,6 +148,9 @@ export const AgentsView = ({
                 onAnalyzeSession({ sessionId: agent.sessionId, tool: agent.tool })
               }
               onOpenLog={(agent) => onOpenFile(agent.transcriptPath)}
+              onOpenDeliverable={(deliverable) => {
+                if (deliverable.path) onOpenFile(deliverable.path);
+              }}
               onCopySessionId={(agent) => onCopySessionId(agent.sessionId)}
               onKill={(agent) => onKillAgent(agent.sessionId)}
             />
