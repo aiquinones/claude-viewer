@@ -2,6 +2,14 @@
 
 Notable changes to Claude Viewer, newest first.
 
+## 0.28.1 - 2026-08-31
+
+### Changed
+
+- **A deliverable chip is a bordered box, not a link.** The color that identifies the kind is in
+  the icon, so the title reads as plain text — a blue title beside a pink mark was two claims about
+  the same chip. Each kind now has its own icon color, and an unrecognised one stays muted.
+
 ## 0.28.0 - 2026-08-31
 
 ### Added
