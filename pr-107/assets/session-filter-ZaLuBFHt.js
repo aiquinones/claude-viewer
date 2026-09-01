@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";import{i as t,r as n}from"./display-path-DK-xDAMN.js";var r,i;function a(){return(a=e((()=>{t(),r=e=>e.title??n(e.cwd),i=(e,t)=>{let n=t.trim().toLowerCase();return n===``?e:e.filter(e=>r(e).toLowerCase().includes(n))}})))()}export{a as n,r,i as t};
