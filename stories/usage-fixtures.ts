@@ -114,9 +114,9 @@ export const bothClis: UsageReport = report([
   })
 ]);
 
-// All three CLIs in one window, which is what the cost header has to survive: dollars, AIU, and a
-// dash. Codex bills against a rate-limit window rather than per token, so it contributes tokens to
-// the token total and no figure at all to the cost one.
+// All three CLIs in one window, which is what the cost header has to survive: two dollar figures
+// worked out from tokens and one AIU figure the CLI reported itself. Claude and Codex are the same
+// kind of number in the same unit and are still drawn apart, since they are two rate cards.
 export const threeClis: UsageReport = report([
   turn({ minutesAgo: 15, skill: 'dev-feature', output: 3_400 }),
   turn({ minutesAgo: 25, output: 4_800 }),
@@ -136,6 +136,14 @@ export const threeClis: UsageReport = report([
 export const unpricedModel: UsageReport = report([
   turn({ minutesAgo: 30, skill: 'dev-feature', output: 2_600 }),
   turn({ minutesAgo: 60, output: 1_900, model: 'claude-opus-6' })
+]);
+
+// A window where a whole CLI went unpriced: Codex on a model that shipped after the rate table was
+// written. Its figure is a dash while the Claude one beside it is a number — the state the header
+// used to be in for every Codex session, now reached only by a model nobody has rates for.
+export const unpricedCodex: UsageReport = report([
+  turn({ minutesAgo: 20, skill: 'dev-feature', output: 2_100 }),
+  turn({ minutesAgo: 45, output: 3_300, tool: 'codex', model: 'gpt-5.9-unheard-of' })
 ]);
 
 // Nothing today, something this week. The Day window is the empty state and the Week window isn't,

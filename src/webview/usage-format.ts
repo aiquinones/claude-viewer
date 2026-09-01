@@ -2,7 +2,7 @@
 // Copilot one — different units with no conversion between them, so each prints on its own terms and
 // neither is ever added to the other. Tokens still print inside the pricing card.
 
-import { UsdPart } from '../model/usage/pricing';
+import { CacheRates, UsdPart } from '../model/usage/pricing';
 import { UsageSlice, UsageTotals } from '../model/usage/types';
 
 // A week of turns runs to millions, which `format-size`'s `k` alone can't say. Same idea though:
@@ -67,3 +67,16 @@ export const USD_PART_LABEL: Record<UsdPart, string> = {
 // read as a rate card rather than as an amount.
 export const formatRate = (perMTok: number): string =>
   Number.isInteger(perMTok) ? `$${perMTok}` : `$${perMTok.toFixed(2)}`;
+
+// How a model's cache is priced, as multiples of its input rate. The two TTLs are named only where
+// they differ — OpenAI charges nothing extra to write one, which is a sentence rather than a pair of
+// identical numbers the reader would take for a distinction.
+export const formatCacheRates = (cache: CacheRates): string => {
+  const reads: string = `reads ${cache.read}× input`;
+  if (cache.write5m !== cache.write1h) {
+    return `${reads} · writes ${cache.write5m}× (5m) and ${cache.write1h}× (1h)`;
+  }
+  return cache.write5m === 1
+    ? `${reads} · writes at the input rate`
+    : `${reads} · writes ${cache.write5m}× input`;
+};

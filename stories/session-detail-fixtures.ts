@@ -318,6 +318,22 @@ export const codexDetail: SessionDetail = {
   contexts: contextPointsFromTurns(codexTurns)
 };
 
+// The same session on a model that shipped after the rate table was written. Nothing can price it,
+// so the headline is a dash and the cost chart names the model instead of drawing a $0 curve along
+// the floor — the state every Codex session used to be in, now reached only this way.
+const unpricedTurns: UsageTurn[] = codexTurns.map((one) => ({
+  ...one,
+  model: 'gpt-5.9-unheard-of'
+}));
+
+export const unpricedModelDetail: SessionDetail = {
+  sessionId: DETAIL_SESSION_ID.codex,
+  tool: 'codex',
+  turns: unpricedTurns,
+  invocations: [],
+  contexts: contextPointsFromTurns(unpricedTurns)
+};
+
 export const codexSession: SessionUsage = {
   sessionId: codexDetail.sessionId,
   tool: 'codex',

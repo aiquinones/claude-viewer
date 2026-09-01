@@ -15,7 +15,8 @@ import {
   copilotSession,
   liveClaudeAgent,
   liveCopilotAgent,
-  missingDetail
+  missingDetail,
+  unpricedModelDetail
 } from '../../session-detail-fixtures';
 import { usageSkills } from '../../usage-fixtures';
 
@@ -84,12 +85,19 @@ export const CopilotDoubleLoad: Story = {
   args: { session: copilotSession, detail: copilotDetail }
 };
 
-// A Codex session, which differs from the other two in both directions. It bills against a
-// rate-limit window rather than per token, so the headline is a dash and the cost chart says why
-// instead of drawing a $0 curve along the floor — while the context chart reads exactly like
-// Claude's. And its skill list says Codex records no skill load, rather than that none ran.
+// A Codex session. Its cost curve and its context curve both read exactly like Claude's — the
+// dollars come off OpenAI's rate card rather than Anthropic's, which is a second table and not a
+// second kind of number. Where it still differs is the skill list, which says Codex records no skill
+// load rather than that none ran.
 export const Codex: Story = {
   args: { session: codexSession, detail: codexDetail }
+};
+
+// The same session on a model newer than the rate table. The headline is a dash and the cost chart
+// names the model instead of drawing a $0 curve along the floor, while everything measured in tokens
+// — the context curve especially — is unaffected.
+export const UnpricedModel: Story = {
+  args: { session: codexSession, detail: unpricedModelDetail }
 };
 
 // The setting says Standard and the session ran Claude's tokenizer, so every size on the page is

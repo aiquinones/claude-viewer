@@ -4,10 +4,16 @@ import { summarizeTurns } from '@src/model/usage/aggregate';
 import { SessionDetail, UsageSummaryData } from '@src/model/usage/types';
 import { surfaceAccent } from '@src/webview/surfaces';
 import { SessionHeadline } from '@src/webview/session-analysis/SessionHeadline';
-import { claudeDetail, codexDetail, copilotDetail } from '../../session-detail-fixtures';
+import {
+  claudeDetail,
+  codexDetail,
+  copilotDetail,
+  unpricedModelDetail
+} from '../../session-detail-fixtures';
 
-// The session page's own total. Its own component because what it prints depends on the CLI: three
-// of them, three answers, and one of those is that there is no answer.
+// The session page's own total. Its own component because what it prints depends on more than the
+// figure: two of the three CLIs are priced from a rate table, and a session can have run on a model
+// that table has never heard of.
 
 const summaryOf = (detail: SessionDetail): UsageSummaryData =>
   summarizeTurns({ turns: detail.turns });
@@ -35,8 +41,8 @@ export default meta;
 
 type Story = StoryObj<typeof SessionHeadline>;
 
-// Dollars, which is Claude's unit and the only one this repo has a rate table for. The (i) beside
-// the caption is where that figure comes apart.
+// Dollars, worked out from the tokens the transcript recorded. The (i) beside the caption is where
+// that figure comes apart.
 export const Claude: Story = {};
 
 // AIU, which Copilot writes itself. A different unit rather than a converted one — nothing in either
@@ -45,9 +51,16 @@ export const Copilot: Story = {
   args: { detail: copilotDetail, summary: summaryOf(copilotDetail) }
 };
 
-// The case this component exists for. Codex bills against a rate-limit window, so there is no
-// per-session figure at all — a dash, with the reason in the hover, rather than a `$0` or a `0 AIU`
-// that would read as a session that cost nothing. The request count beside it is still real.
-export const CodexHasNoCost: Story = {
+// Dollars again, off OpenAI's rate card rather than Anthropic's. Codex bills against a rate-limit
+// window and pays none of this — but neither does Claude Code on a plan, and the (i) says so for
+// both, so the two are the same kind of estimate.
+export const Codex: Story = {
   args: { detail: codexDetail, summary: summaryOf(codexDetail) }
+};
+
+// The case this component exists for. Nothing in the session could be priced — a model newer than
+// the rate table — so a dash with the reason in the hover, rather than a `$0` that would read as a
+// session that cost nothing. The request count beside it is still real.
+export const UnpricedModel: Story = {
+  args: { detail: unpricedModelDetail, summary: summaryOf(unpricedModelDetail) }
 };

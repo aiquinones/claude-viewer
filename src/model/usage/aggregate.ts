@@ -4,6 +4,7 @@
 
 import { AGENT_TOOLS, AgentTool } from '../types';
 import { cutoff } from './window';
+import { costUnitOf, unpricedModelsIn } from './cost-unit';
 import { EMPTY_USD_PARTS, ratesFor, sumUsdParts, usdPartsFor, UsdParts } from './pricing';
 import {
   EMPTY_TOTALS,
@@ -90,16 +91,17 @@ export const summarizeTurns = ({ turns: inWindow }: SummarizeTurnsArgs): UsageSu
     byTool: Object.fromEntries(
       AGENT_TOOLS.map((tool) => [tool, sum(inWindow.filter((turn) => turn.tool === tool))])
     ) as Record<AgentTool, UsageTotals>,
-    unpricedModels: unpricedIn(inWindow),
+    unpricedModels: unpricedModelsIn(inWindow),
     costParts: costPartsOf(inWindow),
     models: modelsIn(inWindow)
   };
 };
 
-// The dollar figure, split by what was billed. Claude only, like the total it adds up to.
+// The dollar figure, split by what was billed. Every CLI whose cost is dollars, which is the two
+// that record tokens and no price — Copilot's own AIU figure is not this number and never joins it.
 const costPartsOf = (turns: UsageTurn[]): UsdParts =>
   turns.reduce((parts: UsdParts, turn: UsageTurn) => {
-    if (turn.tool !== 'claude') return parts;
+    if (costUnitOf(turn.tool) !== 'usd') return parts;
 
     const next: UsdParts | undefined = usdPartsFor({ model: turn.model, tokens: turn.tokens });
     if (!next) return parts;
@@ -112,8 +114,8 @@ const costPartsOf = (turns: UsageTurn[]): UsdParts =>
     };
   }, EMPTY_USD_PARTS);
 
-// Which models produced the window, largest first. Spans both CLIs — Copilot runs Claude models
-// too, so this is the one place the two are counted together on something other than tokens.
+// Which models produced the window, largest first. Spans all three CLIs — Copilot runs Claude
+// models too, so this is the one place they are counted together on something other than tokens.
 const modelsIn = (turns: UsageTurn[]): UsageModelUse[] => {
   const output: number = turns.reduce((sum, turn) => sum + turn.tokens.output, 0);
   const byModel: Map<string, UsageTurn[]> = new Map();
@@ -133,8 +135,9 @@ const modelsIn = (turns: UsageTurn[]): UsageModelUse[] => {
         turns: totals.turns,
         usd: totals.usd,
         fraction: output === 0 ? 0 : totals.outputTokens / output,
-        // Only Claude's rows are priced at all, so an unrated model is only worth flagging there.
-        unpriced: group.some((turn) => turn.tool === 'claude') && !ratesFor(model)
+        // Only a row priced from the table can be missing from it — Copilot reports its own
+        // figure, so an unrated model is nothing to flag there.
+        unpriced: group.some((turn) => costUnitOf(turn.tool) === 'usd') && !ratesFor(model)
       };
     })
     .sort((left, right) => right.outputTokens - left.outputTokens);
@@ -151,14 +154,14 @@ const sum = (turns: UsageTurn[]): UsageTotals =>
     EMPTY_TOTALS
   );
 
-// Dollars are Claude's number and AIU is Copilot's, and neither converts to the other. Pricing a
-// Copilot turn would be worse than not having one: it records the output side only, so the figure
-// would come out several times low and still look like a price.
+// Dollars are what the token-recording CLIs get and AIU is Copilot's, and neither converts to the
+// other. Pricing a Copilot turn would be worse than not having one: it records the output side only,
+// so the figure would come out several times low and still look like a price.
 //
 // Every billed part counts. A figure that left out the context re-reads would be four fifths short
 // on a real session, which is the one error a cost figure can't afford.
 const usdOf = (turn: UsageTurn): number => {
-  if (turn.tool !== 'claude') return 0;
+  if (costUnitOf(turn.tool) !== 'usd') return 0;
 
   const parts: UsdParts | undefined = usdPartsFor({ model: turn.model, tokens: turn.tokens });
   if (!parts) return 0;
@@ -171,16 +174,6 @@ const usdOf = (turn: UsageTurn): number => {
 const sourcesIn = (turns: UsageTurn[]): UsageSource[] => {
   const seen: Set<UsageSource> = new Set(turns.map((turn) => turn.source));
   return (['read', 'inferred'] as const).filter((source) => seen.has(source));
-};
-
-// Sorted and deduped — the view names these, and a list that reorders between refreshes reads as
-// churn.
-const unpricedIn = (turns: UsageTurn[]): string[] => {
-  const unpriced: string[] = turns
-    .filter((turn) => turn.tool === 'claude' && !ratesFor(turn.model))
-    .map((turn) => turn.model);
-
-  return [...new Set(unpriced)].sort((left, right) => left.localeCompare(right));
 };
 
 interface InScopeArgs {
