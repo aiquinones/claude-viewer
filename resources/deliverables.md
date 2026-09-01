@@ -35,9 +35,7 @@ echo 'claude-viewer:deliverable {"type":"link","title":"Preview","url":"https://
 ## Rules worth knowing
 
 - **Declare it when it exists**, not when you plan to. A chip is a thing to click.
-- **Re-declaring the same type and title replaces the chip** rather than adding a second one, so a
-  step that reruns is free to announce itself again.
-- **A `path` has to be inside the session's working directory.** One outside it is dropped — a
-  deliverable is something this session produced.
+- **Re-declaring the same type and title replaces the chip** rather than adding a second one.
+- **A `path` has to be inside the session's working directory.** One outside it is dropped.
 - **A `url` has to be `http` or `https`.** Anything else is dropped.
 - Eight per session. Past that the oldest go.
