@@ -116,7 +116,7 @@ export const CopilotMcpTool: Story = { args: { agent: copilotMcpAgent } };
 export const CopilotSubagents: Story = { args: { agent: copilotSubagentAgent } };
 
 // A Codex row mid-turn. Two things are only true here: its window is off its own log rather than
-// the built-in table, and it carries no pid — so the right-click menu comes up without a Kill on it.
+// the built-in table, and it carries no pid — so the row's menu comes up without a Kill on it.
 export const CodexWorking: Story = { args: { agent: codexWorkingAgent } };
 
 // Idle, and in a worktree — which is what makes the folder print, since a row only says where it is

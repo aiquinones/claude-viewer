@@ -11,6 +11,21 @@ export interface Size {
   height: number;
 }
 
+interface AnchorArgs {
+  // The click's press count. A pointer reports one or more; the keyboard reports none.
+  detail: number;
+  // Where the pointer was, in client coordinates. Meaningless when there wasn't one.
+  pointer: Point;
+  // The row the click was handled on.
+  row: { left: number; bottom: number };
+}
+
+// Where a menu opened by a click on a row hangs from. A keyboard Enter on a focused row arrives as
+// a click at `0,0` with a press count of zero, which would park the menu in the panel's top-left
+// corner — so that case hangs it under the row's own left edge instead.
+export const anchorFor = ({ detail, pointer, row }: AnchorArgs): Point =>
+  detail > 0 ? pointer : { x: row.left, y: row.bottom };
+
 interface ClampArgs {
   // Where the pointer was, in client coordinates.
   point: Point;

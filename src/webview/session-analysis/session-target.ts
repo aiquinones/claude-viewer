@@ -12,7 +12,7 @@ export interface SessionTarget {
 }
 
 // The same target, plus what makes asking for it twice a second event. Without the nonce, opening a
-// session, going back, and right-clicking the same row again sets state that hasn't changed — so
+// session, going back, and picking it off the same row again sets state that hasn't changed — so
 // nothing happens. Same shape and same reason as `Reveal`.
 export interface SessionRequest extends SessionTarget {
   nonce: number;
