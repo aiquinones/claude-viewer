@@ -18,13 +18,14 @@ import { formatAge } from './format-age';
 import { isLinkClick } from './link-click';
 
 // One live agent: what it's doing, what it's called, where it's working, and which part of its work
-// is open. Clicking goes to the agent itself — its Claude Code tab, or the terminal it runs in.
+// is open. Clicking it with either button opens its commands, and going to the agent itself — its
+// Claude Code tab, or the terminal it runs in — is the first of them.
 //
 // No age on most rows. A counter ticking on every row of a list you leave open is motion that never
 // resolves into anything you'd act on, and the two states worth reading — Working and Idle — say
 // what they are outright. Waiting is the exception, and it keeps its age beside the badge.
 //
-// Everything else is behind a right-click: the transcript, the session id, killing the process, and
+// Everything else is behind the same menu: the transcript, the session id, killing the process, and
 // the row's colour. Those used to be two buttons that faded in at the corner, which is a lot of
 // chrome on every row of a list you leave open — and a menu can name what it does, where an icon
 // has to be hovered to say.
@@ -52,9 +53,10 @@ export const AgentRow = ({
 
   return (
     <div
+      onPointerDown={menu.arm}
       onClick={(event) => {
         if (isLinkClick(event)) return;
-        onOpen(agent);
+        menu.toggle(event);
       }}
       onContextMenu={menu.open}
       style={row.style}
@@ -145,6 +147,7 @@ export const AgentRow = ({
           agent={agent}
           anchor={menu.anchor}
           onClose={menu.close}
+          onOpen={() => onOpen(agent)}
           onAnalyze={() => onAnalyze(agent)}
           onOpenLog={() => onOpenLog(agent)}
           onCopySessionId={() => onCopySessionId(agent)}

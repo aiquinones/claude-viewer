@@ -1,5 +1,12 @@
 import { CSSProperties, RefObject, useLayoutEffect, useRef, useState } from 'react';
-import { ChartLine, Copy, LucideIcon, OctagonX, ScrollText } from 'lucide-react';
+import {
+  ChartLine,
+  Copy,
+  LucideIcon,
+  OctagonX,
+  ScrollText,
+  SquareArrowOutUpRight
+} from 'lucide-react';
 import { AgentSession } from '../../model/types';
 import { Button } from '@/components/ui/button';
 import { Z } from '../z-layers';
@@ -14,25 +21,31 @@ import { Point, clampToViewport } from './placement';
 
 interface AgentMenuProps {
   agent: AgentSession;
-  // Where the right-click landed, in client coordinates.
+  // Where the click landed, in client coordinates.
   anchor: Point;
   // Whether it opens on the confirm rather than on the commands. The row never passes it — it's
   // here so a story can show the second state, which is otherwise only reachable by pressing the
   // one command you don't want to press.
   initialConfirming?: boolean;
   onClose: () => void;
-  // Leaves the surface — it opens the usage surface's page for this session. The only command here
-  // that goes somewhere rather than doing something, which is why it's first.
+  // The agent itself — its Claude Code tab, or the terminal it runs in. What the row used to do on
+  // a plain click, which is why it's first and why the menu can take that click.
+  onOpen: () => void;
+  // Leaves the panel's own surfaces the other way: the usage surface's page for this session.
   onAnalyze: () => void;
   onOpenLog: () => void;
   onCopySessionId: () => void;
   onKill: () => void;
 }
 
-// The commands on one agent row, opened by right-clicking it. Everything here is about the session
-// rather than about the config the rest of the panel shows, which is why it's a menu on the row and
-// not a column of buttons: one of the four goes somewhere, two are things you do once, and the last
-// ends a session.
+// The commands on one agent row, opened by clicking it with either button. Everything here is about
+// the session rather than about the config the rest of the panel shows, which is why it's a menu on
+// the row and not a column of buttons: two of the five go somewhere, two are things you do once,
+// and the last ends a session.
+//
+// Opening the agent is one of the five rather than what the row does on its own. It costs a click
+// on the most common command and buys the other four an entry point — nothing on a row advertises
+// a right-click, and a left click advertises itself.
 //
 // Kill is drawn only for a row whose CLI names its process. Codex names one nowhere, so there is
 // nothing to signal — and an item that's present and does nothing is worse than an absent one on a
@@ -50,6 +63,7 @@ export const AgentMenu = ({
   anchor,
   initialConfirming = false,
   onClose,
+  onOpen,
   onAnalyze,
   onOpenLog,
   onCopySessionId,
@@ -71,7 +85,7 @@ export const AgentMenu = ({
       role="menu"
       aria-label={`Commands for ${agent.tool} session ${agent.sessionId.slice(0, 8)}`}
       style={{ zIndex: Z.card, left: point.x, top: point.y } as CSSProperties}
-      // The row underneath opens the agent on click, and the dismiss listener closes on any press.
+      // The row underneath opens this menu on click, and the dismiss listener closes on any press.
       // Both are stopped here, or picking an item would do the item and one other thing.
       onClick={(event) => event.stopPropagation()}
       onPointerDown={(event) => event.stopPropagation()}
@@ -81,6 +95,11 @@ export const AgentMenu = ({
         <KillConfirm onCancel={() => setConfirming(false)} onKill={() => run(onKill)} />
       ) : (
         <>
+          <MenuItem
+            icon={SquareArrowOutUpRight}
+            label={MENU_ITEMS.open.label}
+            onClick={() => run(onOpen)}
+          />
           <MenuItem
             icon={ChartLine}
             label={MENU_ITEMS.analyze.label}

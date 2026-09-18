@@ -37,11 +37,12 @@ export const AgentRobotRow = ({
 
   return (
     <div
+      onPointerDown={menu.arm}
       // A squircle is a link, so the row has to let it through rather than the link stopping its
       // own bubble — see `link-click.ts`.
       onClick={(event) => {
         if (isLinkClick(event)) return;
-        onOpen(agent);
+        menu.toggle(event);
       }}
       onContextMenu={menu.open}
       style={row.style}
@@ -95,6 +96,7 @@ export const AgentRobotRow = ({
           agent={agent}
           anchor={menu.anchor}
           onClose={menu.close}
+          onOpen={() => onOpen(agent)}
           onAnalyze={() => onAnalyze(agent)}
           onOpenLog={() => onOpenLog(agent)}
           onCopySessionId={() => onCopySessionId(agent)}
