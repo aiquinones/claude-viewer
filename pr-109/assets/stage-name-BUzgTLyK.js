@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";var t,n;function r(){return(r=e((()=>{t=({skill:e,names:t})=>{let n=(t[e]??``).trim();return n.length>0?n:void 0},n=({trail:e,names:n})=>{for(let r=e.length-1;r>=0;--r){let i=e[r],a=t({skill:i,names:n});if(a)return{skill:i,label:a}}}})))()}export{r as n,t as r,n as t};
